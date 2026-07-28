@@ -1,0 +1,349 @@
+/* ==========================================================================
+   base.css — reset, elementos base, tipografia e utilitários de layout.
+   Nenhum hexadecimal aqui: só tokens.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Reset
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body,
+h1, h2, h3, h4, h5, h6,
+p, figure, blockquote, dl, dd,
+fieldset, legend {
+  margin: 0;
+}
+
+ul[class],
+ol[class] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+svg {
+  flex: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* --------------------------------------------------------------------------
+   2. Elementos base
+   -------------------------------------------------------------------------- */
+
+body {
+  min-height: 100vh;
+  background-color: var(--color-bg-app);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  font-weight: var(--weight-regular);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  color: var(--color-text-heading);
+  font-family: var(--font-display);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+}
+
+h2 {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+}
+
+h3 {
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+}
+
+h4 {
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--color-primary-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+  text-decoration-thickness: 2px;
+}
+
+a:active {
+  color: var(--color-primary-active);
+}
+
+strong,
+b {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+}
+
+small {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-24) 0;
+}
+
+::placeholder {
+  color: var(--color-field-placeholder);
+  opacity: 1;
+}
+
+::selection {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-text-strong);
+}
+
+/* --------------------------------------------------------------------------
+   3. Foco — sempre visível, nunca removido sem substituto.
+   -------------------------------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+/* Sobre superfícies escuras (sidebar, painel do login) o anel muda de cor
+   para manter os 3:1 exigidos. */
+.on-inverse :focus-visible,
+.on-inverse:focus-visible {
+  outline-color: var(--color-focus-ring-inverse);
+}
+
+/* --------------------------------------------------------------------------
+   4. Utilitários
+   -------------------------------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+/* Link "pular para o conteúdo" — primeiro tabstop de toda página do app. */
+.skip-link {
+  position: absolute;
+  top: var(--space-8);
+  left: var(--space-8);
+  z-index: var(--z-modal);
+  padding: var(--space-8) var(--space-16);
+  background-color: var(--color-surface);
+  color: var(--color-text-strong);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* Container e grade de 12 colunas com gutter de 24px --------------------- */
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--page-padding);
+}
+
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.stack-8  > * + * { margin-top: var(--space-8); }
+.stack-16 > * + * { margin-top: var(--space-16); }
+.stack-24 > * + * { margin-top: var(--space-24); }
+.stack-32 > * + * { margin-top: var(--space-32); }
+
+.cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.cluster--16 { gap: var(--space-16); }
+.cluster--tight { gap: var(--space-4); }
+
+.spacer { flex: 1 1 auto; }
+
+/* Tipografia utilitária --------------------------------------------------- */
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-sm {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.text-xs {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
+
+/* Rótulo de seção em caixa alta — usado em sidebar e cabeçalhos de bloco. */
+.eyebrow {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Toda data, contagem e coluna numérica usa algarismos tabulares. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* --------------------------------------------------------------------------
+   5. Assinatura visual — "selo modular".
+   Malha 4×4 nos verdes da paleta, referência ao carimbo de um certificado.
+   Puramente decorativa: sempre marcada com aria-hidden no HTML.
+   -------------------------------------------------------------------------- */
+
+.seal {
+  --seal-cell: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, var(--seal-cell));
+  grid-template-rows: repeat(4, var(--seal-cell));
+  gap: var(--space-4);
+}
+
+.seal span {
+  border-radius: 2px;
+  background-color: var(--color-brand-deep-hover);
+}
+
+.seal span:nth-child(1),
+.seal span:nth-child(6),
+.seal span:nth-child(11),
+.seal span:nth-child(16) { background-color: var(--color-accent); }
+
+.seal span:nth-child(3),
+.seal span:nth-child(8),
+.seal span:nth-child(9),
+.seal span:nth-child(14) { background-color: var(--color-primary); }
+
+.seal span:nth-child(4),
+.seal span:nth-child(13) { background-color: var(--color-primary-subtle); }
+
+.seal--lg  { --seal-cell: 40px; }
+.seal--xl  { --seal-cell: 64px; }
+
+/* --------------------------------------------------------------------------
+   6. Movimento reduzido
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. Responsivo — padding lateral menor abaixo de 768px
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .container {
+    padding-inline: var(--page-padding-sm);
+  }
+
+  .grid-12 {
+    gap: var(--space-16);
+  }
+}

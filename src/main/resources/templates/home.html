@@ -1,12 +1,402 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Certificado Cooperados</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Início</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
+
 <body>
-    <h1>Esta é a página HOME da aplicação</h1>
+    <div class="app" data-app>
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="topbar__lead">
+                <button type="button"
+                        class="btn-icon topbar__menu"
+                        data-sidebar-toggle
+                        aria-controls="sidebar"
+                        aria-expanded="false">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                    </svg>
+                    <span class="visually-hidden">Abrir ou fechar o menu de navegação</span>
+                </button>
+
+                <!-- TODO: substituir pelo nome e pela marca definitivos da aplicação -->
+                <a class="brand" href="/certificados-cooperados/">
+            <span class="brand__mark" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect width="28" height="28" rx="8" fill="currentColor"/>
+                <rect x="6" y="6" width="6" height="6" rx="1.5" fill="var(--color-accent)"/>
+                <rect x="16" y="6" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="6" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="16" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary-subtle)"/>
+              </svg>
+            </span>
+                    <span class="brand__name">Certificados Cooperados</span>
+                </a>
+            </div>
+
+            <div class="topbar__actions">
+                <div class="dropdown" data-dropdown>
+                    <button type="button" class="user-trigger" data-dropdown-trigger
+                            aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
+                        <!-- TODO: iniciais, nome e e-mail do usuário autenticado -->
+                        <span class="avatar" aria-hidden="true">..</span>
+                        <span class="user-trigger__name">Carregando...</span>
+                        <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                             aria-hidden="true">
+                            <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                        <span class="visually-hidden">Abrir menu da conta</span>
+                    </button>
+
+                    <div class="dropdown__menu" id="menu-usuario" data-dropdown-menu hidden>
+                        <div class="dropdown__header">
+                            <div class="dropdown__name">João Marques</div>
+                            <div class="dropdown__meta">jvmarques2006@gmail.com</div>
+                        </div>
+                        <hr class="dropdown__separator">
+                        <!-- TODO: virar um formulário POST para o logout quando o Spring
+                             Security assumir a autenticação -->
+                        <a class="dropdown__item dropdown__item--danger" href="/certificados-cooperados/login">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M6.5 2.5H3.5A1 1 0 0 0 2.5 3.5v9a1 1 0 0 0 1 1h3" stroke="currentColor"
+                                      stroke-width="1.4" stroke-linecap="round"/>
+                                <path d="M10 5.5 12.5 8 10 10.5M12.5 8H6" stroke="currentColor" stroke-width="1.4"
+                                      stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Sair
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="app__body">
+            <!-- SIDEBAR -->
+            <aside class="sidebar on-inverse" id="sidebar" data-sidebar>
+                <nav class="sidebar__nav" aria-label="Navegação principal">
+
+                    <p class="sidebar__section">Operação</p>
+                    <ul class="nav">
+                        <li>
+                            <a class="nav__link is-active" href="/certificados-cooperados/" aria-current="page">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <path d="m3 8.5 7-5.5 7 5.5V16a1 1 0 0 1-1 1h-3.5v-5h-5v5H4a1 1 0 0 1-1-1V8.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                </svg>
+                                <span class="nav__label">Início</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav__link" href="/certificados-cooperados/cursos">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                     aria-hidden="true">
+                                    <path d="M3.5 4.5h5A1.5 1.5 0 0 1 10 6v10a1.5 1.5 0 0 0-1.5-1.5h-5v-10ZM16.5 4.5h-5A1.5 1.5 0 0 0 10 6v10a1.5 1.5 0 0 1 1.5-1.5h5v-10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                </svg>
+                                <span class="nav__label">Cursos</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav__link" href="/certificados-cooperados/cursos/novo">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span class="nav__label">Lançar curso</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <p class="sidebar__section">Cadastros</p>
+                    <ul class="nav">
+                        <li>
+                            <a class="nav__link" href="/certificados-cooperados/cooperados">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                     aria-hidden="true">
+                                    <circle cx="8" cy="7" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M2.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    <path d="M13.5 5.5a2.5 2.5 0 0 1 0 5M15 16a5 5 0 0 0-1.5-3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span class="nav__label">Cooperados</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav__link" href="/certificados-cooperados/usuarios">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M4.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span class="nav__label">Usuários</span>
+                            </a>
+                        </li>
+                    </ul>
+
+
+                </nav>
+
+                <div class="sidebar__footer">
+                    <div class="sidebar__seal seal" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <p class="sidebar__footer-text">
+                        Registro de cursos e certificados dos cooperados.
+                    </p>
+                </div>
+            </aside>
+
+            <!-- Fundo escuro do menu em overlay (mobile) -->
+            <div class="sidebar-scrim" data-sidebar-scrim hidden></div>
+
+            <!-- ==================================================================
+                 CONTEÚDO
+                 ================================================================== -->
+            <main class="app__main" id="conteudo">
+                <div class="container stack-32">
+
+                    <!-- ==============================================================
+                         1. Cabeçalho da página
+                         ============================================================== -->
+                    <header class="page-head">
+                        <div class="page-head__text">
+                            <!-- TODO: saudação e nome do usuário autenticado -->
+                            <h1 class="page-head__title">Olá, Carregando...</h1>
+                            <p class="page-head__subtitle">
+                                <!-- TODO: números do resumo do mês vindos do backend -->
+                                Foram lançados <strong class="tabular">-</strong> cursos este mês,
+                                somando <strong class="tabular">-</strong> horas de formação.
+                            </p>
+                        </div>
+
+                        <div class="page-head__actions">
+                            <a class="btn btn--primary" href="/certificados-cooperados/cursos/novo">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                    <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="1.75"
+                                          stroke-linecap="round"/>
+                                </svg>
+                                Lançar curso
+                            </a>
+                        </div>
+                    </header>
+
+                    <!-- ==============================================================
+                         2. Indicadores
+                         ============================================================== -->
+                    <section aria-labelledby="titulo-indicadores">
+                        <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do mês</h2>
+
+                        <!-- TODO: substituir pela lista de indicadores vinda do backend -->
+                        <div class="stat-grid">
+
+                            <article class="stat">
+                                <p class="stat__label">Cursos lançados este mês</p>
+                                <p class="stat__value tabular">-</p>
+                                <p class="stat__delta stat__delta--good">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                        <path d="M6 10V2M6 2 2.5 5.5M6 2l3.5 3.5" stroke="currentColor" stroke-width="1.5"
+                                              stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <strong>-%</strong> <span class="text-muted">vs. Mês passado</span>
+                                </p>
+                            </article>
+
+                            <article class="stat stat--info">
+                                <p class="stat__label">Horas registradas este mês</p>
+                                <p class="stat__value tabular">-<span class="stat__unit">h</span></p>
+                                <p class="stat__delta stat__delta--good">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                        <path d="M6 10V2M6 2 2.5 5.5M6 2l3.5 3.5" stroke="currentColor" stroke-width="1.5"
+                                              stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <strong>-%</strong> <span class="text-muted">vs. Mês passado</span>
+                                </p>
+                            </article>
+
+                            <article class="stat stat--accent">
+                                <p class="stat__label">Cooperados com curso no mês</p>
+                                <p class="stat__value tabular">-</p>
+                                <p class="stat__delta stat__delta--bad stat__delta--down">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                        <path d="M6 10V2M6 2 2.5 5.5M6 2l3.5 3.5" stroke="currentColor" stroke-width="1.5"
+                                              stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <strong>−</strong> <span class="text-muted">vs. mês passado</span>
+                                </p>
+                            </article>
+
+                        </div>
+                    </section>
+
+                    <!-- ==============================================================
+                         3. Tabela de cursos recentes, controles e estado vazio
+                         ============================================================== -->
+                    <section class="card" aria-labelledby="titulo-tabela">
+                        <div class="card__header">
+                            <h2 class="card__title" id="titulo-tabela">Cursos lançados recentemente</h2>
+                            <span class="spacer"></span>
+                            <a class="btn-link" href="/certificados-cooperados/cursos">Ver todos os cursos</a>
+                        </div>
+
+                        <!-- Controles da tabela -->
+                        <!-- Controles inertes por enquanto: nenhum JS os lê.
+                             TODO: envolver num <form method="get"> apontando para o
+                             controller da listagem; os names (q, periodo, ordem) já
+                             estão prontos para virar parâmetros da consulta. -->
+                        <div class="toolbar">
+                            <div class="toolbar__search">
+                                <label class="field__label" for="filtro-busca">Buscar</label>
+                                <div class="input-wrap input-wrap--leading">
+                    <span class="input-wrap__icon" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                                    <input class="input" type="search" id="filtro-busca" name="q"
+                                           placeholder="Cooperado ou curso" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="toolbar__filter">
+                                <label class="field__label" for="filtro-periodo">Conclusão</label>
+                                <select class="select" id="filtro-periodo" name="periodo">
+                                    <option value="">Todo o período</option>
+                                    <option value="30">Últimos 30 dias</option>
+                                    <option value="90">Últimos 90 dias</option>
+                                    <option value="365">Últimos 12 meses</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar__filter">
+                                <label class="field__label" for="filtro-ordenacao">Ordenar por</label>
+                                <select class="select" id="filtro-ordenacao" name="ordem">
+                                    <option value="conclusao-desc">Conclusão mais recente</option>
+                                    <option value="conclusao-asc">Conclusão mais antiga</option>
+                                    <option value="cooperado-asc">Cooperado (A–Z)</option>
+                                    <option value="curso-asc">Curso (A–Z)</option>
+                                    <option value="carga-desc">Maior carga horária</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="table table--cards">
+                                <caption class="visually-hidden">
+                                    Cursos lançados recentemente, com cooperado, carga horária, data de
+                                    conclusão e responsável pelo lançamento.
+                                </caption>
+                                <thead>
+                                <tr>
+                                    <th scope="col">Cooperado</th>
+                                    <th scope="col">Curso</th>
+                                    <th scope="col" class="table__num">Carga horária</th>
+                                    <th scope="col">Conclusão</th>
+                                    <th scope="col">Lançado por</th>
+                                    <th scope="col"><span class="visually-hidden">Ações</span></th>
+                                </tr>
+                                </thead>
+
+                                <!-- TODO: substituir pela lista de cursos vinda do backend -->
+                                <tbody>
+
+                                <!--
+                                  As linhas entram aqui.
+
+                                  O atributo data-label de cada <td> é obrigatório: abaixo de
+                                  768px a tabela vira lista de cards e o CSS usa esse valor
+                                  como rótulo da célula (home.css, bloco "Tabela em telas
+                                  pequenas"). Estrutura de uma linha:
+
+                                  <tr>
+                                    <td data-label="Cooperado"><span class="table__primary">Nome</span></td>
+                                    <td data-label="Curso">Título
+                                      <span class="table__secondary">Instituição</span>
+                                    </td>
+                                    <td data-label="Carga horária" class="table__num">16 h</td>
+                                    <td data-label="Conclusão" class="tabular">09/07/2026</td>
+                                    <td data-label="Lançado por">Nome</td>
+                                    <td class="table__actions">
+                                      <a class="btn-link" href="...">Abrir</a>
+                                    </td>
+                                  </tr>
+                                -->
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Estado vazio. Visível enquanto a tabela não tem linhas.
+                             TODO: renderizar condicionalmente — mostrar só quando a lista
+                             de cursos vier vazia do backend. -->
+                        <div class="empty">
+                            <div class="empty__seal seal" aria-hidden="true">
+                                <span></span><span></span><span></span><span></span>
+                                <span></span><span></span><span></span><span></span>
+                                <span></span><span></span><span></span><span></span>
+                                <span></span><span></span><span></span><span></span>
+                            </div>
+                            <p class="empty__title">Nenhum curso lançado ainda</p>
+                            <p class="empty__text">
+                                Os cursos concluídos pelos cooperados aparecem aqui assim que
+                                forem registrados.
+                            </p>
+                            <div class="cluster">
+                                <a class="btn btn--primary" href="/certificados-cooperados/cursos/novo">Lançar curso</a>
+                            </div>
+                        </div>
+
+                        <!-- Paginação estática -->
+                        <!-- TODO: substituir pelos dados de paginação quando a listagem for
+                             paginada no backend -->
+                        <div class="card__footer table-foot">
+                            <p class="text-sm text-muted tabular">
+                                <!-- TODO: intervalo e total vindos da paginação do backend -->
+                                Nenhum curso para mostrar
+                            </p>
+                            <span class="spacer"></span>
+                            <nav class="pagination" aria-label="Paginação dos cursos">
+                                <a class="pagination__page" href="#" aria-disabled="true" tabindex="-1"
+                                   aria-label="Página anterior">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                        <path d="M10 3 5 8l5 5" stroke="currentColor" stroke-width="1.5"
+                                              stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                <a class="pagination__page" href="#" aria-current="page">1</a>
+                                <a class="pagination__page" href="#">2</a>
+                                <a class="pagination__page" href="#">3</a>
+                                <span class="pagination__ellipsis" aria-hidden="true">…</span>
+                                <a class="pagination__page" href="#">15</a>
+                                <a class="pagination__page" href="#" aria-label="Próxima página">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                        <path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.5"
+                                              stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                            </nav>
+                        </div>
+                    </section>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Entry ES module da página; os demais módulos vêm pelos imports dele. -->
+    <script type="module" th:src="@{/js/pages/home.js}"></script>
 </body>
 </html>
