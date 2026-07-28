@@ -17,10 +17,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-32);
-  margin: 0;
   padding: var(--space-24);
   background-color: var(--color-surface-secondary);
   border-radius: var(--radius-card);
+}
+
+/* O container usa .stack-32, que dá 32px entre todos os blocos. Aqui o
+   respiro é maior: o cabeçalho da página fecha um assunto e o resumo abre
+   outro — a listagem. 48px marca essa quebra sem sair da escala de 8px.
+   A margem de <dl> já vem zerada pelo reset em base.css. */
+.stack-32 > .summary {
+  margin-top: var(--space-48);
 }
 
 .summary__item {
