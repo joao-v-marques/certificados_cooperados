@@ -176,13 +176,26 @@
                             <!-- TODO: saudação e nome do usuário autenticado -->
                             <h1 class="page-head__title">Olá, Carregando...</h1>
                             <p class="page-head__subtitle">
-                                <!-- TODO: números do resumo do mês vindos do backend -->
-                                Foram lançados <strong class="tabular">-</strong> cursos este mês,
+                                <!-- TODO: números do resumo do ano-base vindos do backend -->
+                                Foram lançados <strong class="tabular">-</strong> cursos no ano,
                                 somando <strong class="tabular">-</strong> horas de formação.
                             </p>
                         </div>
 
                         <div class="page-head__actions">
+                            <!-- Recorte anual da tela. Inerte por enquanto: nenhum JS o lê.
+                                 TODO: preencher as opções com os anos que têm lançamento,
+                                 marcar o ano corrente como selecionado e recarregar a
+                                 página com o ano escolhido (?ano=). -->
+                            <div class="year-filter">
+                                <label class="year-filter__label" for="filtro-ano">Ano-base</label>
+                                <select class="select year-filter__select" id="filtro-ano" name="ano">
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                </select>
+                            </div>
+
                             <a class="btn btn--primary" href="/certificados-cooperados/novo-curso">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                                     <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="1.75"
@@ -197,44 +210,44 @@
                          2. Indicadores
                          ============================================================== -->
                     <section aria-labelledby="titulo-indicadores">
-                        <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do mês</h2>
+                        <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do ano</h2>
 
                         <!-- TODO: substituir pela lista de indicadores vinda do backend -->
                         <div class="stat-grid">
 
                             <article class="stat">
-                                <p class="stat__label">Cursos lançados este mês</p>
+                                <p class="stat__label">Cursos lançados no ano</p>
                                 <p class="stat__value tabular">-</p>
                                 <p class="stat__delta stat__delta--good">
                                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                                         <path d="M6 10V2M6 2 2.5 5.5M6 2l3.5 3.5" stroke="currentColor" stroke-width="1.5"
                                               stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
-                                    <strong>-%</strong> <span class="text-muted">vs. Mês passado</span>
+                                    <strong>-%</strong> <span class="text-muted">vs. ano anterior</span>
                                 </p>
                             </article>
 
                             <article class="stat stat--info">
-                                <p class="stat__label">Horas registradas este mês</p>
+                                <p class="stat__label">Horas registradas no ano</p>
                                 <p class="stat__value tabular">-<span class="stat__unit">h</span></p>
                                 <p class="stat__delta stat__delta--good">
                                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                                         <path d="M6 10V2M6 2 2.5 5.5M6 2l3.5 3.5" stroke="currentColor" stroke-width="1.5"
                                               stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
-                                    <strong>-%</strong> <span class="text-muted">vs. Mês passado</span>
+                                    <strong>-%</strong> <span class="text-muted">vs. ano anterior</span>
                                 </p>
                             </article>
 
                             <article class="stat stat--accent">
-                                <p class="stat__label">Cooperados com curso no mês</p>
+                                <p class="stat__label">Cooperados com curso no ano</p>
                                 <p class="stat__value tabular">-</p>
                                 <p class="stat__delta stat__delta--bad stat__delta--down">
                                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                                         <path d="M6 10V2M6 2 2.5 5.5M6 2l3.5 3.5" stroke="currentColor" stroke-width="1.5"
                                               stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
-                                    <strong>−</strong> <span class="text-muted">vs. mês passado</span>
+                                    <strong>−</strong> <span class="text-muted">vs. ano anterior</span>
                                 </p>
                             </article>
 
@@ -254,8 +267,9 @@
                         <!-- Controles da tabela -->
                         <!-- Controles inertes por enquanto: nenhum JS os lê.
                              TODO: envolver num <form method="get"> apontando para o
-                             controller da listagem; os names (q, periodo, ordem) já
-                             estão prontos para virar parâmetros da consulta. -->
+                             controller da listagem; os names (q, ordem) já estão
+                             prontos para virar parâmetros da consulta, junto com o
+                             ano-base (ano) que fica no cabeçalho da página. -->
                         <div class="toolbar">
                             <div class="toolbar__search">
                                 <label class="field__label" for="filtro-busca">Buscar</label>
@@ -269,16 +283,6 @@
                                     <input class="input" type="search" id="filtro-busca" name="q"
                                            placeholder="Cooperado ou curso" autocomplete="off">
                                 </div>
-                            </div>
-
-                            <div class="toolbar__filter">
-                                <label class="field__label" for="filtro-periodo">Conclusão</label>
-                                <select class="select" id="filtro-periodo" name="periodo">
-                                    <option value="">Todo o período</option>
-                                    <option value="30">Últimos 30 dias</option>
-                                    <option value="90">Últimos 90 dias</option>
-                                    <option value="365">Últimos 12 meses</option>
-                                </select>
                             </div>
 
                             <div class="toolbar__filter">

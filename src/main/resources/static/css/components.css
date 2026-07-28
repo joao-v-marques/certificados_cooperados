@@ -207,8 +207,55 @@
 .page-head__actions {
   display: flex;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--space-16);
   flex-wrap: wrap;
+}
+
+/* Seletor de ano-base ------------------------------------------------------
+   Os cursos são contabilizados por ano, então o ano escolhido aqui define o
+   recorte de tudo que a tela mostra — indicadores, totais e listagem. Por
+   isso fica no cabeçalho da página, e não na barra de filtros da tabela:
+   o escopo é da tela inteira.
+
+   Rótulo inline, para o bloco ficar com a mesma altura do botão ao lado. */
+
+.year-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.year-filter__label {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.year-filter__select {
+  width: auto;
+  min-width: 112px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Em telas estreitas o cabeçalho empilha; o seletor ocupa a linha inteira
+   para o alvo de toque não ficar espremido ao lado do botão. */
+@media (max-width: 599px) {
+  .page-head__actions {
+    width: 100%;
+  }
+
+  .year-filter {
+    flex: 1 1 100%;
+  }
+
+  .year-filter__select {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 }
 
 /* Trilha de navegação — só em telas que ficam abaixo de uma listagem. */

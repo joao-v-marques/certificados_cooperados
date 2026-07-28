@@ -9,7 +9,7 @@
    Faixa de resumo
 
    Números do que está listado, acima da tabela. Não são os indicadores da
-   home: aqui não há comparação com o mês anterior nem faixa colorida — é
+   home: aqui não há comparação com o ano anterior nem faixa colorida — é
    leitura de apoio, e por isso fica discreta.
    -------------------------------------------------------------------------- */
 
@@ -65,9 +65,12 @@
 /* --------------------------------------------------------------------------
    Barra de filtros
 
-   São quatro controles. No .toolbar padrão eles quebram em linhas desiguais;
-   aqui a grade de 12 colunas garante que a busca fique com o dobro da
-   largura dos selects e que todos alinhem pela base.
+   São três controles: busca, cooperado e ordenação. O recorte por ano fica no
+   cabeçalho da página, porque escopa a tela inteira e não só a tabela.
+
+   No .toolbar padrão os controles quebram em linhas desiguais; aqui a grade
+   de 12 colunas dá metade da largura para a busca e um quarto para cada
+   select, com todos alinhados pela base.
    -------------------------------------------------------------------------- */
 
 .filters {
@@ -82,7 +85,7 @@
 }
 
 .filters .toolbar__filter {
-  grid-column: span 2;
+  grid-column: span 3;
   min-width: 0;
 }
 
@@ -96,7 +99,7 @@
   }
 
   .filters .toolbar__filter {
-    grid-column: span 4;
+    grid-column: span 6;
   }
 }
 
