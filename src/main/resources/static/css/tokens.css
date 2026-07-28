@@ -1,0 +1,249 @@
+/* ==========================================================================
+   tokens.css
+   Única fonte de verdade de cor, espaçamento, tipografia, raio e elevação.
+   Nenhum valor hexadecimal deve existir fora deste arquivo.
+
+   Organização em duas camadas:
+     1. --palette-*  valores brutos. NÃO usar direto nos componentes.
+     2. --color-*    papéis semânticos. É o que o resto do CSS consome.
+
+   Trocar a paleta = editar a camada 1. Trocar o tema (claro/escuro) =
+   sobrescrever a camada 2 (ver bloco comentado no fim do arquivo).
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ======================================================================
+     CAMADA 1 — PALETA BRUTA
+     ====================================================================== */
+
+  /* Institucionais (identidade da empresa) --------------------------------- */
+  --palette-green-500: #00995d;  /* primária oficial */
+  --palette-green-600: #007a4a;  /* derivada — superfícies de botão e links (AA em branco) */
+  --palette-green-700: #00623b;  /* derivada — estado :active */
+  --palette-green-800: #0b5b38;  /* derivada — texto sobre pastel verde */
+
+  --palette-teal-500:  #0d7370;  /* derivada — item ativo da sidebar */
+  --palette-teal-600:  #08615f;  /* derivada — hover da sidebar */
+  --palette-teal-800:  #004e4c;  /* verde petróleo oficial */
+  --palette-teal-900:  #003a38;  /* derivada — topo da sidebar / gradiente */
+  --palette-teal-100:  #c9dcda;  /* derivada — texto secundário sobre petróleo */
+  --palette-teal-200:  #a9c4c2;  /* derivada — rótulos de seção sobre petróleo */
+
+  --palette-lime-400:  #b1d34b;  /* verde limão oficial */
+  --palette-lime-600:  #6d8a1f;  /* derivada — texto/ícone limão sobre branco */
+
+  --palette-orange-500:#f47920;  /* laranja oficial */
+  --palette-orange-700:#a34a06;  /* derivada — texto laranja sobre branco */
+
+  --palette-clay-400:  #d2a494;  /* terracota oficial */
+  --palette-clay-700:  #8f4a35;  /* derivada — texto sobre pastel rosa */
+
+  --palette-pink-200:  #f1cdcd;  /* rosa claro oficial */
+  --palette-sand-200:  #ece3d9;  /* bege oficial */
+  --palette-yellow-200:#ffe596;  /* amarelo claro oficial */
+  --palette-yellow-800:#7a4a00;  /* derivada — texto sobre pastel amarelo */
+  --palette-green-200: #cde3bb;  /* verde claro oficial */
+  --palette-blue-200:  #a4d8de;  /* azul claro oficial */
+
+  /* Neutros (papel funcional: texto, bordas, divisores, superfícies) -------- */
+  --palette-white:      #ffffff;
+  --palette-neutral-50: #f8f7f4;
+  --palette-neutral-100:#efede8;
+  --palette-neutral-200:#ddd9d1;  /* divisores */
+  --palette-neutral-300:#b9b5ab;  /* bordas decorativas */
+  --palette-neutral-400:#8d887c;  /* bordas de controle — 3.5:1 no branco */
+  --palette-neutral-600:#5c5952;  /* texto secundário — 7:1 no branco */
+  --palette-neutral-700:#403e39;  /* texto corrente — 10.7:1 no branco */
+  --palette-neutral-900:#1a1a17;  /* texto de alta hierarquia */
+  --palette-black:      #000000;
+
+  /* Feedback convencional (papel funcional: erro / destruição) -------------- */
+  --palette-red-600: #b3261e;  /* 6.5:1 com branco — botão destrutivo e texto de erro */
+  --palette-red-800: #8c1d18;  /* texto sobre pastel rosa em contexto de erro */
+
+  /* ======================================================================
+     CAMADA 2 — TOKENS SEMÂNTICOS
+     ====================================================================== */
+
+  /* Superfícies ------------------------------------------------------------ */
+  --color-bg-app:            var(--palette-neutral-50);
+  --color-surface:           var(--palette-white);
+  --color-surface-raised:    var(--palette-white);
+  --color-surface-sunken:    var(--palette-neutral-100);
+  --color-surface-secondary: var(--palette-sand-200);
+  --color-surface-inverse:   var(--palette-teal-800);
+  --color-overlay:           rgba(26, 26, 23, 0.48);
+
+  /* Texto ------------------------------------------------------------------ */
+  --color-text:            var(--palette-neutral-700);
+  --color-text-strong:     var(--palette-neutral-900);
+  --color-text-heading:    var(--palette-teal-800);
+  --color-text-muted:      var(--palette-neutral-600);
+  --color-text-disabled:   var(--palette-neutral-400);
+  --color-text-on-brand:   var(--palette-white);
+  --color-text-on-inverse: var(--palette-teal-100);
+
+  /* Bordas ----------------------------------------------------------------- */
+  --color-border:          var(--palette-neutral-200);
+  --color-border-strong:   var(--palette-neutral-400);
+  --color-border-inverse:  var(--palette-teal-600);
+
+  /* Marca ------------------------------------------------------------------ */
+  --color-primary:          var(--palette-green-500);
+  --color-primary-surface:  var(--palette-green-600);
+  --color-primary-hover:    var(--palette-green-700);
+  --color-primary-active:   var(--palette-green-800);
+  --color-primary-subtle:   var(--palette-green-200);
+  --color-primary-text:     var(--palette-green-600);
+
+  --color-accent:           var(--palette-lime-400);
+  --color-accent-text:      var(--palette-lime-600);
+
+  --color-brand-deep:       var(--palette-teal-800);
+  --color-brand-deep-dark:  var(--palette-teal-900);
+  --color-brand-deep-hover: var(--palette-teal-600);
+  --color-brand-deep-active:var(--palette-teal-500);
+
+  /* Estado / feedback ------------------------------------------------------ */
+  --color-success:         var(--palette-green-500);
+  --color-success-bg:      var(--palette-green-200);
+  --color-success-text:    var(--palette-green-800);
+
+  --color-warning:         var(--palette-orange-500);
+  --color-warning-bg:      var(--palette-yellow-200);
+  --color-warning-text:    var(--palette-yellow-800);
+  --color-warning-strong:  var(--palette-orange-700);
+
+  --color-negative:        var(--palette-clay-400);
+  --color-negative-bg:     var(--palette-pink-200);
+  --color-negative-text:   var(--palette-clay-700);
+
+  --color-info:            var(--palette-blue-200);
+  --color-info-bg:         var(--palette-blue-200);
+  --color-info-text:       var(--palette-teal-800);
+
+  --color-danger:          var(--palette-red-600);
+  --color-danger-hover:    var(--palette-red-800);
+  --color-danger-bg:       var(--palette-pink-200);
+  --color-danger-text:     var(--palette-red-800);
+
+  /* Controles -------------------------------------------------------------- */
+  --color-field-bg:          var(--palette-white);
+  --color-field-bg-disabled: var(--palette-neutral-100);
+  --color-field-border:      var(--palette-neutral-400);
+  --color-field-placeholder: var(--palette-neutral-600);
+
+  --color-focus-ring:         var(--palette-green-500);
+  --color-focus-ring-inverse: var(--palette-lime-400);
+
+  --color-hover-layer:  rgba(0, 78, 76, 0.06);
+  --color-active-layer: rgba(0, 78, 76, 0.12);
+
+  /* Elevação --------------------------------------------------------------- */
+  --shadow-xs: 0 1px 2px rgba(26, 26, 23, 0.06);
+  --shadow-sm: 0 1px 2px rgba(26, 26, 23, 0.06), 0 2px 8px rgba(26, 26, 23, 0.04);
+  --shadow-md: 0 8px 24px rgba(26, 26, 23, 0.10), 0 2px 8px rgba(26, 26, 23, 0.06);
+  --shadow-lg: 0 16px 48px rgba(26, 26, 23, 0.16), 0 4px 16px rgba(26, 26, 23, 0.08);
+
+  /* ======================================================================
+     ESPAÇAMENTO — base 8px. O único meio-passo é 4px (gap ícone/texto).
+     ====================================================================== */
+  --space-4:  4px;
+  --space-8:  8px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* Layout ----------------------------------------------------------------- */
+  --gutter:            24px;
+  --container-max:     1440px;
+  --page-padding:      32px;   /* desktop */
+  --page-padding-sm:   16px;   /* mobile  */
+  --topbar-height:     64px;
+  --sidebar-width:     248px;
+  --sidebar-width-min: 72px;
+
+  /* Dimensões de controle -------------------------------------------------- */
+  --control-height:    40px;
+  --control-height-lg: 48px;
+  --table-row-height:  56px;
+  --icon-size:         20px;
+  --icon-size-sm:      16px;
+
+  /* Raios ------------------------------------------------------------------ */
+  --radius-control: 8px;
+  --radius-card:    16px;
+  --radius-pill:    999px;
+
+  /* ======================================================================
+     TIPOGRAFIA
+     ====================================================================== */
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* Escala — line-height sempre múltiplo de 4px (ritmo vertical) ------------ */
+  --text-xs:    12px;  --leading-xs:    16px;
+  --text-sm:    14px;  --leading-sm:    20px;
+  --text-base:  16px;  --leading-base:  24px;
+  --text-md:    18px;  --leading-md:    28px;
+  --text-lg:    20px;  --leading-lg:    28px;
+  --text-xl:    24px;  --leading-xl:    32px;
+  --text-2xl:   32px;  --leading-2xl:   40px;
+  --text-3xl:   40px;  --leading-3xl:   48px;
+  --text-4xl:   48px;  --leading-4xl:   56px;
+
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  --tracking-tight: -0.01em;
+  --tracking-wide:   0.02em;
+  --tracking-caps:   0.08em;
+
+  /* ======================================================================
+     MOVIMENTO E EMPILHAMENTO
+     ====================================================================== */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --ease: cubic-bezier(0.2, 0, 0.2, 1);
+
+  --z-base:     0;
+  --z-sticky:   10;
+  --z-sidebar:  20;
+  --z-topbar:   30;
+  --z-dropdown: 40;
+  --z-overlay:  50;
+  --z-modal:    60;
+}
+
+/* ==========================================================================
+   TEMA ESCURO — implantação futura.
+   Basta preencher este bloco: nenhum componente precisa mudar, porque todo
+   o CSS consome apenas a camada semântica (--color-*). O atributo é escrito
+   em <html data-theme="dark"> e a preferência do sistema pode ser espelhada
+   com @media (prefers-color-scheme: dark).
+
+   :root[data-theme="dark"] {
+     color-scheme: dark;
+     --color-bg-app:        <neutro 900>;
+     --color-surface:       <neutro 800>;
+     --color-surface-sunken:<neutro 900>;
+     --color-text:          <neutro 100>;
+     --color-text-strong:   <branco>;
+     --color-text-heading:  <teal 100>;
+     --color-text-muted:    <neutro 300>;
+     --color-border:        <neutro 700>;
+     --color-border-strong: <neutro 500>;
+     --color-primary-surface: <green 500>;   // no escuro a primária pode clarear
+     --color-success-bg / --color-warning-bg / --color-negative-bg / --color-info-bg:
+        versões dessaturadas e escuras dos pastéis, com texto claro correspondente;
+     --shadow-*: sombras mais opacas.
+   }
+   ========================================================================== */

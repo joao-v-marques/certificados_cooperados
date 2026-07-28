@@ -1,0 +1,204 @@
+/* ==========================================================================
+   login.css — estilos exclusivos da tela de entrada.
+   ========================================================================== */
+
+.login-body {
+  background-color: var(--color-surface);
+}
+
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------------------------------
+   Painel de identidade
+   -------------------------------------------------------------------------- */
+
+.login__identity {
+  display: flex;
+  align-items: center;
+  padding: var(--space-64) var(--space-48);
+  background-color: var(--color-brand-deep);
+  color: var(--color-text-on-inverse);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Malha de 8px ao fundo — o mesmo grid que rege o layout, virando textura. */
+.login__identity::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--color-border-inverse) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border-inverse) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.35;
+  mask-image: radial-gradient(120% 90% at 20% 20%, var(--palette-black) 20%, transparent 78%);
+}
+
+.login__identity-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 440px;
+  margin-inline: auto;
+}
+
+.login__seal {
+  margin-bottom: var(--space-40);
+}
+
+.login__identity-title {
+  font-size: var(--text-3xl);
+  line-height: var(--leading-3xl);
+  font-weight: var(--weight-semibold);
+  color: var(--palette-white);
+  margin-bottom: var(--space-16);
+}
+
+.login__identity-text {
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  color: var(--color-text-on-inverse);
+  margin-bottom: var(--space-40);
+}
+
+.login__points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.login__points li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-16);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-on-inverse);
+}
+
+/* Célula do selo repetida como marcador de lista. */
+.login__point-mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: var(--space-4);
+  border-radius: 2px;
+  background-color: var(--color-accent);
+}
+
+.login__points li:nth-child(2) .login__point-mark { background-color: var(--color-primary); }
+.login__points li:nth-child(3) .login__point-mark { background-color: var(--color-primary-subtle); }
+
+/* --------------------------------------------------------------------------
+   Painel do formulário
+   -------------------------------------------------------------------------- */
+
+.login__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-64) var(--space-32);
+  background-color: var(--color-surface);
+}
+
+.login__form-wrap {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login__header {
+  margin-bottom: var(--space-32);
+}
+
+.login__title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-heading);
+  margin-bottom: var(--space-8);
+}
+
+.login__subtitle {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+.login__alert {
+  margin-bottom: var(--space-24);
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.login__footer {
+  margin-top: var(--space-32);
+  padding-top: var(--space-24);
+  border-top: 1px solid var(--color-border);
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo — abaixo de 900px o painel de identidade vira uma faixa.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 899px) {
+  .login {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  .login__identity {
+    padding: var(--space-32) var(--space-24);
+  }
+
+  .login__identity::after {
+    background-size: 24px 24px;
+    mask-image: radial-gradient(100% 180% at 8% 50%, var(--palette-black) 10%, transparent 80%);
+  }
+
+  .login__identity-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-24);
+    max-width: none;
+  }
+
+  .login__seal {
+    --seal-cell: 16px;
+    margin-bottom: 0;
+    flex: none;
+  }
+
+  .login__identity-title {
+    font-size: var(--text-lg);
+    line-height: var(--leading-lg);
+    margin-bottom: var(--space-4);
+  }
+
+  .login__identity-text,
+  .login__points {
+    display: none;
+  }
+
+  .login__panel {
+    padding: var(--space-40) var(--space-16) var(--space-48);
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 359px) {
+  .login__seal { display: none; }
+}
