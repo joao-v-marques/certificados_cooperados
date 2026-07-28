@@ -179,6 +179,67 @@
 .btn-link--danger:hover { color: var(--color-danger-hover); }
 
 /* --------------------------------------------------------------------------
+   CABEÇALHO DE PÁGINA
+   Título, texto de apoio e ações primárias. Usado por todas as telas.
+   -------------------------------------------------------------------------- */
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-24);
+  flex-wrap: wrap;
+}
+
+.page-head__title {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  margin-bottom: var(--space-8);
+}
+
+.page-head__subtitle {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+  max-width: 560px;
+}
+
+.page-head__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+/* Trilha de navegação — só em telas que ficam abaixo de uma listagem. */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-8);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
+
+.breadcrumb a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border-radius: var(--radius-control);
+}
+
+.breadcrumb a:hover {
+  color: var(--color-primary-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.breadcrumb__sep {
+  color: var(--color-border-strong);
+}
+
+/* --------------------------------------------------------------------------
    CAMPOS DE FORMULÁRIO
    -------------------------------------------------------------------------- */
 
@@ -204,6 +265,45 @@
   font-size: var(--text-xs);
   line-height: var(--leading-xs);
   color: var(--color-text-muted);
+}
+
+/* Rótulo de subcampo — usado dentro de um fieldset que já tem legenda. */
+.field__label--sub {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-muted);
+}
+
+/* Agrupamento de campos relacionados sob uma única legenda. */
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  /* fieldset nasce com min-width: min-content e estoura grid e flex. */
+  min-width: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.fieldset__legend {
+  padding: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+}
+
+/* Campos lado a lado que dividem a largura igualmente. */
+.field-row {
+  display: flex;
+  gap: var(--space-16);
+}
+
+.field-row > * {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .field__error {
@@ -348,6 +448,72 @@ button.input-wrap__affix[aria-pressed="true"] {
 
 .input-wrap--leading .input-wrap__icon {
   left: var(--space-16);
+}
+
+/* Campo de arquivo -------------------------------------------------------- */
+
+/* A borda tracejada distingue "anexar arquivo" de um campo de texto comum.
+   O nome do arquivo escolhido é exibido pelo próprio navegador, então isto
+   funciona sem nenhum JavaScript. */
+.file-input {
+  width: 100%;
+  min-height: var(--control-height-lg);
+  padding: var(--space-8);
+  background-color: var(--color-field-bg);
+  border: 1px dashed var(--color-field-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease),
+    background-color var(--duration-fast) var(--ease);
+}
+
+.file-input:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-sunken);
+}
+
+.file-input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+
+.file-input:disabled {
+  background-color: var(--color-field-bg-disabled);
+  border-color: var(--color-border);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.file-input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.file-input::file-selector-button {
+  height: 32px;
+  margin-right: var(--space-16);
+  padding-inline: var(--space-16);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface);
+  color: var(--color-text-strong);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease);
+}
+
+.file-input:hover::file-selector-button {
+  background-color: var(--color-surface-secondary);
+}
+
+.file-input:disabled::file-selector-button {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
 }
 
 /* Checkbox e rádio -------------------------------------------------------- */

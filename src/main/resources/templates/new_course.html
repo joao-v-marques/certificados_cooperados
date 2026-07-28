@@ -1,0 +1,379 @@
+<!doctype html>
+<!--
+  new_course.html — cadastro de um novo curso.
+
+  Os campos espelham a tabela courses do schema:
+    title, total_minutes, completion_date, observations, cooperative_member_id
+  mais o arquivo que vira um registro em course_certificates.
+
+  inserted_by não é campo de formulário: vem do usuário autenticado.
+
+  Sem JavaScript próprio nesta etapa. A validação de preenchimento fica com o
+  próprio navegador (required, min, max, accept).
+-->
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Lançar curso</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/new_course.css}">
+</head>
+
+<body>
+    <div class="app" data-app>
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="topbar__lead">
+                <button type="button"
+                        class="btn-icon topbar__menu"
+                        data-sidebar-toggle
+                        aria-controls="sidebar"
+                        aria-expanded="false">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                    </svg>
+                    <span class="visually-hidden">Abrir ou fechar o menu de navegação</span>
+                </button>
+
+                <!-- TODO: substituir pelo nome e pela marca definitivos da aplicação -->
+                <a class="brand" href="/certificados-cooperados/">
+            <span class="brand__mark" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect width="28" height="28" rx="8" fill="currentColor"/>
+                <rect x="6" y="6" width="6" height="6" rx="1.5" fill="var(--color-accent)"/>
+                <rect x="16" y="6" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="6" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="16" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary-subtle)"/>
+              </svg>
+            </span>
+                    <span class="brand__name">Certificados Cooperados</span>
+                </a>
+            </div>
+
+            <div class="topbar__actions">
+                <div class="dropdown" data-dropdown>
+                    <button type="button" class="user-trigger" data-dropdown-trigger
+                            aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
+                        <!-- TODO: iniciais, nome e e-mail do usuário autenticado -->
+                        <span class="avatar" aria-hidden="true">..</span>
+                        <span class="user-trigger__name">Carregando...</span>
+                        <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                             aria-hidden="true">
+                            <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                        <span class="visually-hidden">Abrir menu da conta</span>
+                    </button>
+
+                    <div class="dropdown__menu" id="menu-usuario" data-dropdown-menu hidden>
+                        <div class="dropdown__header">
+                            <div class="dropdown__name">João Marques</div>
+                            <div class="dropdown__meta">jvmarques2006@gmail.com</div>
+                        </div>
+                        <hr class="dropdown__separator">
+                        <!-- TODO: virar um formulário POST para o logout quando o Spring
+                             Security assumir a autenticação -->
+                        <a class="dropdown__item dropdown__item--danger" href="/certificados-cooperados/login">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M6.5 2.5H3.5A1 1 0 0 0 2.5 3.5v9a1 1 0 0 0 1 1h3" stroke="currentColor"
+                                      stroke-width="1.4" stroke-linecap="round"/>
+                                <path d="M10 5.5 12.5 8 10 10.5M12.5 8H6" stroke="currentColor" stroke-width="1.4"
+                                      stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Sair
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="app__body">
+            <!-- SIDEBAR -->
+            <aside class="sidebar on-inverse" id="sidebar" data-sidebar>
+                <nav class="sidebar__nav" aria-label="Navegação principal">
+
+                    <p class="sidebar__section">Operação</p>
+                    <ul class="nav">
+                        <li>
+                            <a class="nav__link" href="/certificados-cooperados/">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <path d="m3 8.5 7-5.5 7 5.5V16a1 1 0 0 1-1 1h-3.5v-5h-5v5H4a1 1 0 0 1-1-1V8.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                </svg>
+                                <span class="nav__label">Início</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav__link" href="/certificados-cooperados/cursos">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                     aria-hidden="true">
+                                    <path d="M3.5 4.5h5A1.5 1.5 0 0 1 10 6v10a1.5 1.5 0 0 0-1.5-1.5h-5v-10ZM16.5 4.5h-5A1.5 1.5 0 0 0 10 6v10a1.5 1.5 0 0 1 1.5-1.5h5v-10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                </svg>
+                                <span class="nav__label">Cursos</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav__link is-active" href="/certificados-cooperados/cursos/novo" aria-current="page">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span class="nav__label">Lançar curso</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <p class="sidebar__section">Cadastros</p>
+                    <ul class="nav">
+                        <li>
+                            <a class="nav__link" href="/certificados-cooperados/cooperados">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                     aria-hidden="true">
+                                    <circle cx="8" cy="7" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M2.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    <path d="M13.5 5.5a2.5 2.5 0 0 1 0 5M15 16a5 5 0 0 0-1.5-3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span class="nav__label">Cooperados</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav__link" href="/certificados-cooperados/usuarios">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M4.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span class="nav__label">Usuários</span>
+                            </a>
+                        </li>
+                    </ul>
+
+
+                </nav>
+
+                <div class="sidebar__footer">
+                    <div class="sidebar__seal seal" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <p class="sidebar__footer-text">
+                        Registro de cursos e certificados dos cooperados.
+                    </p>
+                </div>
+            </aside>
+
+            <!-- Fundo escuro do menu em overlay (mobile) -->
+            <div class="sidebar-scrim" data-sidebar-scrim hidden></div>
+
+            <!-- ==================================================================
+                 CONTEÚDO
+                 ================================================================== -->
+            <main class="app__main" id="conteudo">
+                <div class="container stack-32">
+
+                    <!-- ==============================================================
+                         Cabeçalho da página
+                         ============================================================== -->
+                    <header class="page-head">
+                        <div class="page-head__text">
+                            <nav class="breadcrumb" aria-label="Trilha de navegação">
+                                <a href="/certificados-cooperados/cursos">Cursos</a>
+                                <span class="breadcrumb__sep" aria-hidden="true">/</span>
+                                <span aria-current="page">Lançar curso</span>
+                            </nav>
+                            <h1 class="page-head__title">Lançar curso</h1>
+                            <p class="page-head__subtitle">
+                                Registre um curso concluído por um cooperado e anexe o certificado
+                                correspondente. Todos os campos são obrigatórios, exceto onde indicado.
+                            </p>
+                        </div>
+                    </header>
+
+                    <!--
+                      Bloco de erro reservado, oculto por padrão.
+                      TODO: exibir quando o backend recusar o envio, e usar os
+                      <p class="field__error"> de cada campo para as mensagens específicas.
+                    -->
+                    <div class="alert alert--danger" role="alert" hidden>
+                        <span class="alert__icon" aria-hidden="true">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M8 4.75v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <circle cx="8" cy="11" r="0.85" fill="currentColor"/>
+                          </svg>
+                        </span>
+                        <div class="alert__content">
+                            <p class="alert__title">Não foi possível salvar o curso</p>
+                            <p>Revise os campos destacados e tente de novo.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-layout">
+
+                        <!-- ==========================================================
+                             Formulário
+                             ========================================================== -->
+                        <!-- TODO: preencher o action com o endpoint de criação de curso.
+                             O enctype multipart é obrigatório por causa do arquivo do
+                             certificado. O campo oculto do token CSRF entra junto. -->
+                        <form class="card form-card" action="" method="post"
+                              enctype="multipart/form-data">
+
+                            <div class="card__header">
+                                <h2 class="card__title">Dados do curso</h2>
+                            </div>
+
+                            <div class="card__body form-grid">
+
+                                <div class="field form-grid__full">
+                                    <label class="field__label" for="curso-cooperado">Cooperado</label>
+                                    <!-- TODO: popular as opções com a lista de cooperative_members ativos -->
+                                    <select class="select" id="curso-cooperado" name="cooperativeMemberId"
+                                            required aria-describedby="dica-cooperado">
+                                        <option value="" disabled selected>Selecione o cooperado</option>
+                                    </select>
+                                    <p class="field__hint" id="dica-cooperado">
+                                        Só aparecem cooperados ativos. Se faltar alguém, cadastre em Cooperados.
+                                    </p>
+                                    <p class="field__error is-hidden" id="erro-cooperado"></p>
+                                </div>
+
+                                <div class="field form-grid__full">
+                                    <label class="field__label" for="curso-titulo">Título do curso</label>
+                                    <input class="input" type="text" id="curso-titulo" name="title"
+                                           maxlength="255" required autocomplete="off"
+                                           placeholder="Ex.: Análise de crédito rural">
+                                    <p class="field__error is-hidden" id="erro-titulo"></p>
+                                </div>
+
+                                <fieldset class="fieldset form-grid__half">
+                                    <legend class="fieldset__legend">Carga horária</legend>
+                                    <div class="field-row">
+                                        <div class="field">
+                                            <label class="field__label field__label--sub" for="curso-horas">Horas</label>
+                                            <input class="input tabular" type="number" id="curso-horas" name="hours"
+                                                   min="0" max="999" step="1" inputmode="numeric"
+                                                   placeholder="0" required>
+                                        </div>
+                                        <div class="field">
+                                            <label class="field__label field__label--sub" for="curso-minutos">Minutos</label>
+                                            <input class="input tabular" type="number" id="curso-minutos" name="minutes"
+                                                   min="0" max="59" step="1" inputmode="numeric" value="0">
+                                        </div>
+                                    </div>
+                                    <p class="field__hint">
+                                        A duração total precisa ser maior que zero.
+                                    </p>
+                                    <p class="field__error is-hidden" id="erro-carga"></p>
+                                </fieldset>
+
+                                <div class="field form-grid__half">
+                                    <label class="field__label" for="curso-conclusao">Data de conclusão</label>
+                                    <!-- TODO: definir o atributo max com a data de hoje no servidor,
+                                         para bloquear datas futuras já no navegador. -->
+                                    <input class="input tabular" type="date" id="curso-conclusao"
+                                           name="completionDate" required aria-describedby="dica-conclusao">
+                                    <p class="field__hint" id="dica-conclusao">
+                                        Data que consta no certificado. Não pode ser futura.
+                                    </p>
+                                    <p class="field__error is-hidden" id="erro-conclusao"></p>
+                                </div>
+                            </div>
+
+                            <div class="card__header form-card__divider">
+                                <h2 class="card__title">Certificado</h2>
+                            </div>
+
+                            <div class="card__body form-grid">
+                                <div class="field form-grid__full">
+                                    <label class="field__label" for="curso-certificado">Arquivo do certificado</label>
+                                    <input class="file-input" type="file" id="curso-certificado" name="certificate"
+                                           accept=".pdf,.jpg,.jpeg,.png" required
+                                           aria-describedby="dica-certificado">
+                                    <p class="field__hint" id="dica-certificado">
+                                        PDF, JPG ou PNG, até 10 MB. O arquivo fica anexado ao curso e
+                                        disponível para consulta.
+                                    </p>
+                                    <p class="field__error is-hidden" id="erro-certificado"></p>
+                                </div>
+
+                                <div class="field form-grid__full">
+                                    <label class="field__label" for="curso-observacoes">
+                                        Observações
+                                        <span class="field__optional">(opcional)</span>
+                                    </label>
+                                    <textarea class="textarea" id="curso-observacoes" name="observations"
+                                              maxlength="1000" rows="4"
+                                              placeholder="Alguma informação que ajude quem consultar este lançamento depois."></textarea>
+                                    <p class="field__error is-hidden" id="erro-observacoes"></p>
+                                </div>
+                            </div>
+
+                            <div class="card__footer form-actions">
+                                <a class="btn btn--ghost" href="/certificados-cooperados/cursos">Cancelar</a>
+                                <span class="spacer"></span>
+                                <button type="reset" class="btn btn--secondary">Limpar campos</button>
+                                <button type="submit" class="btn btn--primary">Salvar curso</button>
+                            </div>
+                        </form>
+
+                        <!-- ==========================================================
+                             Painel de apoio
+                             ========================================================== -->
+                        <aside class="card guide" aria-labelledby="titulo-guia">
+                            <div class="card__header">
+                                <h2 class="card__title" id="titulo-guia">Antes de salvar</h2>
+                            </div>
+                            <div class="card__body">
+                                <ul class="guide__list">
+                                    <li class="guide__item">
+                                        <span class="guide__mark" aria-hidden="true"></span>
+                                        <div>
+                                            <p class="guide__term">O certificado é obrigatório</p>
+                                            <p class="guide__text">
+                                                Todo curso lançado precisa do arquivo. Sem ele o registro
+                                                não é aceito.
+                                            </p>
+                                        </div>
+                                    </li>
+                                    <li class="guide__item">
+                                        <span class="guide__mark" aria-hidden="true"></span>
+                                        <div>
+                                            <p class="guide__term">A carga horária entra no total</p>
+                                            <p class="guide__text">
+                                                As horas informadas somam no acumulado do cooperado e nos
+                                                indicadores do mês.
+                                            </p>
+                                        </div>
+                                    </li>
+                                    <li class="guide__item">
+                                        <span class="guide__mark" aria-hidden="true"></span>
+                                        <div>
+                                            <p class="guide__term">O lançamento fica no seu nome</p>
+                                            <p class="guide__text">
+                                                O curso é registrado com o seu usuário como responsável.
+                                            </p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- O shell (sidebar e dropdown) usa o mesmo script da home. -->
+    <script type="module" th:src="@{/js/pages/home.js}"></script>
+</body>
+</html>
