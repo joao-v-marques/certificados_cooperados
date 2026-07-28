@@ -16,7 +16,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/users")
+    @GetMapping("/api/v1/users")
     public List<UserResponse> findAll() {
         return userService.findAll();
     }
