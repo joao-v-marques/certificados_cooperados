@@ -257,23 +257,27 @@
 
                                 <fieldset class="fieldset form-grid__half">
                                     <legend class="fieldset__legend">Carga horária</legend>
-                                    <div class="field-row">
-                                        <div class="field">
-                                            <label class="field__label field__label--sub" for="curso-horas">Horas</label>
-                                            <input class="input tabular" type="number" id="curso-horas" name="hours"
-                                                   min="0" max="999" step="1" inputmode="numeric"
-                                                   placeholder="0" required>
+                                    <div class="fieldset__body">
+                                        <div class="field-row">
+                                            <div class="input-unit">
+                                                <label class="visually-hidden" for="curso-horas">Horas</label>
+                                                <input class="input tabular" type="number" id="curso-horas" name="hours"
+                                                       min="0" max="999" step="1" inputmode="numeric"
+                                                       placeholder="0" required>
+                                                <span class="input-unit__suffix" aria-hidden="true">h</span>
+                                            </div>
+                                            <div class="input-unit">
+                                                <label class="visually-hidden" for="curso-minutos">Minutos</label>
+                                                <input class="input tabular" type="number" id="curso-minutos" name="minutes"
+                                                       min="0" max="59" step="1" inputmode="numeric" value="0">
+                                                <span class="input-unit__suffix" aria-hidden="true">min</span>
+                                            </div>
                                         </div>
-                                        <div class="field">
-                                            <label class="field__label field__label--sub" for="curso-minutos">Minutos</label>
-                                            <input class="input tabular" type="number" id="curso-minutos" name="minutes"
-                                                   min="0" max="59" step="1" inputmode="numeric" value="0">
-                                        </div>
+                                        <p class="field__hint">
+                                            Horas e minutos. A duração total precisa ser maior que zero.
+                                        </p>
+                                        <p class="field__error is-hidden" id="erro-carga"></p>
                                     </div>
-                                    <p class="field__hint">
-                                        A duração total precisa ser maior que zero.
-                                    </p>
-                                    <p class="field__error is-hidden" id="erro-carga"></p>
                                 </fieldset>
 
                                 <div class="field form-grid__half">

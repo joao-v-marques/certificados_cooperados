@@ -267,19 +267,13 @@
   color: var(--color-text-muted);
 }
 
-/* Rótulo de subcampo — usado dentro de um fieldset que já tem legenda. */
-.field__label--sub {
-  font-size: var(--text-xs);
-  line-height: var(--leading-xs);
-  font-weight: var(--weight-regular);
-  color: var(--color-text-muted);
-}
-
-/* Agrupamento de campos relacionados sob uma única legenda. */
+/* Agrupamento de campos relacionados sob uma única legenda.
+   O conteúdo vive em .fieldset__body, e não no próprio fieldset: <legend> tem
+   renderização especial e não se comporta como item de flex de forma
+   confiável entre navegadores. Assim a legenda é um bloco comum e o corpo é
+   uma coluna flex — o mesmo ritmo de um .field simples (rótulo, 8px, campo),
+   o que mantém o fieldset alinhado com os campos vizinhos na mesma linha. */
 .fieldset {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
   /* fieldset nasce com min-width: min-content e estoura grid e flex. */
   min-width: 0;
   border: 0;
@@ -289,10 +283,17 @@
 
 .fieldset__legend {
   padding: 0;
+  margin-bottom: var(--space-8);
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
   font-weight: var(--weight-semibold);
   color: var(--color-text-strong);
+}
+
+.fieldset__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
 }
 
 /* Campos lado a lado que dividem a largura igualmente. */
@@ -304,6 +305,41 @@
 .field-row > * {
   flex: 1 1 0;
   min-width: 0;
+}
+
+/* Campo numérico com unidade fixa à direita ("8 h", "30 min").
+   A unidade substitui um rótulo acima do campo, que acrescentaria uma linha
+   e desalinharia o grupo em relação aos campos ao lado. */
+.input-unit {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Folga para a maior unidade em uso ("min") não encostar no número. */
+.input-unit .input {
+  padding-right: var(--space-48);
+}
+
+.input-unit__suffix {
+  position: absolute;
+  right: var(--space-16);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+/* As setinhas de incremento ocupariam o lugar da unidade. */
+.input-unit .input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.input-unit .input[type="number"]::-webkit-outer-spin-button,
+.input-unit .input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .field__error {
