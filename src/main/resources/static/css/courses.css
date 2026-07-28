@@ -1,0 +1,117 @@
+/* ==========================================================================
+   courses.css — estilos exclusivos da listagem de cursos.
+
+   Cabeçalho de página, card, tabela, barra de filtros, estado vazio e
+   paginação vêm de components.css.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Faixa de resumo
+
+   Números do que está listado, acima da tabela. Não são os indicadores da
+   home: aqui não há comparação com o mês anterior nem faixa colorida — é
+   leitura de apoio, e por isso fica discreta.
+   -------------------------------------------------------------------------- */
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-32);
+  margin: 0;
+  padding: var(--space-24);
+  background-color: var(--color-surface-secondary);
+  border-radius: var(--radius-card);
+}
+
+.summary__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Separador entre os itens, desenhado com borda para não gastar elemento. */
+.summary__item + .summary__item {
+  padding-left: var(--space-32);
+  border-left: 1px solid var(--color-border-strong);
+}
+
+.summary__label {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.summary__value {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-heading);
+}
+
+/* --------------------------------------------------------------------------
+   Barra de filtros
+
+   São quatro controles. No .toolbar padrão eles quebram em linhas desiguais;
+   aqui a grade de 12 colunas garante que a busca fique com o dobro da
+   largura dos selects e que todos alinhem pela base.
+   -------------------------------------------------------------------------- */
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-16);
+  align-items: end;
+}
+
+.filters .toolbar__search {
+  grid-column: span 6;
+}
+
+.filters .toolbar__filter {
+  grid-column: span 2;
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1199px) {
+  .filters .toolbar__search {
+    grid-column: span 12;
+  }
+
+  .filters .toolbar__filter {
+    grid-column: span 4;
+  }
+}
+
+@media (max-width: 767px) {
+  .summary {
+    gap: var(--space-16);
+    padding: var(--space-16);
+  }
+
+  /* Empilhado, o traço vertical vira horizontal. */
+  .summary__item {
+    flex-basis: 100%;
+  }
+
+  .summary__item + .summary__item {
+    padding-left: 0;
+    padding-top: var(--space-16);
+    border-left: 0;
+    border-top: 1px solid var(--color-border-strong);
+  }
+
+  .filters .toolbar__filter {
+    grid-column: span 12;
+  }
+}
