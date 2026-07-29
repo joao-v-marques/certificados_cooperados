@@ -32,8 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
-### /init do CLAUDE ###
+### CLAUDE ###
 CLAUDE.md
+.claude/
 
 ### /storage de certificados ###
 /storage
