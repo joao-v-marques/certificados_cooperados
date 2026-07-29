@@ -2,7 +2,16 @@ server:
   servlet:
     context-path: /certificados-cooperados
 
+app:
+  certificados:
+    diretorio: ${CERTIFICADOS_DIR:./storage/certificados}
+
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+
   application:
     name: certificados-cooperados
 
