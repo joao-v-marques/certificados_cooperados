@@ -54,14 +54,6 @@
   grid-column: span 1;
 }
 
-/* O checkbox precisa ficar na altura de um .input para o campo de situação
-   alinhar com o de e-mail, que está na mesma linha. */
-.members-form__check {
-  display: flex;
-  align-items: center;
-  min-height: var(--control-height);
-}
-
 /* --------------------------------------------------------------------------
    Ações do formulário
    -------------------------------------------------------------------------- */
