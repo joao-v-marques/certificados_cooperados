@@ -29,10 +29,14 @@ document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
 
 const formLogin = document.querySelector('.login__form');
 const alertBox = document.querySelector('.login__alert');
+const alertTitle = alertBox?.querySelector('.alert__title');
 const alertMessage = alertBox?.querySelector('.alert__content p:not(.alert__title)');
 const submitButton = formLogin?.querySelector('button[type="submit"]');
 
 function showError(message) {
+    // O título pode ter vindo do servidor ("Faça login para continuar", "Sua
+    // sessão expirou"); a partir daqui o assunto é a tentativa de login.
+    if (alertTitle) alertTitle.textContent = 'Não foi possível entrar';
     if (alertMessage) alertMessage.textContent = message;
     if (alertBox) alertBox.hidden = false;
 }
