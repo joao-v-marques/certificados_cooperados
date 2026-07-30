@@ -49,4 +49,8 @@ public class JwtService {
             return false;
         }
     }
+
+    public long getExpirationMillis() {
+        return expirationMillis;
+    }
 }
