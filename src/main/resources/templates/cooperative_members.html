@@ -211,11 +211,9 @@
                      2. Formulário de cadastro
                      ============================================================== -->
 
-                <!--
-                  Bloco de sucesso reservado, oculto por padrão.
-                  TODO: exibir depois de um cadastro aceito, com o nome do cooperado.
-                -->
-                <div class="alert alert--success" role="status" hidden>
+                <!-- Bloco de sucesso, oculto por padrão. Quem o revela é o JS,
+                     depois que a API aceita o cadastro. -->
+                <div class="alert alert--success" role="status" data-alert-success hidden>
                         <span class="alert__icon" aria-hidden="true">
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/>
@@ -225,16 +223,14 @@
                         </span>
                     <div class="alert__content">
                         <p class="alert__title">Cooperado cadastrado</p>
-                        <p>Ele já pode receber lançamento de curso.</p>
+                        <p data-alert-success-text>Ele já pode receber lançamento de curso.</p>
                     </div>
                 </div>
 
-                <!--
-                  Bloco de erro reservado, oculto por padrão.
-                  TODO: exibir quando o backend recusar o envio, e usar os
-                  <p class="field__error"> de cada campo para as mensagens específicas.
-                -->
-                <div class="alert alert--danger" role="alert" hidden>
+                <!-- Bloco de erro, oculto por padrão. O JS o revela quando a API
+                     recusa o envio; o erro de cada campo vai no
+                     <p class="field__error"> correspondente. -->
+                <div class="alert alert--danger" role="alert" data-alert-danger hidden>
                         <span class="alert__icon" aria-hidden="true">
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/>
@@ -244,13 +240,14 @@
                         </span>
                     <div class="alert__content">
                         <p class="alert__title">Não foi possível cadastrar o cooperado</p>
-                        <p>Revise os campos destacados e tente de novo.</p>
+                        <p data-alert-danger-text>Revise os campos destacados e tente de novo.</p>
                     </div>
                 </div>
 
-                <!-- TODO: preencher o action com o endpoint de criação de cooperado.
-                     O campo oculto do token CSRF entra junto. -->
-                <form class="card" action="" method="post">
+                <!-- O envio é feito pelo JS (fetch em JSON), por isso não há action:
+                     o submit é interceptado. TODO: campo oculto do token CSRF quando
+                     o CSRF for reativado. -->
+                <form class="card" data-member-form>
 
                     <div class="card__header">
                         <h2 class="card__title">Novo cooperado</h2>
