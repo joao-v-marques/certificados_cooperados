@@ -73,14 +73,14 @@
             </header>
 
             <!--
-              Bloco de erro reservado, oculto por padrão.
-              O preenchimento dos campos obrigatórios é validado pelo próprio
-              navegador (atributo required).
-              TODO: exibir este bloco quando o backend devolver falha de
-              autenticação, e usar os <p class="field__error"> abaixo para as
-              mensagens por campo.
+              Bloco de erro. Nasce oculto e é revelado em dois momentos:
+              no servidor, quando o acesso a uma página protegida jogou o usuário
+              para cá (?erro=... vindo do RestAuthenticationEntryPoint); e no
+              cliente, quando o POST de login falha (login.js reescreve o texto).
+              O preenchimento dos campos obrigatórios continua sendo validado
+              pelo próprio navegador (atributo required).
             -->
-            <div class="alert alert--danger login__alert" role="alert" hidden>
+            <div class="alert alert--danger login__alert" role="alert" th:hidden="${param.erro == null}">
         <span class="alert__icon" aria-hidden="true">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/>
@@ -88,9 +88,18 @@
             <circle cx="8" cy="11" r="0.85" fill="currentColor"/>
           </svg>
         </span>
-                <div class="alert__content">
-                    <p class="alert__title">Não foi possível entrar</p>
-                    <p>Preencha os campos obrigatórios para continuar.</p>
+                <!-- param.erro é String[]; o índice 0 é o valor em si. -->
+                <div class="alert__content"
+                     th:with="erro=${param.erro != null ? param.erro[0] : ''}"
+                     th:switch="${erro}">
+                    <div th:case="'sessao-expirada'">
+                        <p class="alert__title">Sua sessão expirou</p>
+                        <p>Entre de novo para continuar de onde parou.</p>
+                    </div>
+                    <div th:case="*">
+                        <p class="alert__title">Faça login para continuar</p>
+                        <p>Essa página é restrita: entre com seu usuário e senha para acessá-la.</p>
+                    </div>
                 </div>
             </div>
 
