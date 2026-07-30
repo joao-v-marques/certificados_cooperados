@@ -1,13 +1,3 @@
-/**
- * home.js — comportamento da home.
- *
- * Escopo: sidebar e dropdown da conta. Nada além disso.
- * Nenhuma chamada de rede: só interface.
- *
- * Carregado com <script type="module">, que executa depois do parse do
- * documento — por isso não há espera por DOMContentLoaded.
- */
-
 /** Espelha o breakpoint do CSS: abaixo disso a sidebar vira overlay. */
 const BREAKPOINT_OVERLAY = 1024;
 const STORAGE_KEY = 'ui.sidebar.collapsed';

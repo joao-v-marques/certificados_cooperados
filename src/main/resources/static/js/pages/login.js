@@ -1,17 +1,3 @@
-/**
- * login.js — comportamento da tela de entrada.
- *
- * Escopo: apenas o botão de mostrar/ocultar a senha.
- * A validação dos campos obrigatórios fica com o próprio navegador (atributo
- * required no HTML) e, depois, com o backend. Nenhuma chamada de rede aqui.
- *
- * Contrato no HTML:
- *   [data-password-toggle]                  botão com aria-pressed
- *     aria-controls="<id do input>"         campo que ele comanda
- *     .icon-eye / .icon-eye-off             ícones alternados por is-hidden
- *     [data-password-toggle-label]          texto lido por leitor de tela
- */
-
 document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
     const field = document.getElementById(toggle.getAttribute('aria-controls'));
     if (!field) return;
