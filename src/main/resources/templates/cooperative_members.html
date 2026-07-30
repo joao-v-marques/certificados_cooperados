@@ -1,20 +1,4 @@
 <!doctype html>
-<!--
-  cooperative_members.html — cadastro de cooperados.
-
-  Tela de três blocos, na ordem em que a página é lida:
-    1. um indicador com a quantidade de cooperados cadastrados;
-    2. o formulário de cadastro;
-    3. a tabela com todos os cooperados já cadastrados.
-
-  Os campos do formulário espelham a tabela cooperative_members do schema:
-    name (obrigatório, único), email (opcional, único) e is_active.
-  created_at não é campo de formulário: vem do banco.
-
-  Sem JavaScript próprio nesta etapa e sem chamada de rede. A validação de
-  preenchimento fica com o próprio navegador (required, maxlength, type).
-  O valor do card e as linhas da tabela ainda são estáticos.
--->
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -24,7 +8,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
@@ -33,24 +18,24 @@
 </head>
 
 <body>
-    <div class="app" data-app>
+<div class="app" data-app>
 
-        <!-- TOPBAR -->
-        <header class="topbar">
-            <div class="topbar__lead">
-                <button type="button"
-                        class="btn-icon topbar__menu"
-                        data-sidebar-toggle
-                        aria-controls="sidebar"
-                        aria-expanded="false">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                        <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-                    </svg>
-                    <span class="visually-hidden">Abrir ou fechar o menu de navegação</span>
-                </button>
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar__lead">
+            <button type="button"
+                    class="btn-icon topbar__menu"
+                    data-sidebar-toggle
+                    aria-controls="sidebar"
+                    aria-expanded="false">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span class="visually-hidden">Abrir ou fechar o menu de navegação</span>
+            </button>
 
-                <!-- TODO: substituir pelo nome e pela marca definitivos da aplicação -->
-                <a class="brand" th:href="@{/home}">
+            <!-- TODO: substituir pelo nome e pela marca definitivos da aplicação -->
+            <a class="brand" th:href="@{/home}">
             <span class="brand__mark" aria-hidden="true">
               <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
                 <rect width="28" height="28" rx="8" fill="currentColor"/>
@@ -60,168 +45,177 @@
                 <rect x="16" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary-subtle)"/>
               </svg>
             </span>
-                    <span class="brand__name">Certificados Cooperados</span>
-                </a>
-            </div>
+                <span class="brand__name">Certificados Cooperados</span>
+            </a>
+        </div>
 
-            <div class="topbar__actions">
-                <div class="dropdown" data-dropdown>
-                    <button type="button" class="user-trigger" data-dropdown-trigger
-                            aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
-                        <!-- TODO: iniciais, nome e e-mail do usuário autenticado -->
-                        <span class="avatar" aria-hidden="true">..</span>
-                        <span class="user-trigger__name">Carregando...</span>
-                        <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
-                             aria-hidden="true">
-                            <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                  stroke-linejoin="round"/>
+        <div class="topbar__actions">
+            <div class="dropdown" data-dropdown>
+                <button type="button" class="user-trigger" data-dropdown-trigger
+                        aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
+                    <!-- TODO: iniciais, nome e e-mail do usuário autenticado -->
+                    <span class="avatar" aria-hidden="true">..</span>
+                    <span class="user-trigger__name">Carregando...</span>
+                    <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                         aria-hidden="true">
+                        <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                    <span class="visually-hidden">Abrir menu da conta</span>
+                </button>
+
+                <div class="dropdown__menu" id="menu-usuario" data-dropdown-menu hidden>
+                    <div class="dropdown__header">
+                        <div class="dropdown__name">João Marques</div>
+                        <div class="dropdown__meta">jvmarques2006@gmail.com</div>
+                    </div>
+                    <hr class="dropdown__separator">
+                    <!-- TODO: virar um formulário POST para o logout quando o Spring
+                         Security assumir a autenticação -->
+                    <a class="dropdown__item dropdown__item--danger" th:href="@{/login}">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M6.5 2.5H3.5A1 1 0 0 0 2.5 3.5v9a1 1 0 0 0 1 1h3" stroke="currentColor"
+                                  stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M10 5.5 12.5 8 10 10.5M12.5 8H6" stroke="currentColor" stroke-width="1.4"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <span class="visually-hidden">Abrir menu da conta</span>
-                    </button>
-
-                    <div class="dropdown__menu" id="menu-usuario" data-dropdown-menu hidden>
-                        <div class="dropdown__header">
-                            <div class="dropdown__name">João Marques</div>
-                            <div class="dropdown__meta">jvmarques2006@gmail.com</div>
-                        </div>
-                        <hr class="dropdown__separator">
-                        <!-- TODO: virar um formulário POST para o logout quando o Spring
-                             Security assumir a autenticação -->
-                        <a class="dropdown__item dropdown__item--danger" th:href="@{/login}">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                <path d="M6.5 2.5H3.5A1 1 0 0 0 2.5 3.5v9a1 1 0 0 0 1 1h3" stroke="currentColor"
-                                      stroke-width="1.4" stroke-linecap="round"/>
-                                <path d="M10 5.5 12.5 8 10 10.5M12.5 8H6" stroke="currentColor" stroke-width="1.4"
-                                      stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            Sair
-                        </a>
-                    </div>
+                        Sair
+                    </a>
                 </div>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <div class="app__body">
-            <!-- SIDEBAR -->
-            <aside class="sidebar on-inverse" id="sidebar" data-sidebar>
-                <nav class="sidebar__nav" aria-label="Navegação principal">
+    <div class="app__body">
+        <!-- SIDEBAR -->
+        <aside class="sidebar on-inverse" id="sidebar" data-sidebar>
+            <nav class="sidebar__nav" aria-label="Navegação principal">
 
-                    <p class="sidebar__section">Operação</p>
-                    <ul class="nav">
-                        <li>
-                            <a class="nav__link" th:href="@{/home}">
-                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="m3 8.5 7-5.5 7 5.5V16a1 1 0 0 1-1 1h-3.5v-5h-5v5H4a1 1 0 0 1-1-1V8.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                                </svg>
-                                <span class="nav__label">Início</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="nav__link" th:href="@{/painel-controle}">
-                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                     aria-hidden="true">
-                                    <path d="M4 4h5v5H4V4ZM11 4h5v5h-5V4ZM4 11h5v5H4v-5ZM11 11h5v5h-5v-5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                                </svg>
-                                <span class="nav__label">Painel de controle</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="nav__link" th:href="@{/novo-curso}">
-                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                </svg>
-                                <span class="nav__label">Lançar curso</span>
-                            </a>
-                        </li>
-                    </ul>
+                <p class="sidebar__section">Operação</p>
+                <ul class="nav">
+                    <li>
+                        <a class="nav__link" th:href="@{/home}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                 aria-hidden="true">
+                                <path d="m3 8.5 7-5.5 7 5.5V16a1 1 0 0 1-1 1h-3.5v-5h-5v5H4a1 1 0 0 1-1-1V8.5Z"
+                                      stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Início</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav__link" th:href="@{/painel-controle}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                 aria-hidden="true">
+                                <path d="M4 4h5v5H4V4ZM11 4h5v5h-5V4ZM4 11h5v5H4v-5ZM11 11h5v5h-5v-5Z"
+                                      stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Painel de controle</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav__link" th:href="@{/novo-curso}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                 aria-hidden="true">
+                                <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.5"
+                                      stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Lançar curso</span>
+                        </a>
+                    </li>
+                </ul>
 
-                    <p class="sidebar__section">Cadastros</p>
-                    <ul class="nav">
-                        <li>
-                            <a class="nav__link is-active" th:href="@{/cooperados}" aria-current="page">
-                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                     aria-hidden="true">
-                                    <circle cx="8" cy="7" r="2.75" stroke="currentColor" stroke-width="1.5"/>
-                                    <path d="M2.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                    <path d="M13.5 5.5a2.5 2.5 0 0 1 0 5M15 16a5 5 0 0 0-1.5-3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                </svg>
-                                <span class="nav__label">Cooperados</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="nav__link" th:href="@{/usuarios}">
-                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="1.5"/>
-                                    <path d="M4.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                </svg>
-                                <span class="nav__label">Usuários</span>
-                            </a>
-                        </li>
-                    </ul>
+                <p class="sidebar__section">Cadastros</p>
+                <ul class="nav">
+                    <li>
+                        <a class="nav__link is-active" th:href="@{/cooperados}" aria-current="page">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                 aria-hidden="true">
+                                <circle cx="8" cy="7" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M2.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5"
+                                      stroke-linecap="round"/>
+                                <path d="M13.5 5.5a2.5 2.5 0 0 1 0 5M15 16a5 5 0 0 0-1.5-3.6" stroke="currentColor"
+                                      stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Cooperados</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav__link" th:href="@{/usuarios}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                 aria-hidden="true">
+                                <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M4.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5"
+                                      stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Usuários</span>
+                        </a>
+                    </li>
+                </ul>
 
 
-                </nav>
+            </nav>
 
-                <div class="sidebar__footer">
-                    <div class="sidebar__seal seal" aria-hidden="true">
-                        <span></span><span></span><span></span><span></span>
-                        <span></span><span></span><span></span><span></span>
-                        <span></span><span></span><span></span><span></span>
-                        <span></span><span></span><span></span><span></span>
-                    </div>
-                    <p class="sidebar__footer-text">
-                        Registro de cursos e certificados dos cooperados.
-                    </p>
+            <div class="sidebar__footer">
+                <div class="sidebar__seal seal" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
                 </div>
-            </aside>
+                <p class="sidebar__footer-text">
+                    Registro de cursos e certificados dos cooperados.
+                </p>
+            </div>
+        </aside>
 
-            <!-- Fundo escuro do menu em overlay (mobile) -->
-            <div class="sidebar-scrim" data-sidebar-scrim hidden></div>
+        <!-- Fundo escuro do menu em overlay (mobile) -->
+        <div class="sidebar-scrim" data-sidebar-scrim hidden></div>
 
-            <!-- ==================================================================
-                 CONTEÚDO
-                 ================================================================== -->
-            <main class="app__main" id="conteudo">
-                <div class="container stack-32">
+        <!-- ==================================================================
+             CONTEÚDO
+             ================================================================== -->
+        <main class="app__main" id="conteudo">
+            <div class="container stack-32">
 
-                    <!-- ==============================================================
-                         Cabeçalho da página
-                         ============================================================== -->
-                    <header class="page-head">
-                        <div class="page-head__text">
-                            <h1 class="page-head__title">Cooperados</h1>
-                            <p class="page-head__subtitle">
-                                Cadastre os cooperados que podem receber lançamento de curso e
-                                consulte quem já está no sistema.
-                            </p>
-                        </div>
-                    </header>
+                <!-- ==============================================================
+                     Cabeçalho da página
+                     ============================================================== -->
+                <header class="page-head">
+                    <div class="page-head__text">
+                        <h1 class="page-head__title">Cooperados</h1>
+                        <p class="page-head__subtitle">
+                            Cadastre os cooperados que podem receber lançamento de curso e
+                            consulte quem já está no sistema.
+                        </p>
+                    </div>
+                </header>
 
-                    <!-- ==============================================================
-                         1. Indicador
-                         ============================================================== -->
-                    <section aria-labelledby="titulo-indicador">
-                        <h2 class="visually-hidden" id="titulo-indicador">Resumo do cadastro</h2>
+                <!-- ==============================================================
+                     1. Indicador
+                     ============================================================== -->
+                <section aria-labelledby="titulo-indicador">
+                    <h2 class="visually-hidden" id="titulo-indicador">Resumo do cadastro</h2>
 
-                        <div class="members-summary">
-                            <!-- TODO: preencher o valor com a contagem de cooperative_members
-                                 vinda do backend. Fica "-" enquanto não houver dado. -->
-                            <article class="stat">
-                                <p class="stat__label">Cooperados cadastrados</p>
-                                <p class="stat__value tabular">-</p>
-                            </article>
-                        </div>
-                    </section>
+                    <div class="members-summary">
+                        <!-- TODO: preencher o valor com a contagem de cooperative_members
+                             vinda do backend. Fica "-" enquanto não houver dado. -->
+                        <article class="stat">
+                            <p class="stat__label">Cooperados cadastrados</p>
+                            <p class="stat__value tabular" id="cardCooperativeMembersQtd">-</p>
+                        </article>
+                    </div>
+                </section>
 
-                    <!-- ==============================================================
-                         2. Formulário de cadastro
-                         ============================================================== -->
+                <!-- ==============================================================
+                     2. Formulário de cadastro
+                     ============================================================== -->
 
-                    <!--
-                      Bloco de sucesso reservado, oculto por padrão.
-                      TODO: exibir depois de um cadastro aceito, com o nome do cooperado.
-                    -->
-                    <div class="alert alert--success" role="status" hidden>
+                <!--
+                  Bloco de sucesso reservado, oculto por padrão.
+                  TODO: exibir depois de um cadastro aceito, com o nome do cooperado.
+                -->
+                <div class="alert alert--success" role="status" hidden>
                         <span class="alert__icon" aria-hidden="true">
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/>
@@ -229,18 +223,18 @@
                                   stroke-linecap="round" stroke-linejoin="round"/>
                           </svg>
                         </span>
-                        <div class="alert__content">
-                            <p class="alert__title">Cooperado cadastrado</p>
-                            <p>Ele já pode receber lançamento de curso.</p>
-                        </div>
+                    <div class="alert__content">
+                        <p class="alert__title">Cooperado cadastrado</p>
+                        <p>Ele já pode receber lançamento de curso.</p>
                     </div>
+                </div>
 
-                    <!--
-                      Bloco de erro reservado, oculto por padrão.
-                      TODO: exibir quando o backend recusar o envio, e usar os
-                      <p class="field__error"> de cada campo para as mensagens específicas.
-                    -->
-                    <div class="alert alert--danger" role="alert" hidden>
+                <!--
+                  Bloco de erro reservado, oculto por padrão.
+                  TODO: exibir quando o backend recusar o envio, e usar os
+                  <p class="field__error"> de cada campo para as mensagens específicas.
+                -->
+                <div class="alert alert--danger" role="alert" hidden>
                         <span class="alert__icon" aria-hidden="true">
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/>
@@ -248,144 +242,130 @@
                             <circle cx="8" cy="11" r="0.85" fill="currentColor"/>
                           </svg>
                         </span>
-                        <div class="alert__content">
-                            <p class="alert__title">Não foi possível cadastrar o cooperado</p>
-                            <p>Revise os campos destacados e tente de novo.</p>
+                    <div class="alert__content">
+                        <p class="alert__title">Não foi possível cadastrar o cooperado</p>
+                        <p>Revise os campos destacados e tente de novo.</p>
+                    </div>
+                </div>
+
+                <!-- TODO: preencher o action com o endpoint de criação de cooperado.
+                     O campo oculto do token CSRF entra junto. -->
+                <form class="card" action="" method="post">
+
+                    <div class="card__header">
+                        <h2 class="card__title">Novo cooperado</h2>
+                    </div>
+
+                    <div class="card__body members-form">
+
+                        <div class="field members-form__full">
+                            <label class="field__label" for="cooperado-nome">Nome</label>
+                            <input class="input" type="text" id="cooperado-nome" name="name"
+                                   maxlength="255" required autocomplete="off"
+                                   placeholder="Nome completo do cooperado"
+                                   aria-describedby="dica-nome">
+                            <p class="field__hint" id="dica-nome">
+                                Como o nome identifica o cooperado nos lançamentos, não pode
+                                repetir um cadastro existente.
+                            </p>
+                            <p class="field__error is-hidden" id="erro-nome"></p>
+                        </div>
+
+                        <div class="field members-form__half">
+                            <label class="field__label" for="cooperado-email">
+                                E-mail
+                                <span class="field__optional">(opcional)</span>
+                            </label>
+                            <input class="input" type="email" id="cooperado-email" name="email"
+                                   maxlength="255" autocomplete="off"
+                                   placeholder="cooperado@exemplo.com"
+                                   aria-describedby="dica-email">
+                            <p class="field__hint" id="dica-email">
+                                Serve para identificar cooperados de nome parecido. Também não
+                                pode repetir.
+                            </p>
+                            <p class="field__error is-hidden" id="erro-email"></p>
+                        </div>
+
+                        <div class="field members-form__half">
+                            <span class="field__label" id="rotulo-situacao">Situação</span>
+                            <div class="members-form__check" role="group" aria-labelledby="rotulo-situacao">
+                                <label class="check">
+                                    <input type="checkbox" name="isActive" value="true" checked>
+                                    <span>Cooperado ativo</span>
+                                </label>
+                            </div>
+                            <p class="field__hint">
+                                Só cooperado ativo aparece na lista do lançamento de curso.
+                            </p>
+                            <p class="field__error is-hidden" id="erro-situacao"></p>
                         </div>
                     </div>
 
-                    <!-- TODO: preencher o action com o endpoint de criação de cooperado.
-                         O campo oculto do token CSRF entra junto. -->
-                    <form class="card" action="" method="post">
+                    <div class="card__footer members-actions">
+                        <span class="spacer"></span>
+                        <button type="reset" class="btn btn--secondary">Limpar campos</button>
+                        <button type="submit" class="btn btn--primary">Cadastrar cooperado</button>
+                    </div>
+                </form>
 
-                        <div class="card__header">
-                            <h2 class="card__title">Novo cooperado</h2>
-                        </div>
+                <!-- ==============================================================
+                     3. Tabela de cooperados e estado vazio
+                     ============================================================== -->
+                <section class="card" aria-labelledby="titulo-tabela">
+                    <div class="card__header">
+                        <h2 class="card__title" id="titulo-tabela">Cooperados cadastrados</h2>
+                    </div>
 
-                        <div class="card__body members-form">
-
-                            <div class="field members-form__full">
-                                <label class="field__label" for="cooperado-nome">Nome</label>
-                                <input class="input" type="text" id="cooperado-nome" name="name"
-                                       maxlength="255" required autocomplete="off"
-                                       placeholder="Nome completo do cooperado"
-                                       aria-describedby="dica-nome">
-                                <p class="field__hint" id="dica-nome">
-                                    Como o nome identifica o cooperado nos lançamentos, não pode
-                                    repetir um cadastro existente.
-                                </p>
-                                <p class="field__error is-hidden" id="erro-nome"></p>
-                            </div>
-
-                            <div class="field members-form__half">
-                                <label class="field__label" for="cooperado-email">
-                                    E-mail
-                                    <span class="field__optional">(opcional)</span>
-                                </label>
-                                <input class="input" type="email" id="cooperado-email" name="email"
-                                       maxlength="255" autocomplete="off"
-                                       placeholder="cooperado@exemplo.com"
-                                       aria-describedby="dica-email">
-                                <p class="field__hint" id="dica-email">
-                                    Serve para identificar cooperados de nome parecido. Também não
-                                    pode repetir.
-                                </p>
-                                <p class="field__error is-hidden" id="erro-email"></p>
-                            </div>
-
-                            <div class="field members-form__half">
-                                <span class="field__label" id="rotulo-situacao">Situação</span>
-                                <div class="members-form__check" role="group" aria-labelledby="rotulo-situacao">
-                                    <label class="check">
-                                        <input type="checkbox" name="isActive" value="true" checked>
-                                        <span>Cooperado ativo</span>
-                                    </label>
-                                </div>
-                                <p class="field__hint">
-                                    Só cooperado ativo aparece na lista do lançamento de curso.
-                                </p>
-                                <p class="field__error is-hidden" id="erro-situacao"></p>
-                            </div>
-                        </div>
-
-                        <div class="card__footer members-actions">
-                            <span class="spacer"></span>
-                            <button type="reset" class="btn btn--secondary">Limpar campos</button>
-                            <button type="submit" class="btn btn--primary">Cadastrar cooperado</button>
-                        </div>
-                    </form>
-
-                    <!-- ==============================================================
-                         3. Tabela de cooperados e estado vazio
-                         ============================================================== -->
-                    <section class="card" aria-labelledby="titulo-tabela">
-                        <div class="card__header">
-                            <h2 class="card__title" id="titulo-tabela">Cooperados cadastrados</h2>
-                        </div>
-
-                        <div class="table-wrap">
-                            <table class="table table--cards members-table">
-                                <caption class="visually-hidden">
-                                    Todos os cooperados cadastrados no sistema, com a data de
-                                    cadastro e a situação de cada um.
-                                </caption>
-                                <thead>
+                    <div class="table-wrap">
+                        <table class="table table--cards members-table">
+                            <caption class="visually-hidden">
+                                Todos os cooperados cadastrados no sistema, com a data de
+                                cadastro e a situação de cada um.
+                            </caption>
+                            <thead>
                                 <tr>
                                     <th scope="col">Cooperado</th>
                                     <th scope="col">Cadastrado em</th>
                                     <th scope="col">Situação</th>
                                 </tr>
-                                </thead>
+                            </thead>
+                            <tbody id="tbodyCooperativeMembers">
+                                <!-- PREENCHIDO VIA JS -->
+                            </tbody>
+                        </table>
+                    </div>
 
-                                <!-- TODO: gerar uma linha por cooperado vindo do backend. A
-                                     linha abaixo é só o modelo do layout. -->
-                                <tbody>
-
-                                  <tr>
-                                    <td data-label="Cooperado">
-                                      <span class="table__primary">Nome</span>
-                                      <span class="table__secondary">email@exemplo.com</span>
-                                    </td>
-                                    <td data-label="Cadastrado em" class="tabular">01/01/2026</td>
-                                    <td data-label="Situação">
-                                      <span class="badge badge--success">Ativo</span>
-                                      <!-- ou <span class="badge badge--negative">Inativo</span> -->
-                                    </td>
-                                  </tr>
-
-                                </tbody>
-                            </table>
+                    <!-- Estado vazio. Nasce oculto: quem o revela é o JS, e só quando a
+                         API confirma que não há nenhum cooperado cadastrado. -->
+                    <div class="empty" data-empty-state hidden>
+                        <div class="empty__seal seal" aria-hidden="true">
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
                         </div>
+                        <p class="empty__title">Nenhum cooperado cadastrado ainda</p>
+                        <p class="empty__text">
+                            Use o formulário acima para cadastrar o primeiro. Depois disso ele
+                            já pode receber lançamento de curso.
+                        </p>
+                    </div>
 
-                        <!-- Estado vazio. Visível enquanto a tabela não tem linhas.
-                             TODO: renderizar condicionalmente, junto com a tabela. -->
-                        <div class="empty">
-                            <div class="empty__seal seal" aria-hidden="true">
-                                <span></span><span></span><span></span><span></span>
-                                <span></span><span></span><span></span><span></span>
-                                <span></span><span></span><span></span><span></span>
-                                <span></span><span></span><span></span><span></span>
-                            </div>
-                            <p class="empty__title">Nenhum cooperado cadastrado ainda</p>
-                            <p class="empty__text">
-                                Use o formulário acima para cadastrar o primeiro. Depois disso ele
-                                já pode receber lançamento de curso.
-                            </p>
-                        </div>
-
-                        <!-- TODO: substituir pela contagem real de cooperados listados -->
-                        <div class="card__footer table-foot">
-                            <p class="text-sm text-muted tabular">
-                                Nenhum cooperado para mostrar
-                            </p>
-                        </div>
-                    </section>
-                </div>
-            </main>
-        </div>
+                    <!-- TODO: substituir pela contagem real de cooperados listados -->
+                    <div class="card__footer table-foot">
+                        <p class="text-sm text-muted tabular">
+                            Nenhum cooperado para mostrar
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </main>
     </div>
+</div>
 
-    <!-- O shell (sidebar e dropdown) usa o mesmo script da home. -->
-    <script type="module" th:src="@{/js/pages/home.js}"></script>
+<!-- O shell (sidebar e dropdown) usa o mesmo script da home. -->
+<script type="module" th:src="@{/js/pages/home.js}"></script>
+<script type="module" th:src="@{/js/pages/cooperative_members.js}"></script>
 </body>
 </html>
