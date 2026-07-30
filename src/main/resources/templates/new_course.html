@@ -25,6 +25,7 @@
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
     <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/notyf.css}">
     <link rel="stylesheet" th:href="@{/css/new_course.css}">
 </head>
 
@@ -199,23 +200,10 @@
                     </header>
 
                     <!--
-                      Bloco de erro reservado, oculto por padrão.
-                      TODO: exibir quando o backend recusar o envio, e usar os
+                      TODO: ao integrar o formulário com a API, avisar o resultado com
+                      notifySuccess/notifyError (js/utils/notyf.js) e usar os
                       <p class="field__error"> de cada campo para as mensagens específicas.
                     -->
-                    <div class="alert alert--danger" role="alert" hidden>
-                        <span class="alert__icon" aria-hidden="true">
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M8 4.75v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="8" cy="11" r="0.85" fill="currentColor"/>
-                          </svg>
-                        </span>
-                        <div class="alert__content">
-                            <p class="alert__title">Não foi possível salvar o curso</p>
-                            <p>Revise os campos destacados e tente de novo.</p>
-                        </div>
-                    </div>
 
                     <div class="form-layout">
 

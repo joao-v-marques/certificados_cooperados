@@ -2,16 +2,17 @@
  * Página de cooperados: lista os cadastrados e envia o formulário de cadastro.
  *
  * Contrato com o HTML (data-*):
- *   [data-member-form]         formulário de cadastro, submit interceptado
- *   [data-alert-success]       aviso de cadastro aceito
- *   [data-alert-success-text]  parágrafo do aviso de sucesso
- *   [data-alert-danger]        aviso de cadastro recusado
- *   [data-alert-danger-text]   parágrafo do aviso de erro
- *   [data-empty-state]         bloco de "nenhum cooperado cadastrado"
+ *   [data-member-form]  formulário de cadastro, submit interceptado
+ *   [data-empty-state]  bloco de "nenhum cooperado cadastrado"
  *
  * Por id: tbodyCooperativeMembers, cardCooperativeMembersQtd,
  * cooperado-nome/erro-nome e cooperado-email/erro-email.
+ *
+ * O retorno de sucesso e de erro sai em toast (ver utils/notyf.js); o que é
+ * específico de um campo continua no <p class="field__error"> dele.
  */
+
+import {dismissNotifications, notifyError, notifySuccess} from "../utils/notyf.js";
 
 const API_URL = "/certificados-cooperados/api/v1/cooperative-members";
 
@@ -22,7 +23,7 @@ const FIELDS = {
 };
 
 /* =========================================================================
-   Avisos e erros de campo
+   Erros de campo
    ========================================================================= */
 
 // O nome do cooperado é digitado pelo usuário e volta da API, então não pode
@@ -30,27 +31,6 @@ const FIELDS = {
 function escapeHtml(value) {
     const characters = {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"};
     return String(value ?? "").replace(/[&<>"']/g, character => characters[character]);
-}
-
-function hideAlerts() {
-    document.querySelector("[data-alert-success]").hidden = true;
-    document.querySelector("[data-alert-danger]").hidden = true;
-}
-
-function showSuccessAlert(name) {
-    const alertBox = document.querySelector("[data-alert-success]");
-    const text = alertBox.querySelector("[data-alert-success-text]");
-
-    text.textContent = `${name} já pode receber lançamento de curso.`;
-    alertBox.hidden = false;
-}
-
-function showErrorAlert(message) {
-    const alertBox = document.querySelector("[data-alert-danger]");
-    const text = alertBox.querySelector("[data-alert-danger-text]");
-
-    text.textContent = message;
-    alertBox.hidden = false;
 }
 
 function clearFieldErrors() {
@@ -157,7 +137,7 @@ async function populateCooperativeMembersTable() {
         // oculto para não mentir sobre o estado do cadastro.
         emptyState.hidden = true;
 
-        showErrorAlert("Não foi possível carregar a lista de cooperados. Atualize a página.");
+        notifyError("Não foi possível carregar a lista de cooperados. Atualize a página.");
         console.error(error);
     }
 }
@@ -190,7 +170,7 @@ function handleErrorResponse(apiError) {
     const message = apiError?.message || "Não foi possível cadastrar o cooperado. Tente de novo.";
     const fields = apiError?.fields ?? {};
 
-    showErrorAlert(message);
+    notifyError(message);
 
     const firstInvalid = showFieldErrors(fields);
     if (firstInvalid) firstInvalid.focus();
@@ -199,7 +179,8 @@ function handleErrorResponse(apiError) {
 async function handleSubmit(event) {
     event.preventDefault();
 
-    hideAlerts();
+    // Os toasts do envio anterior saem da tela: o que vale é o resultado deste.
+    dismissNotifications();
     clearFieldErrors();
 
     // Guardado agora: depois do primeiro await o event.currentTarget já é null,
@@ -225,16 +206,16 @@ async function handleSubmit(event) {
             return;
         }
 
-        // Limpar antes de avisar: reset() dispara o evento de reset, que esconde
-        // os avisos — na ordem inversa o sucesso apareceria e sumiria na hora.
+        // Limpar antes de avisar: reset() dispara o evento de reset, que derruba
+        // os toasts — na ordem inversa o sucesso apareceria e sumiria na hora.
         form.reset();
-        showSuccessAlert(body?.name ?? "O cooperado");
+        notifySuccess(`${body?.name ?? "O cooperado"} já pode receber lançamento de curso.`);
 
         // A lista só é recarregada depois do 201, para não mostrar um cooperado
         // que o backend recusou.
         await populateCooperativeMembersTable();
     } catch (error) {
-        showErrorAlert("Não foi possível conectar ao servidor. Tente de novo.");
+        notifyError("Não foi possível conectar ao servidor. Tente de novo.");
         console.error(error);
     } finally {
         submitButton.disabled = false;
@@ -249,7 +230,7 @@ function initCooperativeMemberForm() {
 
     // "Limpar campos" também zera o que sobrou do envio anterior.
     form.addEventListener("reset", () => {
-        hideAlerts();
+        dismissNotifications();
         clearFieldErrors();
     });
 }

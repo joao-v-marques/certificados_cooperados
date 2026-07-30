@@ -221,6 +221,7 @@
   --z-dropdown: 40;
   --z-overlay:  50;
   --z-modal:    60;
+  --z-toast:    70;  /* acima de tudo: o aviso não pode ficar atrás do modal */
 }
 
 /* ==========================================================================

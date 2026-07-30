@@ -14,6 +14,7 @@
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
     <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/notyf.css}">
     <link rel="stylesheet" th:href="@{/css/cooperative_members.css}">
 </head>
 
@@ -211,38 +212,9 @@
                      2. Formulário de cadastro
                      ============================================================== -->
 
-                <!-- Bloco de sucesso, oculto por padrão. Quem o revela é o JS,
-                     depois que a API aceita o cadastro. -->
-                <div class="alert alert--success" role="status" data-alert-success hidden>
-                        <span class="alert__icon" aria-hidden="true">
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="m5.25 8.25 1.9 1.9 3.6-4.3" stroke="currentColor" stroke-width="1.5"
-                                  stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                    <div class="alert__content">
-                        <p class="alert__title">Cooperado cadastrado</p>
-                        <p data-alert-success-text>Ele já pode receber lançamento de curso.</p>
-                    </div>
-                </div>
-
-                <!-- Bloco de erro, oculto por padrão. O JS o revela quando a API
-                     recusa o envio; o erro de cada campo vai no
+                <!-- O retorno do cadastro (aceito ou recusado) sai em toast, pelo
+                     js/utils/notyf.js. O erro de cada campo continua no
                      <p class="field__error"> correspondente. -->
-                <div class="alert alert--danger" role="alert" data-alert-danger hidden>
-                        <span class="alert__icon" aria-hidden="true">
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M8 4.75v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="8" cy="11" r="0.85" fill="currentColor"/>
-                          </svg>
-                        </span>
-                    <div class="alert__content">
-                        <p class="alert__title">Não foi possível cadastrar o cooperado</p>
-                        <p data-alert-danger-text>Revise os campos destacados e tente de novo.</p>
-                    </div>
-                </div>
 
                 <!-- O envio é feito pelo JS (fetch em JSON), por isso não há action:
                      o submit é interceptado. TODO: campo oculto do token CSRF quando
