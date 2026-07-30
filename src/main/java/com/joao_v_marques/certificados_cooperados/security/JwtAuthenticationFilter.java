@@ -18,6 +18,13 @@ import org.slf4j.Logger;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    /**
+     * Marca a requisição que trouxe um token inválido ou expirado. O
+     * {@link RestAuthenticationEntryPoint} lê este atributo para diferenciar
+     * "sessão expirou" de "nunca fez login" na mensagem mostrada ao usuário.
+     */
+    public static final String INVALID_TOKEN_ATTRIBUTE = "jwt.invalidToken";
+
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
@@ -51,6 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (JwtException e) {
             log.debug("Token JWT inválido ou expirado: {}", e.getMessage());
+            request.setAttribute(INVALID_TOKEN_ATTRIBUTE, Boolean.TRUE);
         }
 
         filterChain.doFilter(request, response);
