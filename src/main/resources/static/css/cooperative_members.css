@@ -1,0 +1,111 @@
+/* ==========================================================================
+   cooperative_members.css — estilos exclusivos do cadastro de cooperados.
+
+   Cabeçalho de página, indicador (.stat), card, campos, tabela, badges e
+   estado vazio vêm de components.css. Aqui só entra o arranjo dos três
+   blocos da tela: indicador, formulário e tabela.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Indicador
+
+   É um card só, e ele não estica até a borda: em grade de 12 colunas ocupa 4,
+   a mesma largura dos indicadores do painel de controle. Assim as duas telas
+   têm cards do mesmo tamanho.
+   -------------------------------------------------------------------------- */
+
+.members-summary {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.members-summary > .stat {
+  grid-column: span 4;
+}
+
+@media (max-width: 1199px) {
+  .members-summary > .stat { grid-column: span 6; }
+}
+
+@media (max-width: 599px) {
+  .members-summary > .stat { grid-column: span 12; }
+}
+
+/* --------------------------------------------------------------------------
+   Formulário
+
+   Duas colunas: o nome ocupa a linha inteira, e-mail e situação dividem a
+   linha de baixo.
+   -------------------------------------------------------------------------- */
+
+.members-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-24);
+  align-items: start;
+}
+
+.members-form__full {
+  grid-column: 1 / -1;
+}
+
+.members-form__half {
+  grid-column: span 1;
+}
+
+/* O checkbox precisa ficar na altura de um .input para o campo de situação
+   alinhar com o de e-mail, que está na mesma linha. */
+.members-form__check {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height);
+}
+
+/* --------------------------------------------------------------------------
+   Ações do formulário
+   -------------------------------------------------------------------------- */
+
+.members-actions {
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Tabela
+
+   São três colunas curtas: a largura mínima de 960px de .table faria a
+   tabela pedir scroll horizontal sem necessidade.
+   -------------------------------------------------------------------------- */
+
+.members-table {
+  min-width: 560px;
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .members-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-16);
+  }
+
+  .members-form__half {
+    grid-column: 1 / -1;
+  }
+
+  /* Empilhado, a ação primária fica por último e ocupa a linha toda. */
+  .members-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .members-actions .spacer {
+    display: none;
+  }
+
+  .members-actions .btn {
+    width: 100%;
+  }
+}
