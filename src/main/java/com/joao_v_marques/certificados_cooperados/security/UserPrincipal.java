@@ -16,6 +16,11 @@ public class UserPrincipal implements UserDetails {
         this.user = user;
     }
 
+    // id do usuário autenticado, usado para gravar quem fez o lançamento (inserted_by)
+    public Integer getId() {
+        return user.getId();
+    }
+
     @Override
     public String getUsername() {
         return user.getUsername();
