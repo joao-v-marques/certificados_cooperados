@@ -146,7 +146,9 @@
                                 <span class="nav__label">Cooperados</span>
                             </a>
                         </li>
-                        <li>
+                        <!-- Só o administrador enxerga: nasce oculto e o shell
+                             (js/pages/shell.js) revela quando o perfil confere. -->
+                        <li hidden data-nav-admin>
                             <a class="nav__link" href="/certificados-cooperados/usuarios">
                                 <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                                     <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="1.5"/>
