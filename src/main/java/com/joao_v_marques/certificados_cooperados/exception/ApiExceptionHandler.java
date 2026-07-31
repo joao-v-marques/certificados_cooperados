@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -28,10 +30,34 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiError> handleValidation(BindException ex) {
         Map<String, String> fields = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
-                fields.putIfAbsent(error.getField(), error.getDefaultMessage()));
+                fields.putIfAbsent(error.getField(), messageOf(error)));
 
         return ResponseEntity.badRequest()
                 .body(new ApiError("Revise os campos destacados.", fields));
+    }
+
+    /**
+     * A mensagem que vai para a tela.
+     *
+     * Erro de anotação (@NotBlank, @Positive…) já tem texto escrito para o usuário.
+     * Erro de conversão não: o texto que o Spring monta é interno ("Failed to
+     * convert value of type java.lang.String to required type java.time.LocalDate…"),
+     * e mostrar isso no campo do formulário só confunde e ainda expõe o tipo
+     * interno. Nesse caso a mensagem é trocada por uma que o usuário entende.
+     */
+    private String messageOf(FieldError error) {
+        return error.isBindingFailure()
+                ? "O valor informado não é válido para este campo."
+                : error.getDefaultMessage();
+    }
+
+    // Falta uma parte obrigatória do multipart — hoje, o arquivo do certificado.
+    // Sem isto cairia no handler de Exception e viraria 500, quando na verdade é
+    // envio incompleto.
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ApiError> handleMissingPart(MissingServletRequestPartException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiError.of("Anexe o arquivo do certificado."));
     }
 
     // regras de negócio do service: cooperado inativo, arquivo fora do padrão, etc.
