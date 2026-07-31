@@ -36,9 +36,7 @@ public class CooperativeMemberController {
         return cooperativeMemberService.findAll();
     }
 
-    // Relatório do painel de controle. Sem `year` assume o ano corrente, que é o
-    // que a tela abre por padrão; a conversão do ano em período é regra e fica
-    // no service.
+    // Relatório do painel de controle. Sem year assume o ano corrente, o que a tela abre por padrão; a conversão do ano em período é regra e fica no service
     @GetMapping("/annual-report")
     public CooperativeMembersYearReportResponse findYearReport(@RequestParam(required = false) Integer year) {
 

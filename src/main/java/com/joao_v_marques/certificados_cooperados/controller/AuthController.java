@@ -45,19 +45,6 @@ public class AuthController {
 
     }
 
-    /**
-     * Encerra a sessão apagando o cookie do token.
-     *
-     * Precisa passar pelo servidor: o access_token é httpOnly, então o JavaScript
-     * da página não enxerga nem apaga esse cookie — só um Set-Cookie vencido tira
-     * ele do navegador.
-     *
-     * O token em si continua tecnicamente válido até expirar, porque a autenticação
-     * é stateless e não há lista de revogados. Para quem usa a aplicação pelo
-     * navegador isso não muda nada — sem o cookie, não há como apresentá-lo.
-     * TODO: se um dia houver necessidade de invalidar de fato (logout remoto,
-     * conta comprometida), aí sim vai precisar de uma lista de tokens revogados.
-     */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest httpRequest) {
 
@@ -68,14 +55,6 @@ public class AuthController {
                 .build();
     }
 
-    /**
-     * O cookie do token, montado num lugar só.
-     *
-     * Login e logout precisam usar exatamente os mesmos atributos (nome, path,
-     * httpOnly, secure e sameSite): o navegador identifica o cookie por essa
-     * combinação, e qualquer diferença faria o logout criar um cookie novo em vez
-     * de substituir o que está lá — a sessão continuaria de pé.
-     */
     private ResponseCookie accessTokenCookie(String value, Duration maxAge, String contextPath) {
         return ResponseCookie.from("access_token", value)
                 .httpOnly(true)

@@ -56,19 +56,6 @@ public class CooperativeMemberService {
                 .toList();
     }
 
-    /**
-     * Relatório do painel de controle no ano-base escolhido: cada cooperado ativo
-     * com quantos cursos concluiu e quantos pontos somou no ano, mais os
-     * indicadores do topo da tela.
-     *
-     * O ano recorta os <b>cursos</b>, não o cadastro do cooperado: quem não lançou
-     * nada continua na lista, zerado. Sem isso não existiria "sem curso no ano" —
-     * o cooperado simplesmente sumiria da tabela.
-     *
-     * O que define o ano do curso é a data de conclusão (`completion_date`), e não
-     * a data do lançamento no sistema: curso concluído em dezembro e lançado em
-     * janeiro conta para o ano em que foi concluído.
-     */
     @Transactional(readOnly = true)
     public CooperativeMembersYearReportResponse findYearReport(int year) {
 
