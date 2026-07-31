@@ -82,9 +82,8 @@
                             <div class="dropdown__meta" data-user-email></div>
                         </div>
                         <hr class="dropdown__separator">
-                        <!-- TODO: virar um formulário POST para o logout quando o Spring
-                             Security assumir a autenticação -->
-                        <a class="dropdown__item dropdown__item--danger" href="/certificados-cooperados/login">
+                        <!-- O POST do logout é feito por js/auth/logout.js. -->
+                        <button type="button" class="dropdown__item dropdown__item--danger" data-logout>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                                 <path d="M6.5 2.5H3.5A1 1 0 0 0 2.5 3.5v9a1 1 0 0 0 1 1h3" stroke="currentColor"
                                       stroke-width="1.4" stroke-linecap="round"/>
@@ -92,7 +91,7 @@
                                       stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                             Sair
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -199,22 +198,20 @@
                         </div>
                     </header>
 
-                    <!--
-                      TODO: ao integrar o formulário com a API, avisar o resultado com
-                      notifySuccess/notifyError (js/utils/notyf.js) e usar os
-                      <p class="field__error"> de cada campo para as mensagens específicas.
-                    -->
+                    <!-- O retorno do lançamento (aceito ou recusado) sai em toast, pelo
+                         js/utils/notyf.js. O erro de cada campo continua no
+                         <p class="field__error"> correspondente. -->
 
                     <div class="form-layout">
 
                         <!-- ==========================================================
                              Formulário
                              ========================================================== -->
-                        <!-- TODO: preencher o action com o endpoint de criação de curso.
-                             O enctype multipart é obrigatório por causa do arquivo do
-                             certificado. O campo oculto do token CSRF entra junto. -->
-                        <form class="card form-card" action="" method="post"
-                              enctype="multipart/form-data">
+
+                        <!-- O envio é feito pelo JS (fetch multipart), por isso não há
+                             action: o submit é interceptado. TODO: campo oculto do token
+                             CSRF quando o CSRF for reativado. -->
+                        <form class="card form-card" data-course-form>
 
                             <div class="card__header">
                                 <h2 class="card__title">Dados do curso</h2>
@@ -224,7 +221,7 @@
 
                                 <div class="field form-grid__full">
                                     <label class="field__label" for="curso-cooperado">Cooperado</label>
-                                    <!-- TODO: popular as opções com a lista de cooperative_members ativos -->
+                                    <!-- As opções são carregadas pelo JS (só cooperados ativos). -->
                                     <select class="select" id="curso-cooperado" name="cooperativeMemberId"
                                             required aria-describedby="dica-cooperado">
                                         <option value="" disabled selected>Selecione o cooperado</option>
@@ -270,8 +267,7 @@
 
                                 <div class="field form-grid__half">
                                     <label class="field__label" for="curso-conclusao">Data de conclusão</label>
-                                    <!-- TODO: definir o atributo max com a data de hoje no servidor,
-                                         para bloquear datas futuras já no navegador. -->
+                                    <!-- O `max` é preenchido pelo JS com a data de hoje. -->
                                     <input class="input tabular" type="date" id="curso-conclusao"
                                            name="completionDate" required aria-describedby="dica-conclusao">
                                     <p class="field__hint" id="dica-conclusao">
@@ -367,5 +363,6 @@
 
     <!-- O shell (sidebar e dropdown) usa o mesmo script da home. -->
     <script type="module" th:src="@{/js/pages/home.js}"></script>
+    <script type="module" th:src="@{/js/pages/new_course.js}"></script>
 </body>
 </html>

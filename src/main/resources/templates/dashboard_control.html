@@ -86,9 +86,8 @@
                             <div class="dropdown__meta" data-user-email></div>
                         </div>
                         <hr class="dropdown__separator">
-                        <!-- TODO: virar um formulário POST para o logout quando o Spring
-                             Security assumir a autenticação -->
-                        <a class="dropdown__item dropdown__item--danger" href="/certificados-cooperados/login">
+                        <!-- O POST do logout é feito por js/auth/logout.js. -->
+                        <button type="button" class="dropdown__item dropdown__item--danger" data-logout>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                                 <path d="M6.5 2.5H3.5A1 1 0 0 0 2.5 3.5v9a1 1 0 0 0 1 1h3" stroke="currentColor"
                                       stroke-width="1.4" stroke-linecap="round"/>
@@ -96,7 +95,7 @@
                                       stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                             Sair
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
