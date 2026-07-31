@@ -7,12 +7,13 @@
   cadastrados, seu progresso na meta anual de pontos e o acesso ao detalhe
   de cada um.
 
-  A meta anual (30 pontos, calculados a partir da carga horária dos cursos)
-  ainda não está definida no backend — os valores dos cards e das linhas da
-  tabela ficam com "-" até essa lógica ser implementada.
+  A meta anual é de 30 pontos, e os pontos saem da carga horária de cada curso
+  em faixas — a regra mora em CoursePointsPolicy, no backend.
 
-  Sem dados mockados: o tbody nasce vazio e o estado vazio fica visível.
-  Sem JavaScript próprio — só o script do shell (sidebar e dropdown).
+  Sem dados mockados: cards, tabela e opções de ano vêm de
+  /api/v1/cooperative-members/annual-report, recortados pelo ano-base do
+  cabeçalho. Quem faz isso é js/pages/dashboard_control.js; o script do shell
+  (sidebar, dropdown e usuário da topbar) continua sendo o home.js.
 -->
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -68,9 +69,9 @@
                 <div class="dropdown" data-dropdown>
                     <button type="button" class="user-trigger" data-dropdown-trigger
                             aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
-                        <!-- TODO: iniciais, nome e e-mail do usuário autenticado -->
-                        <span class="avatar" aria-hidden="true">..</span>
-                        <span class="user-trigger__name">Carregando...</span>
+                        <!-- Preenchidos pelo shell (js/pages/home.js) com o usuário autenticado. -->
+                        <span class="avatar" aria-hidden="true" data-user-initials></span>
+                        <span class="user-trigger__name" data-user-name>Carregando...</span>
                         <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
                              aria-hidden="true">
                             <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
@@ -81,8 +82,8 @@
 
                     <div class="dropdown__menu" id="menu-usuario" data-dropdown-menu hidden>
                         <div class="dropdown__header">
-                            <div class="dropdown__name">João Marques</div>
-                            <div class="dropdown__meta">jvmarques2006@gmail.com</div>
+                            <div class="dropdown__name" data-user-name>Carregando...</div>
+                            <div class="dropdown__meta" data-user-email></div>
                         </div>
                         <hr class="dropdown__separator">
                         <!-- TODO: virar um formulário POST para o logout quando o Spring

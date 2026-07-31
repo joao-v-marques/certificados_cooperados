@@ -167,11 +167,65 @@ function initDropdowns() {
 }
 
 /* =========================================================================
+   Usuário autenticado
+
+   Contrato no HTML (presente na topbar de toda página):
+     [data-user-initials]  iniciais do avatar
+     [data-user-name]      nome; aparece duas vezes (gatilho e menu aberto)
+     [data-user-email]     e-mail, dentro do menu
+
+   Fica no shell porque a topbar é a mesma em todas as telas — cada página
+   preencher a sua repetiria a chamada e o contrato.
+   ========================================================================= */
+
+const CURRENT_USER_URL = '/certificados-cooperados/api/v1/users/me';
+
+async function initCurrentUser() {
+  const nameTargets = document.querySelectorAll('[data-user-name]');
+  const initialsTarget = document.querySelector('[data-user-initials]');
+  const emailTarget = document.querySelector('[data-user-email]');
+
+  // Tela sem topbar (login) não tem nada a preencher.
+  if (!nameTargets.length && !initialsTarget && !emailTarget) return;
+
+  try {
+    const response = await fetch(CURRENT_USER_URL, { credentials: 'same-origin' });
+
+    if (!response.ok) throw new Error(`A API respondeu ${response.status}`);
+
+    const user = await response.json();
+
+    // textContent, e não innerHTML: nome e e-mail vêm do cadastro e não podem
+    // ser interpretados como marcação.
+    nameTargets.forEach((target) => {
+      target.textContent = user.name;
+    });
+
+    if (initialsTarget) initialsTarget.textContent = user.initials;
+    // O e-mail é opcional no cadastro; sem ele a linha fica vazia.
+    if (emailTarget) emailTarget.textContent = user.email ?? '';
+  } catch (error) {
+    // Sem toast de propósito: o shell roda em toda página, e uma falha aqui
+    // viraria ruído em cada navegação. O rótulo cai para algo neutro em vez de
+    // ficar preso em "Carregando..." ou de inventar um nome.
+    nameTargets.forEach((target) => {
+      target.textContent = 'Conta';
+    });
+
+    if (initialsTarget) initialsTarget.textContent = '';
+
+    console.error(error);
+  }
+}
+
+/* =========================================================================
    Ligação
    ========================================================================= */
 
 const sidebar = initSidebar();
 const dropdowns = initDropdowns();
+
+initCurrentUser();
 
 // Esc fecha a camada mais alta: o dropdown antes da sidebar, para que fechar
 // o menu da conta não feche junto a navegação em overlay.
