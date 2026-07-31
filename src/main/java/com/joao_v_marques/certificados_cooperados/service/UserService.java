@@ -1,9 +1,13 @@
 package com.joao_v_marques.certificados_cooperados.service;
 
 import com.joao_v_marques.certificados_cooperados.dto.CurrentUserResponse;
+import com.joao_v_marques.certificados_cooperados.dto.UserRequest;
 import com.joao_v_marques.certificados_cooperados.dto.UserResponse;
+import com.joao_v_marques.certificados_cooperados.entity.Role;
 import com.joao_v_marques.certificados_cooperados.entity.User;
+import com.joao_v_marques.certificados_cooperados.repository.RoleRepository;
 import com.joao_v_marques.certificados_cooperados.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -15,39 +19,29 @@ import java.util.Set;
 @Service
 public class UserService {
 
-    // Partículas não viram inicial: "João de Freitas" é JF, e não JD.
-    private static final Set<String> NAME_PARTICLES =
-            Set.of("de", "da", "do", "das", "dos", "e", "del", "di", "van", "von");
+    // Partículas não viram iniciais: "João de Freitas" é JF, e não JD.
+    private static final Set<String> NAME_PARTICLES = Set.of("de", "da", "do", "das", "dos", "e", "del", "di", "van", "von");
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository,
+                       RoleRepository roleRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
     public List<UserResponse> findAll() {
         return userRepository.findAll()
                 .stream()
-                .map(user -> new UserResponse(
-                        user.getId(),
-                        user.getUsername(),
-                        user.getName(),
-                        user.getEmail(),
-                        user.getCreatedAt(),
-                        user.getRole().getName(),
-                        user.isActive()
-                ))
+                .map(this::toResponse)
                 .toList();
     }
 
-    /**
-     * Dados do usuário autenticado para a topbar.
-     *
-     * Lê do banco em vez de aproveitar o que já está no SecurityContext de
-     * propósito: o token vive 24h, e nesse intervalo o nome ou o e-mail podem ter
-     * mudado — a tela mostra o cadastro de agora, não o de quando o login foi feito.
-     */
     @Transactional(readOnly = true)
     public CurrentUserResponse findCurrent(Integer userId) {
 
@@ -60,13 +54,9 @@ public class UserService {
                 ? user.getName().trim()
                 : user.getUsername();
 
-        return new CurrentUserResponse(displayName, user.getEmail(), initialsOf(displayName));
+        return new CurrentUserResponse(displayName, user.getEmail(), initialsOf(displayName), user.getRole().getName());
     }
 
-    /**
-     * Iniciais do avatar: primeira letra do primeiro nome e do último sobrenome.
-     * Nome de uma palavra só rende uma letra — melhor do que repetir a mesma.
-     */
     private String initialsOf(String displayName) {
 
         List<String> words = Arrays.stream(displayName.trim().split("\\s+"))
@@ -91,5 +81,55 @@ public class UserService {
         String last = names.size() > 1 ? names.get(names.size() - 1).substring(0, 1) : "";
 
         return (first + last).toUpperCase();
+    }
+
+    // POST de um novo User
+    @Transactional
+    public UserResponse create(UserRequest userRequest) {
+
+        String username = userRequest.username().trim();
+
+        // Nome e email são opcionais: o formulário manda string vazia quando não
+        // preenchem, e "" gravado é pior que null — o findCurrent trataria "" como
+        // nome válido e a topbar ficaria sem identificação nenhuma.
+        String name = StringUtils.hasText(userRequest.name()) ? userRequest.name().trim() : null;
+        String email = StringUtils.hasText(userRequest.email()) ? userRequest.email().trim() : null;
+
+        // regras de negócio que a anotação de validation da dto não cobre
+        if (userRepository.existsByUsernameIgnoreCase(username)) {
+            throw new IllegalArgumentException("Já existe um usuário com esse nome de usuário.");
+        }
+
+        // O perfil vem por id, então precisa existir de verdade: id inventado é
+        // regra violada, e não erro de servidor.
+        Role role = roleRepository.findById(userRequest.roleId())
+                .orElseThrow(() -> new IllegalArgumentException("Perfil de acesso não encontrado."));
+
+        // Montar a entidade, um dto nunca vira entidade sozinho
+        User user = new User();
+        user.setUsername(username);
+        user.setName(name);
+        user.setEmail(email);
+        user.setRole(role);
+
+        // A senha em claro morre aqui: o que entra na entidade já é o hash, e a
+        // UserResponse não tem campo para devolvê-la.
+        user.setPasswordHash(passwordEncoder.encode(userRequest.password()));
+
+        User saved = userRepository.save(user);
+
+        return toResponse(saved);
+    }
+
+    private UserResponse toResponse(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getName(),
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getRole().getName(),
+                user.isActive()
+        );
     }
 }
