@@ -182,12 +182,33 @@ function initDropdowns() {
      [data-user-initials]  iniciais do avatar
      [data-user-name]      nome; aparece duas vezes (gatilho e menu aberto)
      [data-user-email]     e-mail, dentro do menu
+     [data-nav-admin]      item de menu que só o administrador enxerga; nasce
+                           com o atributo hidden no HTML
 
-   Fica no shell porque a topbar é a mesma em todas as telas — cada página
-   preencher a sua repetiria a chamada e o contrato.
+   Fica no shell porque a topbar e a sidebar são as mesmas em todas as telas —
+   cada página preencher a sua repetiria a chamada e o contrato.
    ========================================================================= */
 
 const CURRENT_USER_URL = '/certificados-cooperados/api/v1/users/me';
+
+/** Perfil que enxerga os itens de administração. Espelha a role semeada na V2. */
+const ADMIN_ROLE = 'administrator';
+
+/**
+ * Revela os itens restritos ao administrador.
+ *
+ * O item nasce oculto no HTML e só aparece depois da resposta, nunca o
+ * contrário: mostrar para todo mundo e esconder depois faria o link piscar na
+ * tela de quem não pode usá-lo. Se a chamada falhar, ele continua escondido —
+ * some um atalho, não some o acesso, e a barreira de verdade é do servidor.
+ */
+function revealAdminNav(role) {
+    if (role !== ADMIN_ROLE) return;
+
+    document.querySelectorAll('[data-nav-admin]').forEach((item) => {
+        item.hidden = false;
+    });
+}
 
 async function initCurrentUser() {
   const nameTargets = document.querySelectorAll('[data-user-name]');
@@ -213,6 +234,8 @@ async function initCurrentUser() {
     if (initialsTarget) initialsTarget.textContent = user.initials;
     // O e-mail é opcional no cadastro; sem ele a linha fica vazia.
     if (emailTarget) emailTarget.textContent = user.email ?? '';
+
+    revealAdminNav(user.role);
   } catch (error) {
     // Sem toast de propósito: o shell roda em toda página, e uma falha aqui
     // viraria ruído em cada navegação. O rótulo cai para algo neutro em vez de
