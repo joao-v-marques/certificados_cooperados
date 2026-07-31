@@ -45,6 +45,17 @@ public class CooperativeMemberService {
                 .toList();
     }
 
+    // GET só dos cooperados ativos, para a select do lançamento de curso: o
+    // CourseService recusa curso de cooperado inativo, então oferecer um na tela
+    // seria deixar o usuário escolher algo que volta como erro.
+    @Transactional(readOnly = true)
+    public List<CooperativeMemberResponse> findAllActive() {
+        return cooperativeMemberRepository.findActiveOrderByName()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     /**
      * Relatório do painel de controle no ano-base escolhido: cada cooperado ativo
      * com quantos cursos concluiu e quantos pontos somou no ano, mais os

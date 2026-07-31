@@ -23,8 +23,16 @@ public class CooperativeMemberController {
         this.cooperativeMemberService = cooperativeMemberService;
     }
 
+    // Sem `active` devolve todo o cadastro, que é o que a tela de cooperados
+    // mostra; com `active=true` devolve só quem pode receber lançamento, que é o
+    // que a select de novo curso precisa.
     @GetMapping
-    public List<CooperativeMemberResponse> findAll() {
+    public List<CooperativeMemberResponse> findAll(@RequestParam(required = false) Boolean active) {
+
+        if (Boolean.TRUE.equals(active)) {
+            return cooperativeMemberService.findAllActive();
+        }
+
         return cooperativeMemberService.findAll();
     }
 
