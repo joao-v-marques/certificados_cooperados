@@ -197,17 +197,13 @@
                         </div>
 
                         <div class="page-head__actions">
-                            <!-- Recorte anual da tela. Inerte por enquanto: nenhum JS o lê.
-                                 TODO: preencher as opções com os anos que têm lançamento,
-                                 marcar o ano corrente como selecionado e recarregar a
-                                 página com o ano escolhido (?ano=). -->
+                            <!-- Recorte anual de toda a tela: indicadores e tabela. As opções
+                                 são preenchidas pelo JS com os anos que têm curso concluído
+                                 (availableYears), por isso o select nasce vazio. -->
                             <div class="year-filter">
                                 <label class="year-filter__label" for="filtro-ano">Ano-base</label>
-                                <select class="select year-filter__select" id="filtro-ano" name="ano">
-                                    <option value="2026" selected>2026</option>
-                                    <option value="2025">2025</option>
-                                    <option value="2024">2024</option>
-                                </select>
+                                <select class="select year-filter__select" id="filtro-ano" name="ano"
+                                        data-year-filter></select>
                             </div>
                         </div>
                     </header>
@@ -218,24 +214,26 @@
                     <section aria-labelledby="titulo-indicadores">
                         <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do ano</h2>
 
-                        <!-- TODO: cards provisórios — substituir pelos indicadores
-                             definitivos vindos do backend (mais itens virão depois
-                             destes três). -->
+                        <!-- Os três valores vêm do mesmo relatório que preenche a tabela,
+                             então sempre falam do mesmo ano-base. Nascem com "-" e o JS
+                             substitui; se a chamada falhar, o "-" permanece em vez de a
+                             tela exibir zero como se fosse dado real.
+                             TODO: mais indicadores virão depois destes três. -->
                         <div class="stat-grid">
 
                             <article class="stat">
                                 <p class="stat__label">Cooperados cadastrados</p>
-                                <p class="stat__value tabular">-</p>
+                                <p class="stat__value tabular" id="cardCooperativeMembersQtd">-</p>
                             </article>
 
                             <article class="stat stat--warning">
                                 <p class="stat__label">Sem curso lançado no ano</p>
-                                <p class="stat__value tabular">-</p>
+                                <p class="stat__value tabular" id="cardMembersWithoutCoursesQtd">-</p>
                             </article>
 
                             <article class="stat stat--info">
                                 <p class="stat__label">Já atingiram a meta anual</p>
-                                <p class="stat__value tabular">-</p>
+                                <p class="stat__value tabular" id="cardMembersGoalReachedQtd">-</p>
                             </article>
 
                         </div>
@@ -249,11 +247,10 @@
                             <h2 class="card__title" id="titulo-tabela">Cooperados</h2>
                         </div>
 
-                        <!-- Controles inertes por enquanto: nenhum JS os lê.
-                             TODO: envolver num <form method="get"> apontando para o
-                             controller da listagem; os names (q, status, ordem) já
-                             estão prontos para virar parâmetros da consulta, junto
-                             com o ano-base (ano) que fica no cabeçalho da página. -->
+                        <!-- Busca, status e ordenação são aplicados no navegador, sobre as
+                             linhas que o relatório do ano já trouxe: são poucos cooperados
+                             e evita uma ida ao servidor a cada tecla. Só o ano-base volta
+                             na API, porque muda a agregação. -->
                         <div class="toolbar filters">
                             <div class="toolbar__search">
                                 <label class="field__label" for="filtro-busca">Buscar</label>
@@ -304,39 +301,25 @@
                                 </tr>
                                 </thead>
 
-                                <tbody>
-
-                                  <tr>
-                                    <td data-label="Cooperado"><span class="table__primary">Nome</span>
-                                      <span class="table__secondary">email@exemplo.com</span>
-                                    </td>
-                                    <td data-label="Cursos no ano" class="table__num tabular">3</td>
-                                    <td data-label="Pontos no ano" class="table__num tabular">32</td>
-                                    <td data-label="Status">
-                                      <span class="badge badge--success">Meta atingida</span>
-                                      <!-- ou <span class="badge badge--warning">Pendente</span> -->
-                                    </td>
-                                    <td class="table__actions">
-                                      <button type="button" class="btn-link" data-action="visualizar">Visualizar</button>
-                                    </td>
-                                  </tr>
-
+                                <tbody id="tbodyCooperativeMembers">
+                                    <!-- PREENCHIDO VIA JS -->
                                 </tbody>
                             </table>
                         </div>
 
-                        <!-- Estado vazio. Visível enquanto a tabela não tem linhas.
-                             TODO: renderizar condicionalmente e trocar a cópia quando o
-                             vazio for resultado de filtro, e não de base sem registros. -->
-                        <div class="empty">
+                        <!-- Estado vazio. Nasce oculto: quem o revela é o JS, e só depois de
+                             a API confirmar que não há linha nenhuma. O texto muda conforme
+                             o vazio venha de base sem cooperado ou de filtro que não achou
+                             ninguém. -->
+                        <div class="empty" data-empty-state hidden>
                             <div class="empty__seal seal" aria-hidden="true">
                                 <span></span><span></span><span></span><span></span>
                                 <span></span><span></span><span></span><span></span>
                                 <span></span><span></span><span></span><span></span>
                                 <span></span><span></span><span></span><span></span>
                             </div>
-                            <p class="empty__title">Nenhum cooperado cadastrado ainda</p>
-                            <p class="empty__text">
+                            <p class="empty__title" data-empty-title>Nenhum cooperado cadastrado ainda</p>
+                            <p class="empty__text" data-empty-text>
                                 Os cooperados cadastrados no sistema aparecem aqui, com o
                                 progresso deles na meta anual de pontos.
                             </p>
@@ -346,7 +329,7 @@
                         <!-- TODO: substituir pelos dados de paginação quando a listagem for
                              paginada no backend -->
                         <div class="card__footer table-foot">
-                            <p class="text-sm text-muted tabular">
+                            <p class="text-sm text-muted tabular" data-table-count>
                                 Nenhum cooperado para mostrar
                             </p>
                             <span class="spacer"></span>

@@ -1107,16 +1107,34 @@ button.input-wrap__affix[aria-pressed="true"] {
   line-height: var(--leading-xs);
 }
 
+/* Coluna numérica: valor e cabeçalho encostados na direita, com tabular-nums.
+   Alinhar à direita é o que deixa a casa das unidades embaixo da casa das
+   unidades — é assim que se compara 3 com 12 de relance. */
 .table__num {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
+/* O <th> precisa da sua própria regra: `.table thead th` acima é mais
+   específico que `.table__num` e vencia o alinhamento, deixando o cabeçalho à
+   esquerda enquanto o número da coluna ia para a direita. */
+.table thead th.table__num {
+  text-align: right;
+}
+
+/* Ações encostadas na direita da linha.
+   Sem `display: flex` de propósito: um <td> que vira flex container deixa de ser
+   célula de tabela, o navegador embrulha o conteúdo numa célula anônima e a
+   coluna para de negociar largura com o <th> do cabeçalho — que é justamente o
+   que desalinha as duas. O text-align faz o mesmo trabalho e a célula continua
+   célula; o meio vertical já vem do `vertical-align: middle` de .table tbody td. */
 .table__actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-16);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table__actions > * + * {
+  margin-left: var(--space-16);
 }
 
 /* Barra de ferramentas da tabela ------------------------------------------ */
