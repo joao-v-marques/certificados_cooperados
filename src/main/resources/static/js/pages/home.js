@@ -1,3 +1,5 @@
+import { initLogout } from '../auth/logout.js';
+
 /** Espelha o breakpoint do CSS: abaixo disso a sidebar vira overlay. */
 const BREAKPOINT_OVERLAY = 1024;
 const STORAGE_KEY = 'ui.sidebar.collapsed';
@@ -226,6 +228,7 @@ const sidebar = initSidebar();
 const dropdowns = initDropdowns();
 
 initCurrentUser();
+initLogout();
 
 // Esc fecha a camada mais alta: o dropdown antes da sidebar, para que fechar
 // o menu da conta não feche junto a navegação em overlay.
