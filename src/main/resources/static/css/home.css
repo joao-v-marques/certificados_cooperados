@@ -1,29 +1,275 @@
 /* ==========================================================================
-   home.css — estilos exclusivos do painel principal.
+   home.css — estilos exclusivos da tela de início.
 
-   Cabeçalho de página, tabela, barra de filtros e paginação vivem em
-   components.css: mais de uma tela usa.
+   Cabeçalho de página, card, badge e recorte por ano vivem em components.css:
+   mais de uma tela usa. Aqui ficam o termômetro da meta e os blocos de
+   apresentação, que só existem nesta página.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Indicadores — grade de 12 colunas, 3 cards de 4 colunas no desktop.
+   Termômetro da meta anual
    -------------------------------------------------------------------------- */
 
-.stat-grid {
+.goal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* Contagem, frase e porcentagem na mesma linha; a frase é quem quebra quando
+   falta espaço. */
+.goal__headline {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.goal__count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-8);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  line-height: var(--leading-3xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.goal__count-of {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-muted);
+}
+
+.goal__caption {
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  color: var(--color-text);
+}
+
+.goal__percent {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-heading);
+}
+
+/* A barra. O trilho é a superfície afundada e o preenchimento é a marca — a
+   leitura é "quanto do cadastro já fechou a meta". */
+.goal__meter {
+  height: 16px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.goal__meter-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary);
+  transition: width var(--duration-base) var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .goal__meter-fill { transition: none; }
+}
+
+.goal__note:empty { display: none; }
+
+@media (max-width: 599px) {
+  .goal__headline { gap: var(--space-4); }
+
+  /* Sem espaço para a porcentagem no canto: ela desce e a contagem manda. */
+  .goal__headline .spacer { display: none; }
+  .goal__percent { flex-basis: 100%; }
+}
+
+/* --------------------------------------------------------------------------
+   Apresentação — o que a aplicação faz
+   -------------------------------------------------------------------------- */
+
+/* Os três blocos do card — apresentação, passo a passo e faixas — são assuntos
+   distintos, e não uma lista. O respiro entre eles é maior que o stack-32 dos
+   empilhamentos comuns para que a leitura separe um do outro.
+
+   O espaço vem de gap, e não de margem no irmão: o reset de base.css zera a
+   margem de ol[class] e ul[class] com especificidade maior que a de um seletor
+   de classe, então margin-top aqui seria descartado justamente no passo a passo
+   e nas faixas, que são listas. */
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-48);
+}
+
+/* Rótulo, faixas e nota. Mesmo motivo do gap acima: com stack-16 a lista de
+   faixas ficaria colada no rótulo. */
+.intro__bands {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.intro__lead {
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  max-width: 68ch;
+}
+
+/* Passos numerados ------------------------------------------------------- */
+
+.steps {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--gutter);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: step;
 }
 
-.stat-grid > .stat {
-  grid-column: span 4;
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-16);
 }
 
-@media (max-width: 1199px) {
-  .stat-grid > .stat { grid-column: span 6; }
+.step__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary-subtle);
+  color: var(--color-success-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.step__title {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.step__description {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 899px) {
+  .steps { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Faixas de pontuação ---------------------------------------------------- */
+
+.bands {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-16);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface-sunken);
+}
+
+.band__range {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+.band__points {
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-heading);
 }
 
 @media (max-width: 599px) {
-  .stat-grid { gap: var(--space-16); }
-  .stat-grid > .stat { grid-column: span 12; }
+  .bands { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --------------------------------------------------------------------------
+   Atalhos — cards que levam às telas principais
+   -------------------------------------------------------------------------- */
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.shortcut {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  padding: var(--space-24);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-xs);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease),
+              box-shadow var(--duration-fast) var(--ease);
+}
+
+.shortcut:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.shortcut__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface-secondary);
+  color: var(--color-brand-deep);
+}
+
+.shortcut__title {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-heading);
+}
+
+.shortcut:hover .shortcut__title {
+  color: var(--color-primary-hover);
+}
+
+.shortcut__text {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 899px) {
+  .shortcuts { grid-template-columns: minmax(0, 1fr); }
 }

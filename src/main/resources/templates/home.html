@@ -1,4 +1,18 @@
 <!doctype html>
+<!--
+  Início.
+
+  Duas partes, e só isso: o termômetro da meta anual — quantos cooperados ativos
+  já fecharam os pontos do ano e quantos ainda não — e uma apresentação do que a
+  aplicação faz.
+
+  O acompanhamento cooperado a cooperado é do painel de controle; aqui fica só o
+  número agregado, para as duas telas não competirem pelo mesmo assunto.
+
+  Sem dados mockados: o termômetro e as opções de ano vêm de
+  /api/v1/cooperative-members/annual-report por js/pages/home.js; o script do
+  shell (sidebar, dropdown e usuário da topbar) é o shell.js.
+-->
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -53,7 +67,7 @@
                 <div class="dropdown" data-dropdown>
                     <button type="button" class="user-trigger" data-dropdown-trigger
                             aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
-                        <!-- Preenchidos pelo shell (js/pages/home.js) com o usuário autenticado. -->
+                        <!-- Preenchidos pelo shell (js/pages/shell.js) com o usuário autenticado. -->
                         <span class="avatar" aria-hidden="true" data-user-initials></span>
                         <span class="user-trigger__name" data-user-name>Carregando...</span>
                         <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
@@ -173,26 +187,20 @@
                          ============================================================== -->
                     <header class="page-head">
                         <div class="page-head__text">
-                            <!-- TODO: saudação e nome do usuário autenticado -->
-                            <h1 class="page-head__title">Olá, Carregando...</h1>
+                            <!-- O nome é preenchido pelo shell, como na topbar. -->
+                            <h1 class="page-head__title">Olá, <span data-user-name>Carregando...</span></h1>
                             <p class="page-head__subtitle">
-                                <!-- TODO: números do resumo do ano-base vindos do backend -->
-                                Foram lançados <strong class="tabular">-</strong> cursos no ano,
-                                somando <strong class="tabular">-</strong> horas de formação.
+                                Acompanhe aqui o cumprimento da meta anual de formação dos cooperados.
                             </p>
                         </div>
 
                         <div class="page-head__actions">
-                            <!-- Recorte anual da tela. Inerte por enquanto: nenhum JS o lê.
-                                 TODO: preencher as opções com os anos que têm lançamento,
-                                 marcar o ano corrente como selecionado e recarregar a
-                                 página com o ano escolhido (?ano=). -->
+                            <!-- Recorte anual do termômetro. As opções são reescritas pelo
+                                 JS com os anos que o backend aceita. -->
                             <div class="year-filter">
                                 <label class="year-filter__label" for="filtro-ano">Ano-base</label>
-                                <select class="select year-filter__select" id="filtro-ano" name="ano">
-                                    <option value="2026" selected>2026</option>
-                                    <option value="2025">2025</option>
-                                    <option value="2024">2024</option>
+                                <select class="select year-filter__select" id="filtro-ano" name="ano"
+                                        data-year-filter>
                                 </select>
                             </div>
 
@@ -207,191 +215,165 @@
                     </header>
 
                     <!-- ==============================================================
-                         2. Indicadores
+                         2. Termômetro da meta anual
                          ============================================================== -->
-                    <section aria-labelledby="titulo-indicadores">
-                        <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do ano</h2>
+                    <section class="card goal" aria-labelledby="titulo-meta">
+                        <div class="card__header">
+                            <h2 class="card__title" id="titulo-meta">
+                                Meta anual de <span class="tabular" data-goal-points>-</span> pontos
+                            </h2>
+                            <span class="spacer"></span>
+                            <span class="badge badge--neutral" data-goal-deadline>Carregando...</span>
+                        </div>
 
-                        <!-- TODO: substituir pela lista de indicadores vinda do backend -->
-                        <div class="stat-grid">
-
-                            <article class="stat">
-                                <p class="stat__label">Cursos lançados no ano</p>
-                                <p class="stat__value tabular">-</p>
-                                <p class="stat__delta stat__delta--good">
-                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                                        <path d="M6 10V2M6 2 2.5 5.5M6 2l3.5 3.5" stroke="currentColor" stroke-width="1.5"
-                                              stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    <strong>-%</strong> <span class="text-muted">vs. ano anterior</span>
+                        <div class="card__body goal__body">
+                            <div class="goal__headline">
+                                <p class="goal__count">
+                                    <strong class="tabular" data-goal-reached>-</strong>
+                                    <span class="goal__count-of">de</span>
+                                    <strong class="tabular" data-goal-total>-</strong>
                                 </p>
-                            </article>
-
-                            <article class="stat stat--info">
-                                <p class="stat__label">Horas registradas no ano</p>
-                                <p class="stat__value tabular">-<span class="stat__unit">h</span></p>
-                                <p class="stat__delta stat__delta--good">
-                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                                        <path d="M6 10V2M6 2 2.5 5.5M6 2l3.5 3.5" stroke="currentColor" stroke-width="1.5"
-                                              stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    <strong>-%</strong> <span class="text-muted">vs. ano anterior</span>
+                                <p class="goal__caption">
+                                    cooperados ativos já atingiram a meta em
+                                    <span class="tabular" data-goal-year>-</span>
                                 </p>
-                            </article>
+                                <span class="spacer"></span>
+                                <p class="goal__percent tabular" data-goal-percent aria-hidden="true">-</p>
+                            </div>
 
-                            <article class="stat stat--accent">
-                                <p class="stat__label">Cooperados com curso no ano</p>
-                                <p class="stat__value tabular">-</p>
-                                <p class="stat__delta stat__delta--bad stat__delta--down">
-                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                                        <path d="M6 10V2M6 2 2.5 5.5M6 2l3.5 3.5" stroke="currentColor" stroke-width="1.5"
-                                              stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    <strong>−</strong> <span class="text-muted">vs. ano anterior</span>
-                                </p>
-                            </article>
+                            <!-- A porcentagem ao lado da barra é decorativa: o valor que o
+                                 leitor de tela recebe é o aria-valuetext, escrito pelo JS
+                                 com a contagem de cooperados. -->
+                            <div class="goal__meter" data-goal-meter role="progressbar"
+                                 aria-labelledby="titulo-meta"
+                                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                                <span class="goal__meter-fill" data-goal-fill></span>
+                            </div>
 
+                            <p class="goal__note text-sm text-muted" data-goal-note></p>
                         </div>
                     </section>
 
                     <!-- ==============================================================
-                         3. Tabela de cursos recentes, controles e estado vazio
+                         3. Apresentação da aplicação
                          ============================================================== -->
-                    <section class="card" aria-labelledby="titulo-tabela">
+                    <section class="card" aria-labelledby="titulo-como-funciona">
                         <div class="card__header">
-                            <h2 class="card__title" id="titulo-tabela">Cursos lançados recentemente</h2>
-                            <span class="spacer"></span>
-                            <a class="btn-link" href="/certificados-cooperados/painel-controle">Ver todos os cursos</a>
+                            <h2 class="card__title" id="titulo-como-funciona">Como funciona</h2>
                         </div>
 
-                        <!-- Controles da tabela -->
-                        <!-- Controles inertes por enquanto: nenhum JS os lê.
-                             TODO: envolver num <form method="get"> apontando para o
-                             controller da listagem; os names (q, ordem) já estão
-                             prontos para virar parâmetros da consulta, junto com o
-                             ano-base (ano) que fica no cabeçalho da página. -->
-                        <div class="toolbar">
-                            <div class="toolbar__search">
-                                <label class="field__label" for="filtro-busca">Buscar</label>
-                                <div class="input-wrap input-wrap--leading">
-                    <span class="input-wrap__icon" aria-hidden="true">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                      </svg>
-                    </span>
-                                    <input class="input" type="search" id="filtro-busca" name="q"
-                                           placeholder="Cooperado ou curso" autocomplete="off">
-                                </div>
-                            </div>
-
-                            <div class="toolbar__filter">
-                                <label class="field__label" for="filtro-ordenacao">Ordenar por</label>
-                                <select class="select" id="filtro-ordenacao" name="ordem">
-                                    <option value="conclusao-desc">Conclusão mais recente</option>
-                                    <option value="conclusao-asc">Conclusão mais antiga</option>
-                                    <option value="cooperado-asc">Cooperado (A–Z)</option>
-                                    <option value="curso-asc">Curso (A–Z)</option>
-                                    <option value="carga-desc">Maior carga horária</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="table-wrap">
-                            <table class="table table--cards">
-                                <caption class="visually-hidden">
-                                    Cursos lançados recentemente, com cooperado, carga horária, data de
-                                    conclusão e responsável pelo lançamento.
-                                </caption>
-                                <thead>
-                                <tr>
-                                    <th scope="col">Cooperado</th>
-                                    <th scope="col">Curso</th>
-                                    <th scope="col" class="table__num">Carga horária</th>
-                                    <th scope="col">Conclusão</th>
-                                    <th scope="col">Lançado por</th>
-                                    <th scope="col"><span class="visually-hidden">Ações</span></th>
-                                </tr>
-                                </thead>
-
-                                <!-- TODO: substituir pela lista de cursos vinda do backend -->
-                                <tbody>
-
-                                <!--
-                                  As linhas entram aqui.
-
-                                  O atributo data-label de cada <td> é obrigatório: abaixo de
-                                  768px a tabela vira lista de cards e o CSS usa esse valor
-                                  como rótulo da célula (home.css, bloco "Tabela em telas
-                                  pequenas"). Estrutura de uma linha:
-
-                                  <tr>
-                                    <td data-label="Cooperado"><span class="table__primary">Nome</span></td>
-                                    <td data-label="Curso">Título
-                                      <span class="table__secondary">Instituição</span>
-                                    </td>
-                                    <td data-label="Carga horária" class="table__num">16 h</td>
-                                    <td data-label="Conclusão" class="tabular">09/07/2026</td>
-                                    <td data-label="Lançado por">Nome</td>
-                                    <td class="table__actions">
-                                      <a class="btn-link" href="...">Abrir</a>
-                                    </td>
-                                  </tr>
-                                -->
-
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Estado vazio. Visível enquanto a tabela não tem linhas.
-                             TODO: renderizar condicionalmente — mostrar só quando a lista
-                             de cursos vier vazia do backend. -->
-                        <div class="empty">
-                            <div class="empty__seal seal" aria-hidden="true">
-                                <span></span><span></span><span></span><span></span>
-                                <span></span><span></span><span></span><span></span>
-                                <span></span><span></span><span></span><span></span>
-                                <span></span><span></span><span></span><span></span>
-                            </div>
-                            <p class="empty__title">Nenhum curso lançado ainda</p>
-                            <p class="empty__text">
-                                Os cursos concluídos pelos cooperados aparecem aqui assim que
-                                forem registrados.
+                        <div class="card__body intro">
+                            <p class="intro__lead">
+                                Esta aplicação registra os cursos concluídos pelos cooperados junto
+                                com o certificado correspondente. Cada curso vira pontos, e os pontos
+                                do ano dizem se o cooperado cumpriu a meta de formação.
                             </p>
-                            <div class="cluster">
-                                <a class="btn btn--primary" href="/certificados-cooperados/novo-curso">Lançar curso</a>
+
+                            <ol class="steps">
+                                <li class="step">
+                                    <span class="step__number" aria-hidden="true">1</span>
+                                    <div class="step__text">
+                                        <p class="step__title">Cadastre o cooperado</p>
+                                        <p class="step__description">
+                                            Todo curso é lançado no nome de um cooperado ativo. Quem
+                                            está inativo não aparece no lançamento.
+                                        </p>
+                                    </div>
+                                </li>
+                                <li class="step">
+                                    <span class="step__number" aria-hidden="true">2</span>
+                                    <div class="step__text">
+                                        <p class="step__title">Lance o curso com o certificado</p>
+                                        <p class="step__description">
+                                            Título, carga horária e data de conclusão, mais o arquivo
+                                            do certificado — PDF, JPEG ou PNG, de até 10 MB. Os dois
+                                            são gravados juntos: se o arquivo falhar, o curso não entra.
+                                        </p>
+                                    </div>
+                                </li>
+                                <li class="step">
+                                    <span class="step__number" aria-hidden="true">3</span>
+                                    <div class="step__text">
+                                        <p class="step__title">Acompanhe a meta</p>
+                                        <p class="step__description">
+                                            A carga horária vira pontos e o painel de controle mostra,
+                                            cooperado a cooperado, quem já fechou os pontos do ano.
+                                        </p>
+                                    </div>
+                                </li>
+                            </ol>
+
+                            <!-- As faixas espelham CoursePointsPolicy, no backend: mudar a
+                                 regra lá pede mudar este bloco. -->
+                            <div class="intro__bands">
+                                <p class="eyebrow">Faixas de pontuação</p>
+                                <ul class="bands">
+                                    <li class="band">
+                                        <span class="band__range">Menos de 8 horas</span>
+                                        <span class="band__points tabular">5 pontos</span>
+                                    </li>
+                                    <li class="band">
+                                        <span class="band__range">De 8 a 16 horas</span>
+                                        <span class="band__points tabular">10 pontos</span>
+                                    </li>
+                                    <li class="band">
+                                        <span class="band__range">Mais de 16 horas</span>
+                                        <span class="band__points tabular">15 pontos</span>
+                                    </li>
+                                </ul>
+                                <p class="text-sm text-muted">
+                                    O ano de um curso é o da data de conclusão, não o do lançamento.
+                                </p>
                             </div>
                         </div>
+                    </section>
 
-                        <!-- Paginação estática -->
-                        <!-- TODO: substituir pelos dados de paginação quando a listagem for
-                             paginada no backend -->
-                        <div class="card__footer table-foot">
-                            <p class="text-sm text-muted tabular">
-                                <!-- TODO: intervalo e total vindos da paginação do backend -->
-                                Nenhum curso para mostrar
-                            </p>
-                            <span class="spacer"></span>
-                            <nav class="pagination" aria-label="Paginação dos cursos">
-                                <a class="pagination__page" href="#" aria-disabled="true" tabindex="-1"
-                                   aria-label="Página anterior">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                        <path d="M10 3 5 8l5 5" stroke="currentColor" stroke-width="1.5"
-                                              stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- ==============================================================
+                         4. Atalhos para as telas principais
+                         ============================================================== -->
+                    <section aria-labelledby="titulo-atalhos">
+                        <h2 class="visually-hidden" id="titulo-atalhos">Por onde começar</h2>
+
+                        <div class="shortcuts">
+
+                            <a class="shortcut" href="/certificados-cooperados/novo-curso">
+                                <span class="shortcut__icon" aria-hidden="true">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                        <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                                     </svg>
-                                </a>
-                                <a class="pagination__page" href="#" aria-current="page">1</a>
-                                <a class="pagination__page" href="#">2</a>
-                                <a class="pagination__page" href="#">3</a>
-                                <span class="pagination__ellipsis" aria-hidden="true">…</span>
-                                <a class="pagination__page" href="#">15</a>
-                                <a class="pagination__page" href="#" aria-label="Próxima página">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                        <path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.5"
-                                              stroke-linecap="round" stroke-linejoin="round"/>
+                                </span>
+                                <span class="shortcut__title">Lançar curso</span>
+                                <span class="shortcut__text">
+                                    Registra um curso concluído e anexa o certificado.
+                                </span>
+                            </a>
+
+                            <a class="shortcut" href="/certificados-cooperados/painel-controle">
+                                <span class="shortcut__icon" aria-hidden="true">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                        <path d="M4 4h5v5H4V4ZM11 4h5v5h-5V4ZM4 11h5v5H4v-5ZM11 11h5v5h-5v-5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
                                     </svg>
-                                </a>
-                            </nav>
+                                </span>
+                                <span class="shortcut__title">Painel de controle</span>
+                                <span class="shortcut__text">
+                                    Mostra os pontos de cada cooperado no ano-base.
+                                </span>
+                            </a>
+
+                            <a class="shortcut" href="/certificados-cooperados/cooperados">
+                                <span class="shortcut__icon" aria-hidden="true">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                        <circle cx="8" cy="7" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M2.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        <path d="M13.5 5.5a2.5 2.5 0 0 1 0 5M15 16a5 5 0 0 0-1.5-3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                </span>
+                                <span class="shortcut__title">Cooperados</span>
+                                <span class="shortcut__text">
+                                    Consulta e cadastra quem pode receber lançamento.
+                                </span>
+                            </a>
+
                         </div>
                     </section>
 
@@ -400,7 +382,8 @@
         </div>
     </div>
 
-    <!-- Entry ES module da página; os demais módulos vêm pelos imports dele. -->
+    <!-- Shell (sidebar, dropdown e usuário logado), comum a todas as telas. -->
+    <script type="module" th:src="@{/js/pages/shell.js}"></script>
     <script type="module" th:src="@{/js/pages/home.js}"></script>
 </body>
 </html>

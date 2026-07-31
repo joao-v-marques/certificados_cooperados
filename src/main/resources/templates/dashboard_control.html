@@ -13,7 +13,7 @@
   Sem dados mockados: cards, tabela e opções de ano vêm de
   /api/v1/cooperative-members/annual-report, recortados pelo ano-base do
   cabeçalho. Quem faz isso é js/pages/dashboard_control.js; o script do shell
-  (sidebar, dropdown e usuário da topbar) continua sendo o home.js.
+  (sidebar, dropdown e usuário da topbar) é o shell.js.
 -->
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -69,7 +69,7 @@
                 <div class="dropdown" data-dropdown>
                     <button type="button" class="user-trigger" data-dropdown-trigger
                             aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
-                        <!-- Preenchidos pelo shell (js/pages/home.js) com o usuário autenticado. -->
+                        <!-- Preenchidos pelo shell (js/pages/shell.js) com o usuário autenticado. -->
                         <span class="avatar" aria-hidden="true" data-user-initials></span>
                         <span class="user-trigger__name" data-user-name>Carregando...</span>
                         <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
@@ -357,8 +357,8 @@
         </div>
     </div>
 
-    <!-- O shell (sidebar e dropdown) usa o mesmo script da home. -->
-    <script type="module" th:src="@{/js/pages/home.js}"></script>
+    <!-- Shell (sidebar, dropdown e usuário logado), comum a todas as telas. -->
+    <script type="module" th:src="@{/js/pages/shell.js}"></script>
     <script type="module" th:src="@{/js/pages/dashboard_control.js}"></script>
 </body>
 </html>
