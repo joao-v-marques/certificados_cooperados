@@ -2,35 +2,157 @@ package com.joao_v_marques.certificados_cooperados.service;
 
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberRequest;
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberResponse;
+import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberYearSummaryResponse;
+import com.joao_v_marques.certificados_cooperados.dto.CooperativeMembersYearReportResponse;
 import com.joao_v_marques.certificados_cooperados.entity.CooperativeMember;
 import com.joao_v_marques.certificados_cooperados.repository.CooperativeMemberRepository;
+import com.joao_v_marques.certificados_cooperados.repository.CourseRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 @Service
 public class CooperativeMemberService {
 
-    private final CooperativeMemberRepository cooperativeMemberRepository;
+    // O sistema não existia antes disso; ano fora da faixa é erro de digitação
+    // ou parâmetro forjado, não filtro legítimo.
+    private static final int MIN_YEAR = 2000;
 
-    public CooperativeMemberService(CooperativeMemberRepository cooperativeMemberRepository) {
+    private final CooperativeMemberRepository cooperativeMemberRepository;
+    private final CourseRepository courseRepository;
+
+    public CooperativeMemberService(CooperativeMemberRepository cooperativeMemberRepository,
+                                    CourseRepository courseRepository) {
         this.cooperativeMemberRepository = cooperativeMemberRepository;
+        this.courseRepository = courseRepository;
     }
 
+    // GET de todos os cooperative members cadastrados no sistema
     @Transactional(readOnly = true)
     public List<CooperativeMemberResponse> findAll() {
         return cooperativeMemberRepository.findAll()
                 .stream()
-                .map(cooperativeMember -> new CooperativeMemberResponse(
-                        cooperativeMember.getId(),
-                        cooperativeMember.getName(),
-                        cooperativeMember.getEmail(),
-                        cooperativeMember.getCreatedAt(),
-                        cooperativeMember.isActive()
-                ))
+                .map(this::toResponse)
                 .toList();
+    }
+
+    /**
+     * Relatório do painel de controle no ano-base escolhido: cada cooperado ativo
+     * com quantos cursos concluiu e quantos pontos somou no ano, mais os
+     * indicadores do topo da tela.
+     *
+     * O ano recorta os <b>cursos</b>, não o cadastro do cooperado: quem não lançou
+     * nada continua na lista, zerado. Sem isso não existiria "sem curso no ano" —
+     * o cooperado simplesmente sumiria da tabela.
+     *
+     * O que define o ano do curso é a data de conclusão (`completion_date`), e não
+     * a data do lançamento no sistema: curso concluído em dezembro e lançado em
+     * janeiro conta para o ano em que foi concluído.
+     */
+    @Transactional(readOnly = true)
+    public CooperativeMembersYearReportResponse findYearReport(int year) {
+
+        int currentYear = Year.now().getValue();
+
+        if (year < MIN_YEAR || year > currentYear) {
+            throw new IllegalArgumentException(
+                    "Informe um ano entre " + MIN_YEAR + " e " + currentYear + ".");
+        }
+
+        // completion_date é DATE puro, sem hora, então o BETWEEN inclusivo já
+        // pega o ano inteiro — não há a fração de segundo do fim do dia 31/12
+        // que obrigaria a usar intervalo semiaberto.
+        LocalDate start = LocalDate.of(year, 1, 1);
+        LocalDate end = LocalDate.of(year, 12, 31);
+
+        // Uma consulta só traz os cursos do ano; o agrupamento por cooperado é
+        // feito aqui para a faixa de pontos ficar no Java, e não espalhada em SQL.
+        Map<Integer, YearTotals> totalsByMember = new HashMap<>();
+
+        courseRepository.findMemberMinutesByCompletionDateBetween(start, end)
+                .forEach(course -> totalsByMember
+                        .computeIfAbsent(course.getCooperativeMemberId(), id -> new YearTotals())
+                        .add(course.getTotalMinutes()));
+
+        List<CooperativeMember> activeMembers = cooperativeMemberRepository.findActiveOrderByName();
+
+        List<CooperativeMemberYearSummaryResponse> members = new ArrayList<>(activeMembers.size());
+
+        int membersWithoutCourses = 0;
+        int membersWhoReachedGoal = 0;
+
+        for (CooperativeMember member : activeMembers) {
+            // Sem lançamento no ano o cooperado nem aparece no mapa: entra zerado.
+            YearTotals totals = totalsByMember.getOrDefault(member.getId(), YearTotals.EMPTY);
+
+            boolean goalReached = CoursePointsPolicy.goalReached(totals.points);
+
+            if (totals.courses == 0) {
+                membersWithoutCourses++;
+            }
+            if (goalReached) {
+                membersWhoReachedGoal++;
+            }
+
+            members.add(new CooperativeMemberYearSummaryResponse(
+                    member.getId(),
+                    member.getName(),
+                    member.getEmail(),
+                    totals.courses,
+                    totals.points,
+                    goalReached
+            ));
+        }
+
+        return new CooperativeMembersYearReportResponse(
+                year,
+                CoursePointsPolicy.ANNUAL_GOAL_POINTS,
+                activeMembers.size(),
+                membersWithoutCourses,
+                membersWhoReachedGoal,
+                availableYears(year, currentYear),
+                members
+        );
+    }
+
+    /**
+     * Anos que o select de ano-base pode oferecer: os que têm curso concluído,
+     * mais o ano corrente e o ano consultado — assim a tela nunca fica sem opção
+     * em base nova, nem some com o ano que o usuário acabou de escolher.
+     * Anos fora da faixa aceita são descartados para o select não oferecer uma
+     * opção que o próprio endpoint recusaria.
+     */
+    private List<Integer> availableYears(int requestedYear, int currentYear) {
+        return Stream.concat(courseRepository.findDistinctCompletionYears().stream(),
+                        Stream.of(currentYear, requestedYear))
+                .filter(year -> year >= MIN_YEAR && year <= currentYear)
+                .distinct()
+                .sorted(Comparator.reverseOrder())
+                .toList();
+    }
+
+    /** Acumulador do agrupamento em memória: cursos e pontos de um cooperado no ano. */
+    private static final class YearTotals {
+
+        /** Compartilhado por todo cooperado sem lançamento no ano; nunca recebe add. */
+        private static final YearTotals EMPTY = new YearTotals();
+
+        private int courses;
+        private int points;
+
+        private void add(int totalMinutes) {
+            courses++;
+            points += CoursePointsPolicy.pointsOf(totalMinutes);
+        }
     }
 
     // POST de um novo CooperativeMember
