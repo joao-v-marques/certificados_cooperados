@@ -3,9 +3,11 @@ package com.joao_v_marques.certificados_cooperados.config;
 import com.joao_v_marques.certificados_cooperados.security.CustomUserDetailsService;
 import com.joao_v_marques.certificados_cooperados.security.JwtAuthenticationFilter;
 import com.joao_v_marques.certificados_cooperados.security.JwtService;
+import com.joao_v_marques.certificados_cooperados.security.RestAccessDeniedHandler;
 import com.joao_v_marques.certificados_cooperados.security.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -27,6 +29,7 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http, JwtService jwtService, CustomUserDetailsService userDetailsService, ObjectMapper objectMapper) throws Exception {
         JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtService, userDetailsService);
         RestAuthenticationEntryPoint restAuthenticationEntryPoint = new RestAuthenticationEntryPoint(objectMapper);
+        RestAccessDeniedHandler restAccessDeniedHandler = new RestAccessDeniedHandler(objectMapper);
 
         return http
                 .authorizeHttpRequests(auth -> auth
@@ -35,10 +38,31 @@ public class SecurityConfig {
                         // navegador. Quem não está autenticado não perde nada em
                         // pedir para apagar o próprio cookie.
                         .requestMatchers("/login", "/api/v1/auth/login", "/api/v1/auth/logout", "/css/**", "/js/**").permitAll()
+
+                        // Criar usuário é dar acesso à aplicação, então só o
+                        // administrador faz. A regra fica aqui, e não em
+                        // @PreAuthorize no controller, para todas as permissões
+                        // continuarem legíveis em um lugar só.
+                        //
+                        // hasRole("administrator") casa com a authority
+                        // ROLE_administrator, montada pelo UserPrincipal a partir
+                        // do nome da role — o prefixo é do Spring Security.
+                        //
+                        // O verbo entra no matcher de propósito: o GET da mesma
+                        // URL é a listagem, que qualquer autenticado enxerga.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("administrator")
+
+                        // A tela do cadastro segue a mesma regra do endpoint que
+                        // ela chama. Esconder o item na sidebar não basta: a URL
+                        // continua digitável.
+                        .requestMatchers("/usuarios").hasRole("administrator")
+
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(csrf -> csrf.disable())
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(restAuthenticationEntryPoint))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                        .accessDeniedHandler(restAccessDeniedHandler))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
