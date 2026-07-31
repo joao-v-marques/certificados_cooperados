@@ -218,10 +218,40 @@ async function loadReport(year) {
 }
 
 /* =========================================================================
+   Recusa vinda de outra tela
+
+   Quem tenta abrir uma página sem ter o perfil cai aqui pelo redirecionamento
+   do RestAccessDeniedHandler, que manda o motivo como código fixo na URL. O
+   texto mora na tela, e não no servidor, pelo mesmo motivo do login: só código
+   conhecido vira mensagem, então nada do que foi digitado na URL é exibido.
+   ========================================================================= */
+
+const DENIAL_MESSAGES = {
+    "sem-acesso": "Você não tem permissão para acessar essa página.",
+};
+
+function notifyDenial() {
+    const reason = new URLSearchParams(window.location.search).get("erro");
+    const message = DENIAL_MESSAGES[reason];
+
+    if (!message) return;
+
+    notifyError(message);
+
+    // O código sai da URL depois de virado toast: sem isso, recarregar a home
+    // ou compartilhar o endereço repetiria um aviso que já foi lido.
+    const url = new URL(window.location.href);
+    url.searchParams.delete("erro");
+    window.history.replaceState({}, "", url);
+}
+
+/* =========================================================================
    Ligação
    ========================================================================= */
 
 function init() {
+    notifyDenial();
+
     document.querySelector("[data-year-filter]")
         .addEventListener("change", event => loadReport(event.currentTarget.value));
 
