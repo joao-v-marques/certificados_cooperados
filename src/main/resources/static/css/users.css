@@ -1,0 +1,109 @@
+/* ==========================================================================
+   users.css — estilos exclusivos do cadastro de usuários.
+
+   Cabeçalho de página, indicador (.stat), card, campos, tabela, badges e
+   estado vazio vêm de components.css. Aqui só entra o arranjo dos três
+   blocos da tela: indicador, formulário e tabela.
+
+   O arranjo é o mesmo de cooperative_members.css, com nomes próprios: as duas
+   telas são irmãs hoje, mas nada garante que o formulário de usuário e o de
+   cooperado continuem com o mesmo número de campos.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Indicador
+
+   É um card só, e ele não estica até a borda: em grade de 12 colunas ocupa 4,
+   a mesma largura dos indicadores do painel de controle. Assim as telas têm
+   cards do mesmo tamanho.
+   -------------------------------------------------------------------------- */
+
+.users-summary {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.users-summary > .stat {
+  grid-column: span 4;
+}
+
+@media (max-width: 1199px) {
+  .users-summary > .stat { grid-column: span 6; }
+}
+
+@media (max-width: 599px) {
+  .users-summary > .stat { grid-column: span 12; }
+}
+
+/* --------------------------------------------------------------------------
+   Formulário
+
+   Duas colunas: o nome ocupa a linha inteira; usuário e e-mail dividem a
+   segunda linha, senha e confirmação a terceira, e o perfil fica sozinho na
+   quarta — senha e confirmação lado a lado é o que deixa a conferência óbvia.
+   -------------------------------------------------------------------------- */
+
+.users-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-24);
+  align-items: start;
+}
+
+.users-form__full {
+  grid-column: 1 / -1;
+}
+
+.users-form__half {
+  grid-column: span 1;
+}
+
+/* --------------------------------------------------------------------------
+   Ações do formulário
+   -------------------------------------------------------------------------- */
+
+.users-actions {
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Tabela
+
+   Cinco colunas curtas: a largura mínima de 960px de .table faria a tabela
+   pedir scroll horizontal sem necessidade, mas ela precisa de mais folga que
+   a de cooperados, que tem três.
+   -------------------------------------------------------------------------- */
+
+.users-table {
+  min-width: 760px;
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .users-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-16);
+  }
+
+  .users-form__half {
+    grid-column: 1 / -1;
+  }
+
+  /* Empilhado, a ação primária fica por último e ocupa a linha toda. */
+  .users-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .users-actions .spacer {
+    display: none;
+  }
+
+  .users-actions .btn {
+    width: 100%;
+  }
+}
