@@ -2,6 +2,7 @@ package com.joao_v_marques.certificados_cooperados.controller;
 
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberRequest;
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberResponse;
+import com.joao_v_marques.certificados_cooperados.dto.CooperativeMembersYearReportResponse;
 import com.joao_v_marques.certificados_cooperados.service.CooperativeMemberService;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.Year;
 import java.util.List;
 
 @RestController
@@ -24,6 +26,17 @@ public class CooperativeMemberController {
     @GetMapping
     public List<CooperativeMemberResponse> findAll() {
         return cooperativeMemberService.findAll();
+    }
+
+    // Relatório do painel de controle. Sem `year` assume o ano corrente, que é o
+    // que a tela abre por padrão; a conversão do ano em período é regra e fica
+    // no service.
+    @GetMapping("/annual-report")
+    public CooperativeMembersYearReportResponse findYearReport(@RequestParam(required = false) Integer year) {
+
+        int baseYear = (year != null) ? year : Year.now().getValue();
+
+        return cooperativeMemberService.findYearReport(baseYear);
     }
 
     // Cooperado não tem upload, então o corpo é JSON: @RequestBody, e não
