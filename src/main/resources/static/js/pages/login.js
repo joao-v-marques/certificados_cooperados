@@ -1,31 +1,6 @@
-document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
-    const field = document.getElementById(toggle.getAttribute('aria-controls'));
-    if (!field) return;
+import {initPasswordToggles} from '../utils/password_toggle.js';
 
-    const iconShow = toggle.querySelector('.icon-eye');
-    const iconHide = toggle.querySelector('.icon-eye-off');
-    const label = toggle.querySelector('[data-password-toggle-label]');
-
-    toggle.addEventListener('click', () => {
-        const willShow = field.type === 'password';
-
-        field.type = willShow ? 'text' : 'password';
-        toggle.setAttribute('aria-pressed', String(willShow));
-
-        iconShow?.classList.toggle('is-hidden', willShow);
-        iconHide?.classList.toggle('is-hidden', !willShow);
-        if (label) label.textContent = willShow ? 'Ocultar a senha' : 'Mostrar a senha';
-
-        // O cursor volta para o campo, no fim do que já foi digitado.
-        const end = field.value.length;
-        field.focus();
-        try {
-            field.setSelectionRange(end, end);
-        } catch {
-            // alguns navegadores recusam setSelectionRange em type="password"
-        }
-    });
-});
+initPasswordToggles();
 
 const formLogin = document.querySelector('.login__form');
 const alertBox = document.querySelector('.login__alert');
