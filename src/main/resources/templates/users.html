@@ -12,10 +12,12 @@
   o is_active não são campos do formulário: o primeiro é do banco e o segundo
   nasce ativo.
 
-  Só a parte visual por enquanto: nenhum JS conversa com a API nesta etapa. O
-  indicador fica em "-", a tabela nasce vazia e o estado vazio nasce oculto,
-  para a tela não afirmar que não há usuário antes de ter perguntado. Os pontos
-  de ligação (id e data-*) já estão marcados com TODO.
+  Sem dados mockados: indicador, tabela e cadastro falam com /api/v1/users por
+  js/pages/users.js. O estado vazio nasce oculto, para a tela não afirmar que
+  não há usuário antes de ter perguntado.
+
+  A tela inteira é restrita ao administrador — quem não for nem chega aqui, o
+  SecurityConfig desvia para a home.
 -->
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -218,8 +220,7 @@
                     <h2 class="visually-hidden" id="titulo-indicador">Resumo do cadastro</h2>
 
                     <div class="users-summary">
-                        <!-- TODO: preencher o valor com a contagem de users vinda do
-                             backend. Fica "-" enquanto não houver dado. -->
+                        <!-- Fica em "-" até a resposta chegar. -->
                         <article class="stat">
                             <p class="stat__label">Usuários cadastrados</p>
                             <p class="stat__value tabular" id="cardUsersQtd">-</p>
@@ -235,9 +236,9 @@
                      js/utils/notyf.js. O erro de cada campo continua no
                      <p class="field__error"> correspondente. -->
 
-                <!-- TODO: o envio será feito pelo JS (fetch em JSON), por isso não há
-                     action: o submit é interceptado. TODO: campo oculto do token CSRF
-                     quando o CSRF for reativado. -->
+                <!-- O envio é feito pelo JS (fetch em JSON), por isso não há action:
+                     o submit é interceptado. TODO: campo oculto do token CSRF quando
+                     o CSRF for reativado. -->
                 <form class="card" data-user-form>
 
                     <div class="card__header">
@@ -414,27 +415,9 @@
                                 </tr>
                             </thead>
                             <tbody id="tbodyUsers">
-                                <!-- TODO: PREENCHER VIA JS.
-
-                                     O atributo data-label de cada <td> é obrigatório: abaixo
-                                     de 768px a tabela vira lista de cards e o CSS usa esse
-                                     valor como rótulo da célula. Estrutura de uma linha:
-
-                                     <tr>
-                                       <td data-label="Usuário">
-                                         <span class="table__primary">Nome</span>
-                                         <span class="table__secondary">nome.sobrenome</span>
-                                       </td>
-                                       <td data-label="E-mail">funcionario@exemplo.com</td>
-                                       <td data-label="Perfil">
-                                         <span class="badge badge--neutral">Funcionário</span>
-                                       </td>
-                                       <td data-label="Cadastrado em" class="tabular">09/07/2026</td>
-                                       <td data-label="Situação">
-                                         <span class="badge badge--success">Ativo</span>
-                                       </td>
-                                     </tr>
-                                -->
+                                <!-- PREENCHIDO VIA JS. O data-label de cada <td> é
+                                     obrigatório: abaixo de 768px a tabela vira lista de
+                                     cards e o CSS usa esse valor como rótulo da célula. -->
                             </tbody>
                         </table>
                     </div>
@@ -455,9 +438,8 @@
                         </p>
                     </div>
 
-                    <!-- TODO: substituir pela contagem real de usuários listados -->
                     <div class="card__footer table-foot">
-                        <p class="text-sm text-muted tabular">
+                        <p class="text-sm text-muted tabular" data-table-count>
                             Todos os usuários cadastrados na aplicação
                         </p>
                     </div>
