@@ -30,7 +30,11 @@ public class SecurityConfig {
 
         return http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/api/v1/auth/login", "/css/**", "/js/**").permitAll()
+                        // O logout é público de propósito: com o token vencido a
+                        // requisição levaria 401 e o cookie ficaria pendurado no
+                        // navegador. Quem não está autenticado não perde nada em
+                        // pedir para apagar o próprio cookie.
+                        .requestMatchers("/login", "/api/v1/auth/login", "/api/v1/auth/logout", "/css/**", "/js/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(csrf -> csrf.disable())
