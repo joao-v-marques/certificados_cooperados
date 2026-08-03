@@ -17,6 +17,7 @@
 
 import {dismissNotifications, notifyError, notifySuccess} from "../utils/notyf.js";
 import {initPasswordToggles} from "../utils/password_toggle.js";
+import {roleLabel} from "../utils/roles.js";
 
 const API_URL = "/certificados-cooperados/api/v1/users";
 
@@ -34,12 +35,6 @@ const FIELDS = {
     password: {inputId: "usuario-senha", errorId: "erro-senha"},
     passwordConfirmation: {inputId: "usuario-senha-confirmacao", errorId: "erro-senha-confirmacao"},
     roleId: {inputId: "usuario-perfil", errorId: "erro-perfil"},
-};
-
-/** Nome da role no banco → rótulo de tela. Semeadas na V2. */
-const ROLE_LABELS = {
-    administrator: "Administrador",
-    employee: "Funcionário",
 };
 
 /* =========================================================================
@@ -65,12 +60,6 @@ function formatDate(value) {
     if (Number.isNaN(date.getTime())) return "—";
 
     return date.toLocaleDateString("pt-BR");
-}
-
-// Perfil desconhecido cai no nome cru: é melhor mostrar "supervisor" do que
-// esconder que existe um perfil novo que a tela ainda não traduz.
-function roleLabel(roleName) {
-    return ROLE_LABELS[roleName] ?? roleName;
 }
 
 /* =========================================================================

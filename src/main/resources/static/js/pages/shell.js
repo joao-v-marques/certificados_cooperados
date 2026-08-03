@@ -6,6 +6,7 @@
  */
 
 import { initLogout } from '../auth/logout.js';
+import { roleLabel } from '../utils/roles.js';
 
 /** Espelha o breakpoint do CSS: abaixo disso a sidebar vira overlay. */
 const BREAKPOINT_OVERLAY = 1024;
@@ -181,6 +182,7 @@ function initDropdowns() {
    Contrato no HTML (presente na topbar de toda página):
      [data-user-initials]  iniciais do avatar
      [data-user-name]      nome; aparece duas vezes (gatilho e menu aberto)
+     [data-user-role]      perfil de acesso, abaixo do nome no gatilho
      [data-user-email]     e-mail, dentro do menu
      [data-nav-admin]      item de menu que só o administrador enxerga; nasce
                            com o atributo hidden no HTML
@@ -214,6 +216,7 @@ async function initCurrentUser() {
   const nameTargets = document.querySelectorAll('[data-user-name]');
   const initialsTarget = document.querySelector('[data-user-initials]');
   const emailTarget = document.querySelector('[data-user-email]');
+  const roleTarget = document.querySelector('[data-user-role]');
 
   // Tela sem topbar (login) não tem nada a preencher.
   if (!nameTargets.length && !initialsTarget && !emailTarget) return;
@@ -234,6 +237,7 @@ async function initCurrentUser() {
     if (initialsTarget) initialsTarget.textContent = user.initials;
     // O e-mail é opcional no cadastro; sem ele a linha fica vazia.
     if (emailTarget) emailTarget.textContent = user.email ?? '';
+    if (roleTarget) roleTarget.textContent = roleLabel(user.role);
 
     revealAdminNav(user.role);
   } catch (error) {
@@ -245,6 +249,7 @@ async function initCurrentUser() {
     });
 
     if (initialsTarget) initialsTarget.textContent = '';
+    if (roleTarget) roleTarget.textContent = '';
 
     console.error(error);
   }

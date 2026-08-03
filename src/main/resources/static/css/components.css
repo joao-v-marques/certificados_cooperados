@@ -1535,11 +1535,28 @@ button.input-wrap__affix[aria-pressed="true"] {
 .user-trigger:hover { background-color: var(--color-hover-layer); }
 .user-trigger:active { background-color: var(--color-active-layer); }
 
+/* Nome e perfil empilhados. O texto alinha à esquerda mesmo com o gatilho
+   centralizando os filhos, para as duas linhas nascerem da mesma margem. */
+.user-trigger__identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
 .user-trigger__name {
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
   font-weight: var(--weight-medium);
   color: var(--color-text-strong);
+  white-space: nowrap;
+}
+
+.user-trigger__role {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
@@ -1716,9 +1733,9 @@ button.input-wrap__affix[aria-pressed="true"] {
   .topbar { padding-inline: var(--space-24); }
 }
 
-/* Abaixo de 1200px o nome do usuário sai; o avatar segue identificando. */
+/* Abaixo de 1200px o nome e o perfil saem; o avatar segue identificando. */
 @media (max-width: 1199px) {
-  .user-trigger__name { display: none; }
+  .user-trigger__identity { display: none; }
 }
 
 /* Abaixo de 1024px a sidebar vira overlay. */
