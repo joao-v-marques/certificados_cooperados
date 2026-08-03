@@ -1,6 +1,6 @@
 /* ==========================================================================
    components.css — botões, campos, cards, tabela, badges, avatar, dropdown,
-   alertas, paginação, estados de vazio/carregamento.
+   alertas, modal, paginação, estados de vazio/carregamento.
    Reutilizável por todas as telas. Nenhum hexadecimal: só tokens.
    ========================================================================== */
 
@@ -177,6 +177,14 @@
 
 .btn-link--danger { color: var(--color-danger); }
 .btn-link--danger:hover { color: var(--color-danger-hover); }
+
+/* Ação de linha em andamento — o download desabilita o próprio botão enquanto
+   o arquivo não chega, para o duplo clique não pedir duas vezes. */
+.btn-link:disabled {
+  color: var(--color-text-disabled);
+  text-decoration: none;
+  cursor: not-allowed;
+}
 
 /* --------------------------------------------------------------------------
    CABEÇALHO DE PÁGINA
@@ -1452,6 +1460,152 @@ button.input-wrap__affix[aria-pressed="true"] {
   .btn.is-loading::after {
     animation-duration: 1.6s;
   }
+}
+
+/* --------------------------------------------------------------------------
+   MODAL
+
+   <dialog> nativo: Esc, foco preso dentro e fundo inerte são do elemento, e
+   não de JS nosso. O único cuidado é o `display`: o navegador esconde o
+   diálogo fechado com `display: none`, então o flex precisa entrar em
+   `.modal[open]` — em `.modal` ele venceria a regra do agente e o modal
+   apareceria aberto o tempo todo.
+   -------------------------------------------------------------------------- */
+
+.modal {
+  width: min(880px, calc(100vw - var(--space-32)));
+  max-height: calc(100vh - var(--space-64));
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text);
+}
+
+.modal[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal::backdrop {
+  background-color: var(--color-overlay);
+}
+
+.modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+  flex: none;
+  padding: var(--space-24);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal__title {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  color: var(--color-text-heading);
+}
+
+.modal__subtitle {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+/* O botão de fechar recua para a margem do cabeçalho: a área de clique
+   continua inteira, mas o ícone alinha com o título em vez de flutuar. */
+.modal__close {
+  flex: none;
+  margin: calc(var(--space-8) * -1) calc(var(--space-8) * -1) 0 0;
+}
+
+/* Só o corpo rola; cabeçalho fixo mantém à vista de quem é o detalhe aberto. */
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  padding: var(--space-24);
+  overflow-y: auto;
+}
+
+.modal__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-16);
+}
+
+.modal__section-title {
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  color: var(--color-text-heading);
+}
+
+/* A tabela de dentro do modal é estreita: a largura mínima de .table foi
+   pensada para a página inteira e aqui só produziria rolagem lateral. */
+.modal__table {
+  min-width: 560px;
+}
+
+/* E o cabeçalho dela não gruda: o sticky de .table se ancora na topbar da
+   página, que não é o container de rolagem aqui dentro. */
+.modal__table thead th {
+  position: static;
+}
+
+.modal__empty {
+  padding: var(--space-24) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+.modal__empty[hidden] { display: none; }
+
+/* Ficha de dados: rótulo pequeno em cima, valor em destaque embaixo.
+   A grade se acomoda sozinha ao número de itens e à largura disponível. */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-16);
+}
+
+.facts__label {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.facts__value {
+  margin-top: var(--space-4);
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+}
+
+/* No celular o modal ocupa a tela inteira: painel flutuante com margem
+   sobrando de cada lado só encolhe a tabela que já é o conteúdo principal. */
+@media (max-width: 767px) {
+  .modal {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100dvh;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .modal__section-head .btn { width: 100%; }
 }
 
 /* ==========================================================================

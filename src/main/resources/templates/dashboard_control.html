@@ -362,6 +362,112 @@
         </div>
     </div>
 
+    <!-- ==================================================================
+         Modal de detalhe do cooperado
+
+         Nasce fechado e vazio: quem preenche e abre é o dashboard_control.js,
+         depois que /api/v1/cooperative-members/{id}/annual-report responde. Só
+         abre com dado na mão — modal que abre em "carregando" e depois falha
+         obriga a fechar uma janela que nunca teve conteúdo.
+
+         É <dialog> nativo de propósito: Esc, foco preso dentro e fundo inerte
+         vêm do próprio elemento, sem JS para nada disso.
+
+         A lista de cursos é a do mesmo ano-base do cabeçalho da página, e o
+         zip baixa exatamente os certificados que ela mostra.
+         ================================================================== -->
+    <dialog class="modal" data-member-modal aria-labelledby="modal-cooperado-nome">
+
+        <header class="modal__head">
+            <div>
+                <h2 class="modal__title" id="modal-cooperado-nome" data-member-name>Cooperado</h2>
+                <p class="modal__subtitle" data-member-email></p>
+            </div>
+
+            <button type="button" class="btn-icon modal__close" data-modal-close>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.75"
+                          stroke-linecap="round"/>
+                </svg>
+                <span class="visually-hidden">Fechar o detalhe do cooperado</span>
+            </button>
+        </header>
+
+        <div class="modal__body">
+
+            <!-- Cadastro e totais do ano. Os valores vêm prontos do servidor:
+                 a faixa de pontos é regra de negócio e a tela não recalcula. -->
+            <dl class="facts">
+                <div class="facts__item">
+                    <dt class="facts__label">Situação</dt>
+                    <dd class="facts__value"><span class="badge" data-member-status>—</span></dd>
+                </div>
+                <div class="facts__item">
+                    <dt class="facts__label">Cadastrado em</dt>
+                    <dd class="facts__value" data-member-created-at>—</dd>
+                </div>
+                <div class="facts__item">
+                    <dt class="facts__label">Cursos no ano</dt>
+                    <dd class="facts__value tabular" data-member-total-courses>—</dd>
+                </div>
+                <div class="facts__item">
+                    <dt class="facts__label">Minutos no ano</dt>
+                    <dd class="facts__value tabular" data-member-total-minutes>—</dd>
+                </div>
+                <div class="facts__item">
+                    <dt class="facts__label">Pontos no ano</dt>
+                    <dd class="facts__value tabular" data-member-total-points>—</dd>
+                </div>
+            </dl>
+
+            <section class="modal__section" aria-labelledby="modal-cooperado-cursos">
+                <div class="modal__section-head">
+                    <h3 class="modal__section-title" id="modal-cooperado-cursos">
+                        Cursos lançados em <span data-member-year>—</span>
+                    </h3>
+
+                    <!-- Baixa em um zip só os certificados dos cursos listados
+                         abaixo. Fica desabilitado quando não há nenhum. -->
+                    <button type="button" class="btn btn--secondary" data-download-certificates disabled>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M8 2v8m0 0L5 7m3 3 3-3" stroke="currentColor" stroke-width="1.4"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2.5 11v1.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V11" stroke="currentColor"
+                                  stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+                        Baixar certificados (.zip)
+                    </button>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="table modal__table">
+                        <caption class="visually-hidden">
+                            Cursos concluídos pelo cooperado no ano-base, com a carga horária,
+                            os pontos que renderam e o certificado de cada um.
+                        </caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Curso</th>
+                            <th scope="col">Concluído em</th>
+                            <th scope="col" class="table__num">Minutos</th>
+                            <th scope="col" class="table__num">Pontos</th>
+                            <th scope="col"><span class="visually-hidden">Certificado</span></th>
+                        </tr>
+                        </thead>
+
+                        <tbody data-member-courses>
+                            <!-- PREENCHIDO VIA JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="modal__empty" data-member-courses-empty hidden>
+                    Nenhum curso lançado para este cooperado no ano selecionado.
+                </p>
+            </section>
+        </div>
+    </dialog>
+
     <!-- Shell (sidebar, dropdown e usuário logado), comum a todas as telas. -->
     <script type="module" th:src="@{/js/pages/shell.js}"></script>
     <script type="module" th:src="@{/js/pages/dashboard_control.js}"></script>

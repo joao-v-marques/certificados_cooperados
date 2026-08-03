@@ -1,7 +1,9 @@
 package com.joao_v_marques.certificados_cooperados.service;
 
+import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberCourseResponse;
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberRequest;
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberResponse;
+import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberYearDetailResponse;
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberYearSummaryResponse;
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMembersYearReportResponse;
 import com.joao_v_marques.certificados_cooperados.entity.CooperativeMember;
@@ -22,10 +24,6 @@ import java.util.stream.Stream;
 
 @Service
 public class CooperativeMemberService {
-
-    // O sistema não existia antes disso; ano fora da faixa é erro de digitação
-    // ou parâmetro forjado, não filtro legítimo.
-    private static final int MIN_YEAR = 2000;
 
     private final CooperativeMemberRepository cooperativeMemberRepository;
     private final CourseRepository courseRepository;
@@ -59,18 +57,12 @@ public class CooperativeMemberService {
     @Transactional(readOnly = true)
     public CooperativeMembersYearReportResponse findYearReport(int year) {
 
+        BaseYearPolicy.validate(year);
+
         int currentYear = Year.now().getValue();
 
-        if (year < MIN_YEAR || year > currentYear) {
-            throw new IllegalArgumentException(
-                    "Informe um ano entre " + MIN_YEAR + " e " + currentYear + ".");
-        }
-
-        // completion_date é DATE puro, sem hora, então o BETWEEN inclusivo já
-        // pega o ano inteiro — não há a fração de segundo do fim do dia 31/12
-        // que obrigaria a usar intervalo semiaberto.
-        LocalDate start = LocalDate.of(year, 1, 1);
-        LocalDate end = LocalDate.of(year, 12, 31);
+        LocalDate start = BaseYearPolicy.start(year);
+        LocalDate end = BaseYearPolicy.end(year);
 
         // Uma consulta só traz os cursos do ano; o agrupamento por cooperado é
         // feito aqui para a faixa de pontos ficar no Java, e não espalhada em SQL.
@@ -132,10 +124,67 @@ public class CooperativeMemberService {
     private List<Integer> availableYears(int requestedYear, int currentYear) {
         return Stream.concat(courseRepository.findDistinctCompletionYears().stream(),
                         Stream.of(currentYear, requestedYear))
-                .filter(year -> year >= MIN_YEAR && year <= currentYear)
+                .filter(year -> year >= BaseYearPolicy.MIN_YEAR && year <= currentYear)
                 .distinct()
                 .sorted(Comparator.reverseOrder())
                 .toList();
+    }
+
+    /**
+     * O detalhe de um cooperado no ano-base: cadastro, totais e a lista de cursos
+     * que ele concluiu no período.
+     *
+     * Os totais são somados aqui, e não lidos do relatório do painel, porque o
+     * modal pode ser aberto sobre um relatório carregado minutos antes — recontar
+     * garante que o detalhe fale do estado atual do banco.
+     */
+    @Transactional(readOnly = true)
+    public CooperativeMemberYearDetailResponse findYearDetail(Integer memberId, int year) {
+
+        BaseYearPolicy.validate(year);
+
+        CooperativeMember member = cooperativeMemberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Cooperado não encontrado."));
+
+        List<CourseRepository.MemberCourseDetail> found = courseRepository
+                .findDetailsByMemberAndCompletionDateBetween(memberId, BaseYearPolicy.start(year), BaseYearPolicy.end(year));
+
+        List<CooperativeMemberCourseResponse> courses = new ArrayList<>(found.size());
+
+        int totalMinutes = 0;
+        int totalPoints = 0;
+
+        for (CourseRepository.MemberCourseDetail course : found) {
+            int points = CoursePointsPolicy.pointsOf(course.getTotalMinutes());
+
+            totalMinutes += course.getTotalMinutes();
+            totalPoints += points;
+
+            courses.add(new CooperativeMemberCourseResponse(
+                    course.getId(),
+                    course.getTitle(),
+                    course.getTotalMinutes(),
+                    course.getCompletionDate(),
+                    points,
+                    course.getCertificateId(),
+                    course.getCertificateFilename()
+            ));
+        }
+
+        return new CooperativeMemberYearDetailResponse(
+                member.getId(),
+                member.getName(),
+                member.getEmail(),
+                member.isActive(),
+                member.getCreatedAt(),
+                year,
+                CoursePointsPolicy.ANNUAL_GOAL_POINTS,
+                courses.size(),
+                totalMinutes,
+                totalPoints,
+                CoursePointsPolicy.goalReached(totalPoints),
+                courses
+        );
     }
 
     /** Acumulador do agrupamento em memória: cursos e pontos de um cooperado no ano. */

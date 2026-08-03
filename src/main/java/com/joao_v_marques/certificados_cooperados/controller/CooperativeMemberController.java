@@ -2,14 +2,20 @@ package com.joao_v_marques.certificados_cooperados.controller;
 
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberRequest;
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberResponse;
+import com.joao_v_marques.certificados_cooperados.dto.CooperativeMemberYearDetailResponse;
 import com.joao_v_marques.certificados_cooperados.dto.CooperativeMembersYearReportResponse;
+import com.joao_v_marques.certificados_cooperados.service.CertificateDownloadService;
 import com.joao_v_marques.certificados_cooperados.service.CooperativeMemberService;
 import jakarta.validation.Valid;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Year;
 import java.util.List;
 
@@ -18,9 +24,12 @@ import java.util.List;
 public class CooperativeMemberController {
 
     private final CooperativeMemberService cooperativeMemberService;
+    private final CertificateDownloadService certificateDownloadService;
 
-    public CooperativeMemberController(CooperativeMemberService cooperativeMemberService) {
+    public CooperativeMemberController(CooperativeMemberService cooperativeMemberService,
+                                       CertificateDownloadService certificateDownloadService) {
         this.cooperativeMemberService = cooperativeMemberService;
+        this.certificateDownloadService = certificateDownloadService;
     }
 
     // Sem `active` devolve todo o cadastro, que é o que a tela de cooperados
@@ -43,6 +52,44 @@ public class CooperativeMemberController {
         int baseYear = (year != null) ? year : Year.now().getValue();
 
         return cooperativeMemberService.findYearReport(baseYear);
+    }
+
+    // Detalhe de um cooperado no ano-base, que é o que o modal do painel abre.
+    // Mesma regra de ano do relatório: sem year, o corrente.
+    @GetMapping("/{id}/annual-report")
+    public CooperativeMemberYearDetailResponse findMemberYearDetail(@PathVariable Integer id,
+                                                                    @RequestParam(required = false) Integer year) {
+
+        int baseYear = (year != null) ? year : Year.now().getValue();
+
+        return cooperativeMemberService.findYearDetail(id, baseYear);
+    }
+
+    /**
+     * Os certificados do cooperado no ano-base, em um zip só.
+     *
+     * O `prepareArchive` roda antes do streaming de propósito: é ele que valida e
+     * pode falhar, e uma exceção depois do primeiro byte não conseguiria mais
+     * trocar o status — o navegador salvaria um zip quebrado achando que deu
+     * certo. Depois dele, só sobra copiar arquivo.
+     */
+    @GetMapping(value = "/{id}/certificates", produces = "application/zip")
+    public ResponseEntity<StreamingResponseBody> downloadCertificates(@PathVariable Integer id,
+                                                                      @RequestParam(required = false) Integer year) {
+
+        int baseYear = (year != null) ? year : Year.now().getValue();
+
+        CertificateDownloadService.CertificateArchive archive =
+                certificateDownloadService.prepareArchive(id, baseYear);
+
+        ContentDisposition disposition = ContentDisposition.attachment()
+                .filename(archive.filename(), StandardCharsets.UTF_8)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .contentType(MediaType.parseMediaType("application/zip"))
+                .body(output -> certificateDownloadService.writeZip(archive, output));
     }
 
     // Cooperado não tem upload, então o corpo é JSON: @RequestBody, e não

@@ -32,6 +32,49 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     List<MemberCourseMinutes> findMemberMinutesByCompletionDateBetween(@Param("start") LocalDate start,
                                                                        @Param("end") LocalDate end);
 
+    /**
+     * Uma linha da lista de cursos do detalhe do cooperado.
+     *
+     * Traz o certificado junto porque a tela mostra os dois na mesma linha; sem
+     * isso seria uma consulta por curso só para saber se existe arquivo.
+     */
+    interface MemberCourseDetail {
+        Integer getId();
+
+        String getTitle();
+
+        Integer getTotalMinutes();
+
+        LocalDate getCompletionDate();
+
+        Integer getCertificateId();
+
+        String getCertificateFilename();
+    }
+
+    // Os cursos de um cooperado no ano-base, do mais recente para o mais antigo.
+    //
+    // O join do certificado é `left` porque o schema não obriga o curso a ter
+    // um: sem isso, um curso sem arquivo sumiria da lista em vez de aparecer sem
+    // o botão de download. Um curso tem no máximo um certificado — é o que o
+    // lançamento grava —, então o left join não multiplica linha.
+    @Query("""
+            select c.id as id,
+                   c.title as title,
+                   c.totalMinutes as totalMinutes,
+                   c.completionDate as completionDate,
+                   cert.id as certificateId,
+                   cert.originalFilename as certificateFilename
+            from Course c
+            left join CourseCertificate cert on cert.course = c
+            where c.cooperativeMember.id = :memberId
+              and c.completionDate between :start and :end
+            order by c.completionDate desc, c.title asc
+            """)
+    List<MemberCourseDetail> findDetailsByMemberAndCompletionDateBetween(@Param("memberId") Integer memberId,
+                                                                         @Param("start") LocalDate start,
+                                                                         @Param("end") LocalDate end);
+
     // Anos que têm curso concluído, para montar as opções do select de ano-base
     // em vez de deixar a lista fixa no HTML.
     @Query("""
