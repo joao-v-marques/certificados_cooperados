@@ -10,6 +10,9 @@ app:
     secret: ${JWT_SECRET:minha_chave_super_mega_hiper_secreta_trocar_quando_colocar_em_prod}
     expiration: ${JWT_EXPIRATION:86400000}
 
+  security:
+    cookie-secure: ${COOKIE_SECURE:true}
+
 spring:
   servlet:
     multipart:

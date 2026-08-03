@@ -5,6 +5,7 @@ import com.joao_v_marques.certificados_cooperados.dto.AuthResponse;
 import com.joao_v_marques.certificados_cooperados.security.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +25,15 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService) {
+    /** Ver app.security.cookie-secure no application.yaml. */
+    private final boolean secureCookie;
+
+    public AuthController(AuthenticationManager authenticationManager,
+                          JwtService jwtService,
+                          @Value("${app.security.cookie-secure}") boolean secureCookie) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.secureCookie = secureCookie;
     }
 
     @PostMapping("/login")
@@ -58,7 +65,7 @@ public class AuthController {
     private ResponseCookie accessTokenCookie(String value, Duration maxAge, String contextPath) {
         return ResponseCookie.from("access_token", value)
                 .httpOnly(true)
-                .secure(true)
+                .secure(secureCookie)
                 .sameSite("Lax")
                 .path(contextPath)
                 .maxAge(maxAge)
