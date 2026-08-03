@@ -10,7 +10,7 @@
  * Modal de detalhe, dentro de [data-member-modal]:
  *   [data-modal-close]              fecha
  *   [data-member-name] / -email / -status / -created-at
- *   [data-member-total-courses] / -total-minutes / -total-points / -year
+ *   [data-member-total-courses] / -total-hours / -total-points / -year
  *   [data-member-courses]           tbody da lista de cursos do ano
  *   [data-member-courses-empty]     texto de "nenhum curso no ano"
  *   [data-download-certificates]    baixa o zip do cooperado no ano
@@ -68,6 +68,21 @@ function formatDate(value) {
     const date = new Date(value);
 
     return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("pt-BR");
+}
+
+/**
+ * Carga horária em h:mm a partir dos minutos.
+ *
+ * O curso é lançado em minutos e o backend soma em minutos, mas quem lê o painel
+ * pensa em hora: 1680 diz muito menos do que 28:00. A conversão fica só na
+ * exibição — o total continua chegando em minuto, que é a unidade que a regra de
+ * pontos usa.
+ */
+function formatHours(totalMinutes) {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return `${hours}:${String(minutes).padStart(2, "0")}`;
 }
 
 // Busca sem acento e sem caixa: "jose" acha "José".
@@ -362,7 +377,7 @@ function renderMemberDetail(detail) {
 
     document.querySelector("[data-member-created-at]").textContent = formatDate(detail.createdAt);
     document.querySelector("[data-member-total-courses]").textContent = detail.totalCourses;
-    document.querySelector("[data-member-total-minutes]").textContent = detail.totalMinutes;
+    document.querySelector("[data-member-total-hours]").textContent = formatHours(detail.totalMinutes);
     // A meta anda junto do total: 20 pontos só quer dizer alguma coisa ao lado
     // dos 30 que a cooperativa cobra.
     document.querySelector("[data-member-total-points]").textContent = `${detail.totalPoints} / ${detail.goalPoints}`;
