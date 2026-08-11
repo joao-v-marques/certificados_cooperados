@@ -29,5 +29,8 @@ public record CourseRequest(
         String observations,
 
         @NotNull(message = "Não foi encontrado nenhum cooperado, insira um válido.")
-        Integer cooperativeMemberId
+        Integer cooperativeMemberId,
+
+        @NotNull(message = "Deve ser informado se o curso é Cooperativismo ou não.")
+        Boolean isCooperativism
 ) {}

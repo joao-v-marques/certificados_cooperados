@@ -12,5 +12,6 @@ public record CourseResponse(
         String observations,
         OffsetDateTime createdAt,
         String cooperativeMemberName,
-        String insertedByName
+        String insertedByName,
+        boolean isCooperativism
 ) {}
