@@ -45,6 +45,16 @@
   grid-column: span 6;
 }
 
+/* Opções de uma escolha única lado a lado, cada uma do tamanho do próprio
+   rótulo. Esticar até a largura do card afastaria "Sim" de "Não" a ponto de
+   parecerem dois campos independentes, e não as duas faces da mesma pergunta.
+   Quebra de linha só quando a largura não comportar. */
+.choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-24);
+}
+
 /* Cabeçalho da segunda seção do card: precisa de traço acima para separar
    do corpo anterior, já que .card__header só desenha a borda de baixo. */
 .form-card__divider {

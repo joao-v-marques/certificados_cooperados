@@ -3,13 +3,15 @@
   new_course.html — cadastro de um novo curso.
 
   Os campos espelham a tabela courses do schema:
-    title, total_minutes, completion_date, observations, cooperative_member_id
+    title, total_minutes, completion_date, observations, cooperative_member_id,
+    is_cooperativism
   mais o arquivo que vira um registro em course_certificates.
 
   inserted_by não é campo de formulário: vem do usuário autenticado.
 
-  Sem JavaScript próprio nesta etapa. A validação de preenchimento fica com o
-  próprio navegador (required, min, max, accept).
+  O envio e os erros de campo ficam com js/pages/new_course.js. O preenchimento
+  obrigatório é barrado antes disso pelo próprio navegador (required, min, max,
+  accept).
 -->
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -280,6 +282,37 @@
                                     </p>
                                     <p class="field__error is-hidden" id="erro-conclusao"></p>
                                 </div>
+
+                                <!-- Nenhuma opção nasce marcada de propósito: "não marcado" não
+                                     pode significar ao mesmo tempo "não é de cooperativismo" e
+                                     "passei batido". O `required` do grupo obriga a resposta.
+
+                                     O name precisa ser exatamente isCooperativism: é o nome do
+                                     componente do CourseRequest, e é por ele que o binding do
+                                     @ModelAttribute encontra o valor. -->
+                                <fieldset class="fieldset form-grid__full">
+                                    <legend class="fieldset__legend">O curso é de cooperativismo?</legend>
+                                    <div class="fieldset__body">
+                                        <div class="choice-row">
+                                            <label class="check">
+                                                <input type="radio" id="curso-cooperativismo-sim"
+                                                       name="isCooperativism" value="true" required>
+                                                <span>Sim</span>
+                                            </label>
+                                            <label class="check">
+                                                <input type="radio" id="curso-cooperativismo-nao"
+                                                       name="isCooperativism" value="false" required>
+                                                <span>Não</span>
+                                            </label>
+                                        </div>
+                                        <p class="field__hint">
+                                            Marque "Sim" quando o conteúdo do curso for de
+                                            cooperativismo. É esta resposta que alimenta o indicador
+                                            de cooperados capacitados no painel de controle.
+                                        </p>
+                                        <p class="field__error is-hidden" id="erro-cooperativismo"></p>
+                                    </div>
+                                </fieldset>
                             </div>
 
                             <div class="card__header form-card__divider">

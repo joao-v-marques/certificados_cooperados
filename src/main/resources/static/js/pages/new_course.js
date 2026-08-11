@@ -6,6 +6,7 @@
  *
  * Por id: curso-cooperado/erro-cooperado, curso-titulo/erro-titulo,
  * curso-horas + curso-minutos/erro-carga, curso-conclusao/erro-conclusao,
+ * curso-cooperativismo-sim + -nao/erro-cooperativismo,
  * curso-certificado/erro-certificado e curso-observacoes/erro-observacoes.
  *
  * O envio é multipart: o backend recebe os campos do curso por @ModelAttribute e
@@ -25,13 +26,15 @@ const COURSES_URL = "/certificados-cooperados/api/v1/courses";
 const ACTIVE_MEMBERS_URL = "/certificados-cooperados/api/v1/cooperative-members?active=true";
 
 // Liga o campo que o backend devolve em `fields` aos elementos da tela. A carga
-// horária são dois inputs para um campo só: o erro aparece no bloco do fieldset
-// e o foco vai para as horas.
+// horária são dois inputs para um campo só, e o cooperativismo são dois rádios:
+// nos dois casos o erro aparece no bloco do fieldset e o foco vai para o
+// primeiro controle do grupo.
 const FIELDS = {
     cooperativeMemberId: {inputId: "curso-cooperado", errorId: "erro-cooperado"},
     title: {inputId: "curso-titulo", errorId: "erro-titulo"},
     totalMinutes: {inputId: "curso-horas", errorId: "erro-carga"},
     completionDate: {inputId: "curso-conclusao", errorId: "erro-conclusao"},
+    isCooperativism: {inputId: "curso-cooperativismo-sim", errorId: "erro-cooperativismo"},
     observations: {inputId: "curso-observacoes", errorId: "erro-observacoes"},
     certificate: {inputId: "curso-certificado", errorId: "erro-certificado"},
 };
@@ -154,6 +157,13 @@ function buildFormData(totalMinutes) {
     formData.append("totalMinutes", totalMinutes);
     formData.append("completionDate", document.getElementById("curso-conclusao").value);
     formData.append("certificate", document.getElementById("curso-certificado").files[0]);
+
+    // Grupo sem nenhum rádio marcado não entra no envio: o campo chega null no
+    // backend e o @NotNull responde com a mensagem escrita para o usuário. Um
+    // append incondicional mandaria a string "undefined", que falha na conversão
+    // e viraria o texto genérico de valor inválido.
+    const cooperativism = document.querySelector('input[name="isCooperativism"]:checked');
+    if (cooperativism) formData.append("isCooperativism", cooperativism.value);
 
     // Campo opcional: em branco não vai no envio, para o backend gravar null em
     // vez de string vazia.
