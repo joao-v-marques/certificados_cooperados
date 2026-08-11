@@ -64,6 +64,7 @@ public class CourseService {
         course.setObservations(request.observations());
         course.setCooperativeMember(cooperativeMember);
         course.setInsertedBy(insertedBy);
+        course.setCooperativism(request.isCooperativism());
 
         Course saved = courseRepository.save(course);
 
@@ -106,7 +107,8 @@ public class CourseService {
                 course.getCooperativeMember().getName(),
                 course.getInsertedBy().getName() != null
                         ? course.getInsertedBy().getName()
-                        : course.getInsertedBy().getUsername()
+                        : course.getInsertedBy().getUsername(),
+                course.isCooperativism()
         );
     }
 
