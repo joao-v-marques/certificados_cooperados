@@ -35,6 +35,7 @@ build/
 ### CLAUDE ###
 CLAUDE.md
 .claude/
+frontend-references.md
 
 ### /storage de certificados ###
 /storage
