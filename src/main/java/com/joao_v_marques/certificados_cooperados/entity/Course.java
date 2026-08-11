@@ -41,4 +41,7 @@ public class Course {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cooperative_member_id", nullable = false)
     private CooperativeMember cooperativeMember;
+
+    @Column(name = "is_cooperativism", nullable = false)
+    private boolean isCooperativism;
 }
