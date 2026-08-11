@@ -105,7 +105,8 @@ public class CooperativeMemberService {
                     member.getEmail(),
                     totals.courses,
                     totals.points,
-                    goalReached
+                    goalReached,
+                    totals.hasCooperativism
             ));
         }
 
