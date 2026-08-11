@@ -101,12 +101,13 @@ function readFilters() {
     return {
         search: normalize(document.getElementById("filtro-busca").value.trim()),
         status: document.getElementById("filtro-status").value,
+        cooperativism: document.getElementById("filtro-cooperativismo").value,
         order: document.getElementById("filtro-ordenacao").value,
     };
 }
 
 function applyFilters(members) {
-    const {search, status, order} = readFilters();
+    const {search, status, cooperativism, order} = readFilters();
 
     let rows = members;
 
@@ -119,6 +120,15 @@ function applyFilters(members) {
         rows = rows.filter(member => member.goalReached);
     } else if (status === "pendente") {
         rows = rows.filter(member => !member.goalReached);
+    }
+
+    // Independente do filtro de meta: dá para pedir quem já atingiu a meta mas
+    // continua sem nenhum curso de cooperativismo, que é a lista que interessa
+    // para cobrar a capacitação.
+    if (cooperativism === "capacitado") {
+        rows = rows.filter(member => member.trainedInCooperativism);
+    } else if (cooperativism === "sem-curso") {
+        rows = rows.filter(member => !member.trainedInCooperativism);
     }
 
     // Cópia antes de ordenar: sort() é destrutivo e `members` é o relatório
@@ -153,7 +163,7 @@ function renderEmptyState(hasRows, hasMembers) {
     // a mesma frase para as duas faria o usuário procurar cooperado que existe.
     if (hasMembers) {
         title.textContent = "Nenhum cooperado encontrado";
-        text.textContent = "Nenhum cooperado atende aos filtros aplicados. Ajuste a busca ou o status.";
+        text.textContent = "Nenhum cooperado atende aos filtros aplicados. Ajuste a busca ou os filtros.";
     } else {
         title.textContent = "Nenhum cooperado cadastrado ainda";
         text.textContent = "Os cooperados cadastrados no sistema aparecem aqui, com o progresso deles na meta anual de pontos.";
@@ -167,6 +177,12 @@ function renderTable(rows) {
     rows.forEach(member => {
         const badgeClass = member.goalReached ? "badge--success" : "badge--warning";
         const badgeLabel = member.goalReached ? "Meta atingida" : "Pendente";
+
+        // "Sem curso" e não "Pendente": a coluna vizinha já usa "Pendente" para
+        // a meta, e duas pendências lado a lado na mesma linha não deixariam
+        // claro qual é qual.
+        const cooperativismClass = member.trainedInCooperativism ? "badge--success" : "badge--neutral";
+        const cooperativismLabel = member.trainedInCooperativism ? "Capacitado" : "Sem curso";
 
         const tr = document.createElement("tr");
 
@@ -183,6 +199,9 @@ function renderTable(rows) {
             <td data-label="Pontos no ano" class="table__num tabular">${member.totalPoints}</td>
             <td data-label="Status">
                 <span class="badge ${badgeClass}">${badgeLabel}</span>
+            </td>
+            <td data-label="Cooperativismo">
+                <span class="badge ${cooperativismClass}">${cooperativismLabel}</span>
             </td>
             <td class="table__actions">
                 <button type="button" class="btn-link" data-view-member="${member.id}"
@@ -540,6 +559,7 @@ function initFilters() {
     });
 
     document.getElementById("filtro-status").addEventListener("change", refreshTable);
+    document.getElementById("filtro-cooperativismo").addEventListener("change", refreshTable);
     document.getElementById("filtro-ordenacao").addEventListener("change", refreshTable);
 }
 

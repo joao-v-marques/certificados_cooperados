@@ -31,8 +31,9 @@
 /* --------------------------------------------------------------------------
    Barra de filtros
 
-   Três controles: busca, status na meta e ordenação. O recorte por ano fica
-   no cabeçalho da página, porque escopa a tela inteira e não só a tabela.
+   Quatro controles: busca, status na meta, cooperativismo e ordenação. O
+   recorte por ano fica no cabeçalho da página, porque escopa a tela inteira e
+   não só a tabela.
    -------------------------------------------------------------------------- */
 
 .filters {
@@ -42,20 +43,21 @@
   align-items: end;
 }
 
+/* A busca ocupa a linha inteira e os três selects dividem a de baixo. Espremer
+   os quatro numa linha só deixaria cada select com 3 colunas, estreito demais
+   para os rótulos das opções. */
 .filters .toolbar__search {
-  grid-column: span 6;
+  grid-column: span 12;
 }
 
 .filters .toolbar__filter {
-  grid-column: span 3;
+  grid-column: span 4;
   min-width: 0;
 }
 
+/* A busca já ocupa a linha inteira desde o desktop; aqui só os selects
+   afrouxam, dois por linha. */
 @media (max-width: 1199px) {
-  .filters .toolbar__search {
-    grid-column: span 12;
-  }
-
   .filters .toolbar__filter {
     grid-column: span 6;
   }

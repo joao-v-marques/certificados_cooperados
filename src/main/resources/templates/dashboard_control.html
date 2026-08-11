@@ -289,6 +289,19 @@
                                 </select>
                             </div>
 
+                            <!-- Filtro separado do status na meta de propósito: são duas
+                                 perguntas diferentes sobre o mesmo cooperado, e juntá-las
+                                 num select só produziria combinação que não dá para
+                                 expressar ("capacitado e pendente na meta"). -->
+                            <div class="toolbar__filter">
+                                <label class="field__label" for="filtro-cooperativismo">Cooperativismo</label>
+                                <select class="select" id="filtro-cooperativismo" name="cooperativismo">
+                                    <option value="">Todos</option>
+                                    <option value="capacitado">Capacitado</option>
+                                    <option value="sem-curso">Sem curso</option>
+                                </select>
+                            </div>
+
                             <div class="toolbar__filter">
                                 <label class="field__label" for="filtro-ordenacao">Ordenar por</label>
                                 <select class="select" id="filtro-ordenacao" name="ordem">
@@ -302,8 +315,8 @@
                         <div class="table-wrap">
                             <table class="table table--cards">
                                 <caption class="visually-hidden">
-                                    Cooperados cadastrados, com cursos e pontos no ano-base e o
-                                    status frente à meta anual.
+                                    Cooperados cadastrados, com cursos e pontos no ano-base, o
+                                    status frente à meta anual e a capacitação em cooperativismo.
                                 </caption>
                                 <thead>
                                 <tr>
@@ -311,6 +324,7 @@
                                     <th scope="col" class="table__num">Cursos no ano</th>
                                     <th scope="col" class="table__num">Pontos no ano</th>
                                     <th scope="col">Status</th>
+                                    <th scope="col">Cooperativismo</th>
                                     <th scope="col"><span class="visually-hidden">Ações</span></th>
                                 </tr>
                                 </thead>
