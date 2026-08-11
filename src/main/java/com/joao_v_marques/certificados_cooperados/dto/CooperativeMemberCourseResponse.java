@@ -9,6 +9,10 @@ import java.time.LocalDate;
  * (CoursePointsPolicy) e a tela não pode reimplementá-la, ou a conta do detalhe
  * passa a divergir da conta do painel na primeira mudança de faixa.
  *
+ * `isCooperativism` é o que foi marcado no lançamento do curso, e é ele que faz o
+ * curso contar para o indicador de capacitação do painel. O detalhe exibe a
+ * marca para que dê para conferir de onde a porcentagem saiu.
+ *
  * `certificateId` é o que o botão de download de um certificado só usa. Vem nulo
  * quando o curso não tem arquivo — hoje o lançamento sempre grava um, mas o
  * schema não impede um curso sem certificado, e a tela precisa saber disso em
@@ -19,6 +23,7 @@ public record CooperativeMemberCourseResponse(
         String title,
         int totalMinutes,
         LocalDate completionDate,
+        boolean isCooperativism,
         int points,
         Integer certificateId,
         String certificateFilename

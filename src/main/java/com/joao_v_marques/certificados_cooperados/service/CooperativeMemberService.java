@@ -172,6 +172,7 @@ public class CooperativeMemberService {
                     course.getTitle(),
                     course.getTotalMinutes(),
                     course.getCompletionDate(),
+                    course.getCooperativism(),
                     points,
                     course.getCertificateId(),
                     course.getCertificateFilename()

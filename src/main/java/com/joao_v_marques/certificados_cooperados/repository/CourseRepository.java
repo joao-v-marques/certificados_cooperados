@@ -57,6 +57,8 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 
         LocalDate getCompletionDate();
 
+        Boolean getCooperativism();
+
         Integer getCertificateId();
 
         String getCertificateFilename();
@@ -73,6 +75,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
                    c.title as title,
                    c.totalMinutes as totalMinutes,
                    c.completionDate as completionDate,
+                   c.isCooperativism as cooperativism,
                    cert.id as certificateId,
                    cert.originalFilename as certificateFilename
             from Course c

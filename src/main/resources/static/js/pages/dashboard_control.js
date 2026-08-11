@@ -368,9 +368,19 @@ function renderMemberCourses(courses) {
                        aria-label="Baixar o certificado de ${escapeHtml(course.title)}">Certificado</button>`
             : `<span class="text-muted">Sem certificado</span>`;
 
+        // Só o curso de cooperativismo recebe marca. O contrário não ganha um
+        // "Não é de cooperativismo": marcar a exceção é o que destaca de onde
+        // veio o indicador; marcar os dois lados vira ruído em toda linha.
+        const cooperativism = course.isCooperativism
+            ? `<span class="badge badge--info">Cooperativismo</span>`
+            : ``;
+
         return `
             <tr>
-                <td data-label="Curso"><span class="table__primary">${escapeHtml(course.title)}</span></td>
+                <td data-label="Curso">
+                    <span class="table__primary">${escapeHtml(course.title)}</span>
+                    ${cooperativism}
+                </td>
                 <td data-label="Concluído em">${formatDate(course.completionDate)}</td>
                 <td data-label="Minutos" class="table__num tabular">${course.totalMinutes}</td>
                 <td data-label="Pontos" class="table__num tabular">${course.points}</td>
