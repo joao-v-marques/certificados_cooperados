@@ -1493,6 +1493,27 @@ button.input-wrap__affix[aria-pressed="true"] {
   background-color: var(--color-overlay);
 }
 
+/* Aviso que exige aceite: painel estreito, texto corrido e uma ação só. Não
+   tem botão de fechar no cabeçalho de propósito — a única saída é o botão do
+   rodapé, e o Esc é barrado no JS da página. */
+.modal--notice {
+  width: min(720px, calc(100vw - var(--space-32)));
+}
+
+.modal__text {
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  color: var(--color-text);
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  flex: none;
+  padding: var(--space-24);
+  border-top: 1px solid var(--color-border);
+}
+
 .modal__head {
   display: flex;
   align-items: flex-start;
@@ -1606,6 +1627,19 @@ button.input-wrap__affix[aria-pressed="true"] {
   }
 
   .modal__section-head .btn { width: 100%; }
+
+  /* O aviso é curto: ocupar a tela inteira só deixaria um vazio embaixo do
+     texto. Ele continua painel flutuante, agora colado às bordas. */
+  .modal--notice {
+    width: calc(100vw - var(--space-32));
+    max-width: calc(100vw - var(--space-32));
+    height: auto;
+    max-height: calc(100dvh - var(--space-32));
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+  }
+
+  .modal--notice .btn { width: 100%; }
 }
 
 /* ==========================================================================

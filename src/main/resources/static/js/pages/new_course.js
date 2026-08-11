@@ -2,7 +2,9 @@
  * Lançamento de curso: preenche a select de cooperados e envia o formulário.
  *
  * Contrato com o HTML (data-*):
- *   [data-course-form]  formulário, submit interceptado
+ *   [data-course-form]            formulário, submit interceptado
+ *   [data-responsibility-modal]   aviso de responsabilidade, aberto na carga
+ *   [data-responsibility-accept]  botão "Eu concordo", única saída do aviso
  *
  * Por id: curso-cooperado/erro-cooperado, curso-titulo/erro-titulo,
  * curso-horas + curso-minutos/erro-carga, curso-conclusao/erro-conclusao,
@@ -247,6 +249,32 @@ async function handleSubmit(event) {
 }
 
 /* =========================================================================
+   Aviso de responsabilidade
+   ========================================================================= */
+
+/**
+ * Abre o aviso a cada carga da página. O aceite não é guardado de propósito:
+ * ele vale para o lançamento que está sendo feito agora, não para o
+ * colaborador.
+ *
+ * O <dialog> nativo já escurece o fundo, prende o foco e torna o resto da tela
+ * inerte. Falta só fechar as duas saídas que ele oferece de graça: o Esc, aqui
+ * cancelado, e o botão de fechar do cabeçalho, que este modal não tem. Clique
+ * no fundo não fecha <dialog> sem JS, então não há o que barrar.
+ */
+function initResponsibilityNotice() {
+    const modal = document.querySelector("[data-responsibility-modal]");
+    if (!modal) return;
+
+    modal.addEventListener("cancel", event => event.preventDefault());
+
+    modal.querySelector("[data-responsibility-accept]")
+        .addEventListener("click", () => modal.close());
+
+    modal.showModal();
+}
+
+/* =========================================================================
    Ligação
    ========================================================================= */
 
@@ -268,6 +296,7 @@ function initCourseForm() {
 }
 
 function init() {
+    initResponsibilityNotice();
     initCourseForm();
     populateMembersSelect();
 }

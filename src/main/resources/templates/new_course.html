@@ -399,6 +399,42 @@
         </div>
     </div>
 
+    <!-- ==================================================================
+         Aviso de responsabilidade
+
+         Abre sozinho toda vez que a página carrega (quem chama o showModal é o
+         js/pages/new_course.js) e só sai pelo botão "Eu concordo": não tem
+         botão de fechar no cabeçalho, o clique no fundo não fecha <dialog>
+         nativo e o Esc é barrado no JS.
+
+         Nasce aberto no HTML? Não: o atributo `open` deixaria o diálogo em
+         linha, sem fundo escurecido e sem prender o foco. Só o showModal() dá
+         o comportamento modal de verdade.
+         ================================================================== -->
+    <dialog class="modal modal--notice" data-responsibility-modal
+            aria-labelledby="titulo-aviso-responsabilidade">
+
+        <header class="modal__head">
+            <h2 class="modal__title" id="titulo-aviso-responsabilidade">Aviso de responsabilidade</h2>
+        </header>
+
+        <div class="modal__body">
+            <p class="modal__text">
+                As informações inseridas e editadas nesta página são de responsabilidade do
+                colaborador que realiza o lançamento. Antes de salvar, é necessário validar e
+                garantir a veracidade dos dados informados, já que esses números alimentam
+                diretamente os indicadores de resíduos exibidos no dashboard da cooperativa.
+                Lançamentos incorretos podem comprometer a precisão desse acompanhamento.
+            </p>
+        </div>
+
+        <div class="modal__footer">
+            <button type="button" class="btn btn--primary" data-responsibility-accept>
+                Eu concordo
+            </button>
+        </div>
+    </dialog>
+
     <!-- Shell (sidebar, dropdown e usuário logado), comum a todas as telas. -->
     <script type="module" th:src="@{/js/pages/shell.js}"></script>
     <script type="module" th:src="@{/js/pages/new_course.js}"></script>
