@@ -16,6 +16,10 @@ public record CooperativeMembersYearReportResponse(
         int totalMembers,
         int membersWithoutCourses,
         int membersWhoReachedGoal,
+        // Contagem, e não percentual pronto: é o mesmo formato dos indicadores
+        // vizinhos, e a divisão só faz sentido junto de totalMembers, que já vai
+        // no mesmo corpo.
+        int membersTrainedInCooperativism,
         List<Integer> availableYears,
         List<CooperativeMemberYearSummaryResponse> members
 ) {

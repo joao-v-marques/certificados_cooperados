@@ -71,7 +71,7 @@ public class CooperativeMemberService {
         courseRepository.findMemberMinutesByCompletionDateBetween(start, end)
                 .forEach(course -> totalsByMember
                         .computeIfAbsent(course.getCooperativeMemberId(), id -> new YearTotals())
-                        .add(course.getTotalMinutes()));
+                        .add(course.getTotalMinutes(), course.getCooperativism()));
 
         List<CooperativeMember> activeMembers = cooperativeMemberRepository.findActiveOrderByName();
 
@@ -79,6 +79,7 @@ public class CooperativeMemberService {
 
         int membersWithoutCourses = 0;
         int membersWhoReachedGoal = 0;
+        int membersTrainedInCooperativism = 0;
 
         for (CooperativeMember member : activeMembers) {
             // Sem lançamento no ano o cooperado nem aparece no mapa: entra zerado.
@@ -91,6 +92,11 @@ public class CooperativeMemberService {
             }
             if (goalReached) {
                 membersWhoReachedGoal++;
+            }
+            // Um curso de cooperativismo já basta: o indicador mede alcance da
+            // capacitação, não quantidade de cursos.
+            if (totals.hasCooperativism) {
+                membersTrainedInCooperativism++;
             }
 
             members.add(new CooperativeMemberYearSummaryResponse(
@@ -109,6 +115,7 @@ public class CooperativeMemberService {
                 activeMembers.size(),
                 membersWithoutCourses,
                 membersWhoReachedGoal,
+                membersTrainedInCooperativism,
                 availableYears(year, currentYear),
                 members
         );
@@ -187,7 +194,7 @@ public class CooperativeMemberService {
         );
     }
 
-    /** Acumulador do agrupamento em memória: cursos e pontos de um cooperado no ano. */
+    /** Acumulador do agrupamento em memória: cursos, pontos e cooperativismo de um cooperado no ano. */
     private static final class YearTotals {
 
         /** Compartilhado por todo cooperado sem lançamento no ano; nunca recebe add. */
@@ -196,9 +203,13 @@ public class CooperativeMemberService {
         private int courses;
         private int points;
 
-        private void add(int totalMinutes) {
+        /** Verdadeiro a partir do primeiro curso de cooperativismo; não volta atrás. */
+        private boolean hasCooperativism;
+
+        private void add(int totalMinutes, boolean cooperativism) {
             courses++;
             points += CoursePointsPolicy.pointsOf(totalMinutes);
+            hasCooperativism |= cooperativism;
         }
     }
 

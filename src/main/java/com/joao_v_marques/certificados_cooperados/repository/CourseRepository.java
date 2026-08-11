@@ -11,21 +11,31 @@ import java.util.List;
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 
     /**
-     * Projeção enxuta para o relatório anual: um curso vira só o cooperado dono
-     * e a carga horária, que é do que a regra de pontos precisa.
+     * Projeção enxuta para o relatório anual: um curso vira o cooperado dono, a
+     * carga horária — que é do que a regra de pontos precisa — e a marcação de
+     * cooperativismo, que alimenta o indicador de capacitados.
+     *
+     * O apelido é `cooperativism` e não `isCooperativism` só para o getter não
+     * virar getIsCooperativism(); a coluna e o campo da entidade seguem com o
+     * prefixo.
      */
     interface MemberCourseMinutes {
         Integer getCooperativeMemberId();
 
         Integer getTotalMinutes();
+
+        Boolean getCooperativism();
     }
 
     // Traz os cursos do ano-base sem carregar a entidade inteira nem os LAZY.
     // A soma de pontos não é feita aqui de propósito: a faixa de pontuação é
-    // regra de negócio e mora no CoursePointsPolicy.
+    // regra de negócio e mora no CoursePointsPolicy. Pelo mesmo motivo o
+    // cooperativismo volta curso a curso, e não como contagem pronta: quem
+    // decide o que é "cooperado capacitado" é o service.
     @Query("""
             select c.cooperativeMember.id as cooperativeMemberId,
-                   c.totalMinutes as totalMinutes
+                   c.totalMinutes as totalMinutes,
+                   c.isCooperativism as cooperativism
             from Course c
             where c.completionDate between :start and :end
             """)
