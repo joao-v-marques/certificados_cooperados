@@ -6,7 +6,7 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Indicadores — grade de 12 colunas, 3 cards de 4 colunas no desktop.
+   Indicadores — grade de 12 colunas, 4 cards de 3 colunas no desktop.
    -------------------------------------------------------------------------- */
 
 .stat-grid {
@@ -16,7 +16,7 @@
 }
 
 .stat-grid > .stat {
-  grid-column: span 4;
+  grid-column: span 3;
 }
 
 @media (max-width: 1199px) {

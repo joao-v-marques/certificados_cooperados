@@ -219,11 +219,10 @@
                     <section aria-labelledby="titulo-indicadores">
                         <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do ano</h2>
 
-                        <!-- Os três valores vêm do mesmo relatório que preenche a tabela,
+                        <!-- Os quatro valores vêm do mesmo relatório que preenche a tabela,
                              então sempre falam do mesmo ano-base. Nascem com "-" e o JS
                              substitui; se a chamada falhar, o "-" permanece em vez de a
-                             tela exibir zero como se fosse dado real.
-                             TODO: mais indicadores virão depois destes três. -->
+                             tela exibir zero como se fosse dado real. -->
                         <div class="stat-grid">
 
                             <article class="stat">
@@ -239,6 +238,16 @@
                             <article class="stat stat--info">
                                 <p class="stat__label">Já atingiram a meta anual</p>
                                 <p class="stat__value tabular" id="cardMembersGoalReachedQtd">-</p>
+                            </article>
+
+                            <!-- Único indicador em percentual: mede alcance da capacitação
+                                 sobre os cooperados ativos, e um número absoluto aqui não
+                                 diria nada sem o total ao lado. O "%" é escrito pelo JS
+                                 junto do valor, para o card não ficar com um "%" solto
+                                 quando não houver dado. -->
+                            <article class="stat stat--accent">
+                                <p class="stat__label">Capacitados em cooperativismo</p>
+                                <p class="stat__value tabular" id="cardMembersCooperativismPct">-</p>
                             </article>
 
                         </div>

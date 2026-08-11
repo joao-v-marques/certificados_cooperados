@@ -217,10 +217,26 @@ function renderCount(shown, total) {
         : `${shown} de ${total} cooperados`;
 }
 
+/**
+ * O percentual de cooperados com ao menos um curso de cooperativismo no ano.
+ *
+ * A API manda a contagem, e não a porcentagem pronta, porque é o formato dos
+ * outros três indicadores; a divisão é feita aqui, onde o número vira texto.
+ *
+ * Base vazia devolve "-", e não 0%: sem cooperado ativo não há divisão que
+ * signifique alguma coisa, e o zero afirmaria que ninguém foi capacitado.
+ */
+function cooperativismRate() {
+    if (!report.totalMembers) return "-";
+
+    return `${Math.round(report.membersTrainedInCooperativism / report.totalMembers * 100)}%`;
+}
+
 function renderIndicators() {
     document.getElementById("cardCooperativeMembersQtd").textContent = report.totalMembers;
     document.getElementById("cardMembersWithoutCoursesQtd").textContent = report.membersWithoutCourses;
     document.getElementById("cardMembersGoalReachedQtd").textContent = report.membersWhoReachedGoal;
+    document.getElementById("cardMembersCooperativismPct").textContent = cooperativismRate();
 }
 
 // Reaplica filtros e redesenha a tabela a partir do relatório em memória.
