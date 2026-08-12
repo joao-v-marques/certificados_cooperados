@@ -1859,6 +1859,53 @@ button.input-wrap__affix[aria-pressed="true"] {
 
 .nav__icon { flex: none; }
 
+/* Grupo da navegação (accordion) ------------------------------------------ */
+
+/* O gatilho é <button>, e não <a>: ele não leva a lugar nenhum, só abre o
+   grupo. Herda .nav__link para ficar idêntico aos vizinhos, e o reset abaixo
+   desfaz o que o navegador impõe a botão. */
+.nav-group__trigger {
+  width: 100%;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Empurra o caret para a direita, sem precisar de elemento espaçador. */
+.nav-group__trigger .nav__label { flex: 1 1 auto; }
+
+.nav-group__caret {
+  flex: none;
+  transition: transform var(--duration-fast) var(--ease);
+}
+
+.nav-group__trigger[aria-expanded="true"] .nav-group__caret {
+  transform: rotate(180deg);
+}
+
+/* Recuo que liga visualmente os filhos ao grupo. O padding entra à esquerda
+   para o realce de hover continuar ocupando a largura toda do item. */
+.nav-group__items {
+  margin-top: var(--space-4);
+  padding-left: var(--space-16);
+}
+
+/* O <ul> também é .nav, que define display:flex — e qualquer regra de autor
+   vence o [hidden]{display:none} da folha do navegador, por mais específico
+   que ele pareça. Sem esta linha o atributo hidden não esconde nada e o grupo
+   fica permanentemente aberto. */
+.nav-group__items[hidden] { display: none; }
+
+.nav-group__items .nav__link { font-weight: var(--weight-regular); }
+
+.nav-group__items .nav__link.is-active { font-weight: var(--weight-semibold); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-group__caret { transition: none; }
+}
+
 .sidebar__footer {
   display: flex;
   flex-direction: column;
@@ -1901,6 +1948,20 @@ button.input-wrap__affix[aria-pressed="true"] {
 
 .app.is-collapsed .nav__link.is-active {
   box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+/* Na faixa de ícones não há espaço para abrir e fechar grupo: o gatilho sai e
+   os filhos ficam sempre à mostra, como itens comuns. Recolher a sidebar não
+   pode esconder destino de navegação atrás de um clique a mais.
+   O seletor precisa vencer o [hidden] do navegador, por isso repete o
+   atributo em vez de só nomear a classe. */
+.app.is-collapsed .nav-group__trigger { display: none; }
+
+.app.is-collapsed .nav-group__items,
+.app.is-collapsed .nav-group__items[hidden] {
+  display: flex;
+  margin-top: 0;
+  padding-left: 0;
 }
 
 /* Área de conteúdo -------------------------------------------------------- */
@@ -1970,6 +2031,17 @@ button.input-wrap__affix[aria-pressed="true"] {
   .app.is-collapsed .sidebar__seal { display: grid; }
   .app.is-collapsed .nav__link.is-active::before { display: block; }
   .app.is-collapsed .nav__link.is-active { box-shadow: none; }
+
+  /* O grupo volta a ser accordion: em overlay há largura para rótulo e para
+     abrir e fechar, então a preferência de recolher guardada no desktop não
+     pode continuar valendo aqui. */
+  .app.is-collapsed .nav-group__trigger { display: flex; }
+  .app.is-collapsed .nav-group__items[hidden] { display: none; }
+
+  .app.is-collapsed .nav-group__items {
+    margin-top: var(--space-4);
+    padding-left: var(--space-16);
+  }
 }
 
 @media (max-width: 899px) {
@@ -1978,4 +2050,147 @@ button.input-wrap__affix[aria-pressed="true"] {
 
 @media (max-width: 479px) {
   .brand__name { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Layout de tela de lançamento
+
+   Formulário à esquerda, painel de apoio à direita. Nasceu no lançamento de
+   curso e vive aqui desde que o lançamento de ocorrência passou a usar o mesmo
+   desenho — duas páginas com a mesma estrutura não podem ter duas cópias da
+   mesma regra.
+
+   Grade de 12 colunas: 8 para o formulário e 4 para o apoio. O formulário fica
+   com largura de leitura confortável em vez de esticar até a borda.
+   -------------------------------------------------------------------------- */
+
+.form-layout {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+  align-items: start;
+}
+
+.form-card {
+  grid-column: span 8;
+}
+
+.guide {
+  grid-column: span 4;
+  /* Acompanha o scroll para as regras seguirem visíveis enquanto se preenche. */
+  position: sticky;
+  top: calc(var(--topbar-height) + var(--space-32));
+}
+
+/* Grade interna do formulário --------------------------------------------- */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-24);
+}
+
+.form-grid__full {
+  grid-column: span 12;
+}
+
+.form-grid__half {
+  grid-column: span 6;
+}
+
+/* Ações do formulário ------------------------------------------------------ */
+
+.form-actions {
+  flex-wrap: wrap;
+}
+
+/* Painel de apoio ---------------------------------------------------------- */
+
+/* Reaproveita o marcador do selo modular como bullet, mesma linguagem do
+   painel de identidade do login. */
+
+.guide__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guide__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+
+.guide__mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: var(--space-4);
+  border-radius: 2px;
+  background-color: var(--color-primary);
+}
+
+.guide__item:nth-child(2) .guide__mark {
+  background-color: var(--color-accent);
+}
+
+.guide__item:nth-child(3) .guide__mark {
+  background-color: var(--color-primary-subtle);
+}
+
+.guide__term {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+  margin-bottom: var(--space-4);
+}
+
+.guide__text {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
+
+/* Responsivo do layout de lançamento --------------------------------------- */
+
+/* Abaixo de 1200px o painel de apoio desce para baixo do formulário e deixa de
+   acompanhar o scroll — ele passa a ser leitura de passagem, não de apoio
+   permanente. */
+@media (max-width: 1199px) {
+  .form-card,
+  .guide {
+    grid-column: span 12;
+  }
+
+  .guide {
+    position: static;
+  }
+}
+
+@media (max-width: 767px) {
+  .form-grid {
+    gap: var(--space-16);
+  }
+
+  .form-grid__half {
+    grid-column: span 12;
+  }
+
+  /* Empilhado, a ação primária fica por último e ocupa a linha toda. */
+  .form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .form-actions .spacer {
+    display: none;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
 }

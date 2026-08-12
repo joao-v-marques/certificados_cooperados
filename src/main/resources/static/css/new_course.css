@@ -1,49 +1,11 @@
 /* ==========================================================================
    new_course.css — estilos exclusivos do cadastro de curso.
+
+   O layout da página (.form-layout, .form-card, .form-grid, .guide e as ações
+   do formulário) mora em components.css: o lançamento de ocorrência usa o
+   mesmo desenho, e manter duas cópias da mesma regra faria as telas divergirem
+   na primeira mudança. Aqui fica só o que é do curso e de mais nenhuma tela.
    ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   Layout da página — formulário à esquerda, painel de apoio à direita.
-
-   Grade de 12 colunas: 8 para o formulário e 4 para o apoio. O formulário
-   fica com largura de leitura confortável em vez de esticar até a borda.
-   -------------------------------------------------------------------------- */
-
-.form-layout {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--gutter);
-  align-items: start;
-}
-
-.form-card {
-  grid-column: span 8;
-}
-
-.guide {
-  grid-column: span 4;
-  /* Acompanha o scroll para as regras seguirem visíveis enquanto se preenche. */
-  position: sticky;
-  top: calc(var(--topbar-height) + var(--space-32));
-}
-
-/* --------------------------------------------------------------------------
-   Grade interna do formulário
-   -------------------------------------------------------------------------- */
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--space-24);
-}
-
-.form-grid__full {
-  grid-column: span 12;
-}
-
-.form-grid__half {
-  grid-column: span 6;
-}
 
 /* Opções de uma escolha única lado a lado, cada uma do tamanho do próprio
    rótulo. Esticar até a largura do card afastaria "Sim" de "Não" a ponto de
@@ -55,111 +17,9 @@
   gap: var(--space-24);
 }
 
-/* Cabeçalho da segunda seção do card: precisa de traço acima para separar
-   do corpo anterior, já que .card__header só desenha a borda de baixo. */
+/* Cabeçalho da segunda seção do card (Certificado): precisa de traço acima
+   para separar do corpo anterior, já que .card__header só desenha a borda de
+   baixo. O formulário de ocorrência tem uma seção só e não usa. */
 .form-card__divider {
   border-top: 1px solid var(--color-border);
-}
-
-/* --------------------------------------------------------------------------
-   Ações do formulário
-   -------------------------------------------------------------------------- */
-
-.form-actions {
-  flex-wrap: wrap;
-}
-
-/* --------------------------------------------------------------------------
-   Painel de apoio
-
-   Reaproveita o marcador do selo modular como bullet, mesma linguagem do
-   painel de identidade do login.
-   -------------------------------------------------------------------------- */
-
-.guide__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-24);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.guide__item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-16);
-}
-
-.guide__mark {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  margin-top: var(--space-4);
-  border-radius: 2px;
-  background-color: var(--color-primary);
-}
-
-.guide__item:nth-child(2) .guide__mark {
-  background-color: var(--color-accent);
-}
-
-.guide__item:nth-child(3) .guide__mark {
-  background-color: var(--color-primary-subtle);
-}
-
-.guide__term {
-  font-size: var(--text-sm);
-  line-height: var(--leading-sm);
-  font-weight: var(--weight-semibold);
-  color: var(--color-text-strong);
-  margin-bottom: var(--space-4);
-}
-
-.guide__text {
-  font-size: var(--text-xs);
-  line-height: var(--leading-xs);
-  color: var(--color-text-muted);
-}
-
-/* --------------------------------------------------------------------------
-   Responsivo
-   -------------------------------------------------------------------------- */
-
-/* Abaixo de 1200px o painel de apoio desce para baixo do formulário e deixa
-   de acompanhar o scroll — ele passa a ser leitura de passagem, não de apoio
-   permanente. */
-@media (max-width: 1199px) {
-  .form-card,
-  .guide {
-    grid-column: span 12;
-  }
-
-  .guide {
-    position: static;
-  }
-}
-
-@media (max-width: 767px) {
-  .form-grid {
-    gap: var(--space-16);
-  }
-
-  .form-grid__half {
-    grid-column: span 12;
-  }
-
-  /* Empilhado, a ação primária fica por último e ocupa a linha toda. */
-  .form-actions {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-
-  .form-actions .spacer {
-    display: none;
-  }
-
-  .form-actions .btn {
-    width: 100%;
-  }
 }

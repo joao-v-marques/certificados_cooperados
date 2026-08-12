@@ -102,6 +102,41 @@ function initSidebar() {
 }
 
 /* =========================================================================
+   Grupos da navegação (accordion da sidebar)
+
+   Contrato no HTML:
+     [data-nav-group]
+       [data-nav-group-trigger]  botão com aria-expanded
+       [data-nav-group-items]    <ul> dos sub-itens, controlado por hidden
+
+   Deliberadamente separado de [data-dropdown]: aquele é menu de ação, fecha ao
+   clicar fora e só um fica aberto por vez. Aqui é navegação — dois grupos podem
+   estar abertos juntos, e clicar no conteúdo da página não pode fechar o menu
+   que mostra onde o usuário está.
+   ========================================================================= */
+
+function initNavGroups() {
+  document.querySelectorAll('[data-nav-group]').forEach((group) => {
+    const trigger = group.querySelector('[data-nav-group-trigger]');
+    const items = group.querySelector('[data-nav-group-items]');
+    if (!trigger || !items) return;
+
+    // O grupo nasce aberto quando guarda a página atual: chegar em "Lançar
+    // ocorrência" com o grupo fechado esconderia justamente o item ativo.
+    if (items.querySelector('.is-active')) {
+      items.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+
+    trigger.addEventListener('click', () => {
+      const willOpen = items.hidden;
+      items.hidden = !willOpen;
+      trigger.setAttribute('aria-expanded', String(willOpen));
+    });
+  });
+}
+
+/* =========================================================================
    Dropdown da conta
 
    Contrato no HTML:
@@ -261,6 +296,8 @@ async function initCurrentUser() {
 
 const sidebar = initSidebar();
 const dropdowns = initDropdowns();
+
+initNavGroups();
 
 initCurrentUser();
 initLogout();

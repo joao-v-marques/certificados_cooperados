@@ -134,6 +134,42 @@
                                 <span class="nav__label">Lançar curso</span>
                             </a>
                         </li>
+
+                        <!-- Grupo de ocorrências. O shell (js/pages/shell.js) abre o
+                             grupo sozinho quando um dos filhos é a página atual. -->
+                        <li class="nav-group" data-nav-group>
+                            <button type="button" class="nav__link nav-group__trigger" data-nav-group-trigger
+                                    aria-expanded="false" aria-controls="nav-ocorrencias">
+                                <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <path d="M4 4.5h12v8a1 1 0 0 1-1 1H8.5L4.5 17V4.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                    <path d="M7.5 8h5M7.5 10.5h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span class="nav__label">Ocorrências</span>
+                                <svg class="nav-group__caret" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                    <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+
+                            <ul class="nav nav-group__items" id="nav-ocorrencias" data-nav-group-items hidden>
+                                <li>
+                                    <a class="nav__link" th:href="@{/nova-ocorrencia}">
+                                        <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                            <path d="M5.5 3.5h5l4 4V16a.5.5 0 0 1-.5.5H5.5A.5.5 0 0 1 5 16V4a.5.5 0 0 1 .5-.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                            <path d="M10 10v3.5M8.25 11.75h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
+                                        <span class="nav__label">Lançar ocorrência</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav__link" th:href="@{/dashboard-ocorrencias}">
+                                        <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                            <path d="M5 15.5V9.5M10 15.5v-11M15 15.5v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
+                                        <span class="nav__label">Dashboard ocorrências</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
 
                     <p class="sidebar__section">Cadastros</p>
