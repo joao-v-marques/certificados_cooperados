@@ -14,5 +14,7 @@ public class ViewConfig implements WebMvcConfigurer {
         registry.addViewController("/painel-controle").setViewName("dashboard_control");
         registry.addViewController("/cooperados").setViewName("cooperative_members");
         registry.addViewController("/usuarios").setViewName("users");
+        registry.addViewController("/nova-ocorrencia").setViewName("new_occurrence");
+        registry.addViewController("/dashboard-ocorrencias").setViewName("occurrences_dashboard");
     }
 }
