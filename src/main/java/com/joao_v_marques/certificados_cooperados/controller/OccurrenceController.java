@@ -44,11 +44,19 @@ public class OccurrenceController {
         return ResponseEntity.created(location).body(created);
     }
 
-    // UPDATE de uma ocorrencia já existente
+    // UPDATE de uma ocorrência já existente
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OccurrenceResponse> update(@PathVariable Integer id, @Valid @RequestBody OccurrenceRequest request) {
         OccurrenceResponse updatedOccurrence = occurrenceService.update(id, request);
 
         return ResponseEntity.ok(updatedOccurrence);
+    }
+
+    // DELETE de uma ocorrência
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        occurrenceService.delete(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

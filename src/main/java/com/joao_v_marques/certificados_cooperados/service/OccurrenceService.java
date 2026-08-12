@@ -128,6 +128,15 @@ public class OccurrenceService {
         return toResponse(occurrence);
     }
 
+    @Transactional
+    public void delete(Integer id) {
+        // Valida se a ocorrência realmente existe, antes de tentar deletar
+        Occurrence occurrence = occurrenceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("A Ocorrência que tentou excluir não existe."));
+
+        occurrenceRepository.delete(occurrence);
+    }
+
     // Entidade → DTO de saída, usado no retorno do create.
     // Precisa rodar dentro da transação: occurrenceType, cooperativeMember e
     // insertedBy são LAZY e open-in-view está desligado.
