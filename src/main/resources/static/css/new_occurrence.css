@@ -1,0 +1,14 @@
+/* ==========================================================================
+   new_occurrence.css — estilos exclusivos do lançamento de ocorrência.
+
+   O layout da página (.form-layout, .form-card, .form-grid, .guide e as ações
+   do formulário) vem de components.css, compartilhado com o lançamento de
+   curso. Aqui fica só o que é desta tela.
+   ========================================================================== */
+
+/* As observações são o conteúdo do registro, e não um complemento como no
+   curso: a caixa nasce mais alta para o texto longo ser a expectativa, não a
+   exceção. O usuário ainda pode redimensionar. */
+.textarea#ocorrencia-observacoes {
+  min-height: 160px;
+}
