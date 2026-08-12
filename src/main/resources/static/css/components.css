@@ -1509,9 +1509,19 @@ button.input-wrap__affix[aria-pressed="true"] {
 .modal__footer {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-16);
+  flex-wrap: wrap;
   flex: none;
   padding: var(--space-24);
   border-top: 1px solid var(--color-border);
+}
+
+/* A mensagem de recusa fica à esquerda dos botões, no mesmo rodapé: empurrar os
+   botões para a direita é o que sobra do justify-content quando o texto ocupa a
+   folga. Nasce com .is-hidden e só aparece quando há o que dizer. */
+.modal__error {
+  margin-inline-end: auto;
+  max-width: 42ch;
 }
 
 .modal__head {

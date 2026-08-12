@@ -9,8 +9,8 @@
   As observações vão até 2000 caracteres e não cabem na célula: a tabela mostra
   um trecho e o texto inteiro fica no modal de detalhe, aberto pela linha.
 
-  Os botões de editar e excluir nascem desabilitados: os endpoints ainda não
-  existem, e a aplicação inteira é append-only por enquanto.
+  São três modais, todos <dialog> nativos e todos abertos pelo occurrences.js:
+  o de detalhe (só leitura), o de edição (PUT) e o de exclusão (DELETE).
 -->
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -419,6 +419,151 @@
                  originais (white-space no CSS); o JS grava por textContent. -->
             <p class="occurrence-detail__text" data-detail-observations></p>
         </section>
+    </div>
+</dialog>
+
+<!-- ==================================================================
+     Modal de edição da ocorrência
+
+     Só os quatro campos que o PUT aceita (OccurrenceRequest) ficam
+     editáveis. Quem lançou e quando lançou aparecem no subtítulo, como
+     texto: o backend não os recebe, e um campo desabilitado no meio do
+     formulário sugeriria que existe algum jeito de destravá-lo.
+
+     As duas selects são preenchidas pelo occurrences.js com os cadastros
+     ativos, do mesmo jeito da tela de lançamento.
+     ================================================================== -->
+<dialog class="modal" data-occurrence-edit-modal aria-labelledby="titulo-edicao-ocorrencia">
+
+    <!-- O <form> é o único filho do dialog e precisa se comportar como o
+         painel inteiro (cabeçalho fixo, corpo rolando): quem faz isso é o
+         .occurrence-edit em occurrences.css. -->
+    <form class="occurrence-edit" data-occurrence-edit-form novalidate>
+
+        <header class="modal__head">
+            <div>
+                <h2 class="modal__title" id="titulo-edicao-ocorrencia">Editar ocorrência</h2>
+                <p class="modal__subtitle">
+                    Lançada por <span data-edit-inserted-by>—</span> em
+                    <span class="tabular" data-edit-created-at>—</span>. O responsável pelo
+                    lançamento não muda com a edição.
+                </p>
+            </div>
+
+            <button type="button" class="btn-icon modal__close" data-modal-close>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span class="visually-hidden">Fechar a edição da ocorrência</span>
+            </button>
+        </header>
+
+        <div class="modal__body">
+            <div class="form-grid">
+
+                <div class="field form-grid__full">
+                    <label class="field__label" for="edicao-cooperado">Cooperado</label>
+                    <!-- As opções são carregadas pelo JS (só cooperados ativos). -->
+                    <select class="select" id="edicao-cooperado" name="cooperativeMemberId"
+                            aria-describedby="dica-edicao-cooperado">
+                        <option value="" disabled selected>Selecione o cooperado</option>
+                    </select>
+                    <p class="field__hint" id="dica-edicao-cooperado">
+                        Trocar o cooperado move a ocorrência para o histórico de outra pessoa.
+                    </p>
+                    <p class="field__error is-hidden" id="erro-edicao-cooperado"></p>
+                </div>
+
+                <div class="field form-grid__half">
+                    <label class="field__label" for="edicao-tipo">Tipo de ocorrência</label>
+                    <!-- As opções são carregadas pelo JS (só tipos ativos). -->
+                    <select class="select" id="edicao-tipo" name="occurrenceTypeId">
+                        <option value="" disabled selected>Selecione o tipo</option>
+                    </select>
+                    <p class="field__error is-hidden" id="erro-edicao-tipo"></p>
+                </div>
+
+                <div class="field form-grid__half">
+                    <label class="field__label" for="edicao-data">Data da ocorrência</label>
+                    <!-- O `max` é preenchido pelo JS com a data de hoje. -->
+                    <input class="input tabular" type="date" id="edicao-data" name="occurrenceDate"
+                           aria-describedby="dica-edicao-data">
+                    <p class="field__hint" id="dica-edicao-data">Não pode ser futura.</p>
+                    <p class="field__error is-hidden" id="erro-edicao-data"></p>
+                </div>
+
+                <div class="field form-grid__full">
+                    <label class="field__label" for="edicao-observacoes">Observações</label>
+                    <textarea class="textarea" id="edicao-observacoes" name="observations"
+                              maxlength="2000" rows="8"
+                              aria-describedby="dica-edicao-observacoes"></textarea>
+                    <p class="field__hint" id="dica-edicao-observacoes">
+                        Até 2000 caracteres. O texto substitui o anterior por inteiro.
+                    </p>
+                    <p class="field__error is-hidden" id="erro-edicao-observacoes"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal__footer">
+            <!-- A recusa que não é de campo (cooperado inativado enquanto o modal
+                 estava aberto, por exemplo) aparece aqui, e não só no toast: o
+                 <dialog> aberto fica na top layer do navegador e cobre o canto
+                 em que o Notyf desenha. Quem preenche é o occurrences.js. -->
+            <p class="field__error modal__error is-hidden" data-edit-error></p>
+
+            <button type="button" class="btn btn--secondary" data-modal-close>Cancelar</button>
+            <button type="submit" class="btn btn--primary">Confirmar edição</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- ==================================================================
+     Modal de confirmação da exclusão
+
+     A frase é montada pelo JS com o cooperado, o tipo e a data da linha:
+     "Tem certeza que deseja excluir a ocorrência..." sem dizer qual seria um
+     convite a apagar a errada.
+     ================================================================== -->
+<dialog class="modal modal--notice occurrence-delete" data-occurrence-delete-modal
+        aria-labelledby="titulo-exclusao-ocorrencia">
+
+    <header class="modal__head">
+        <div>
+            <h2 class="modal__title" id="titulo-exclusao-ocorrencia">Excluir ocorrência</h2>
+        </div>
+
+        <button type="button" class="btn-icon modal__close" data-modal-close>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+            </svg>
+            <span class="visually-hidden">Fechar a confirmação de exclusão</span>
+        </button>
+    </header>
+
+    <div class="modal__body">
+        <p class="modal__text" data-delete-question>
+            Tem certeza que deseja excluir a ocorrência?
+        </p>
+
+        <!-- O trecho das observações entra aqui para a confirmação não depender
+             só do nome do cooperado: quem tem várias ocorrências no mesmo dia
+             precisa de mais que a data para reconhecer qual está sendo apagada. -->
+        <p class="occurrence-delete__excerpt" data-delete-excerpt></p>
+
+        <p class="modal__text text-muted">
+            A exclusão é definitiva: a ocorrência sai do histórico do cooperado e
+            não há como recuperá-la.
+        </p>
+    </div>
+
+    <div class="modal__footer">
+        <!-- Mesmo motivo do modal de edição: com o modal aberto, o toast fica
+             atrás dele. -->
+        <p class="field__error modal__error is-hidden" data-delete-error></p>
+
+        <button type="button" class="btn btn--secondary" data-modal-close>Cancelar</button>
+        <button type="button" class="btn btn--danger" data-delete-confirm>Excluir ocorrência</button>
     </div>
 </dialog>
 

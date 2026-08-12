@@ -98,14 +98,63 @@
 /* --------------------------------------------------------------------------
    Ações da linha
 
-   Editar e excluir ainda não têm endpoint. Ficam visíveis, e não escondidos,
-   para a coluna já nascer com o lugar delas — mas desabilitadas, com o motivo
-   no title, para ninguém tentar adivinhar por que não respondem.
+   Editar abre o modal de edição e excluir o de confirmação. O de excluir é o
+   único gesto irreversível da tela: o vermelho só aparece no hover, para a
+   coluna não ficar gritando em toda linha da tabela.
    -------------------------------------------------------------------------- */
 
 .occurrences-table__action:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.occurrences-table__action--danger:hover:not(:disabled) {
+  color: var(--color-danger-text);
+}
+
+/* --------------------------------------------------------------------------
+   Modal de edição
+
+   O <form> é o único filho do <dialog> e assume o papel que o painel teria:
+   sem isto o .modal[open] esticaria o formulário inteiro e o corpo deixaria
+   de rolar, empurrando o rodapé com os botões para fora da tela.
+   -------------------------------------------------------------------------- */
+
+.occurrence-edit {
+  display: flex;
+  flex-direction: column;
+  /* min-height: 0 para o corpo poder encolher e rolar dentro do flex. */
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* A edição é um formulário, e não uma ficha de leitura: o respiro de 32px do
+   .modal__body separaria demais os campos, que a .form-grid já espaça. */
+.occurrence-edit .modal__body {
+  gap: var(--space-24);
+}
+
+/* --------------------------------------------------------------------------
+   Modal de exclusão
+   -------------------------------------------------------------------------- */
+
+/* Três parágrafos curtos e encadeados (pergunta, trecho, aviso): o gap de
+   leitura do .modal__body os afastaria a ponto de parecerem blocos soltos. */
+.occurrence-delete .modal__body {
+  gap: var(--space-16);
+}
+
+/* O trecho da ocorrência que está prestes a sumir, destacado do texto ao redor
+   para ser lido antes do clique. */
+.occurrence-delete__excerpt {
+  padding: var(--space-16);
+  border-left: 3px solid var(--color-border-strong);
+  background-color: var(--color-surface-sunken);
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
 }
 
 /* --------------------------------------------------------------------------
