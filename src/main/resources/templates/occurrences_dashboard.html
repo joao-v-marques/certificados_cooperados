@@ -2,15 +2,18 @@
 <!--
   occurrences_dashboard.html — painel das ocorrências lançadas.
 
-  A página existe com a casca pronta (topbar, sidebar, cabeçalho) e sem conteúdo
-  ainda: o que ela vai mostrar depende de como a secretaria executiva usar o
-  módulo nas primeiras semanas.
+  Quatro indicadores e três recortes do mesmo conjunto: volume por mês, por tipo
+  e por cooperado. Tudo sai de uma consulta só (GET /api/v1/occurrences) e é
+  agregado no navegador pelo js/pages/occurrences_dashboard.js — não há endpoint
+  de resumo, e o motivo dessa escolha está no topo daquele arquivo.
 
-  Quando for montar, o dado já está pronto no backend:
-    GET /api/v1/occurrences  → lista completa, mais recente primeiro, com o
-    cooperado, o tipo, a data e quem lançou já resolvidos (OccurrenceResponse).
+  O recorte de período fica no cabeçalho da página, e não dentro de um card:
+  ele escopa a tela inteira, então os quatro indicadores e os três gráficos
+  falam sempre do mesmo período.
 
-  A folha css/occurrences_dashboard.css já está ligada abaixo, vazia, esperando.
+  O painel nasce oculto ([data-dashboard] com hidden) e só aparece quando a API
+  confirma que existe manifestação registrada; sem nenhuma, quem aparece é o
+  bloco de vazio.
 -->
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -230,18 +233,29 @@
                     <div class="page-head__text">
                         <h1 class="page-head__title">Dashboard ocorrências</h1>
                         <p class="page-head__subtitle">
-                            Acompanhamento das ocorrências lançadas pela secretaria executiva.
+                            Volume, assunto e origem das manifestações registradas pela
+                            secretaria executiva.
                         </p>
                     </div>
+
                     <div class="page-head__actions">
-                        <a class="btn btn--primary" th:href="@{/nova-ocorrencia}">Lançar ocorrência</a>
+                        <!-- Recorte de toda a tela. As opções são os anos que têm
+                             manifestação registrada, preenchidos pelo JS — por isso só a
+                             primeira vem escrita aqui. -->
+                        <div class="year-filter">
+                            <label class="year-filter__label" for="filtro-periodo">Período</label>
+                            <select class="select year-filter__select" id="filtro-periodo" name="periodo"
+                                    data-period-filter>
+                                <option value="">Todo o período</option>
+                            </select>
+                        </div>
                     </div>
                 </header>
 
-                <!-- Estado vazio fixo: não é "nenhuma ocorrência cadastrada", e sim
-                     "o painel ainda não foi montado". Por isso vem renderizado do
-                     servidor, e não escondido esperando resposta da API. -->
-                <section class="card" aria-labelledby="titulo-em-construcao">
+                <!-- Base ainda sem nenhuma manifestação. Nasce oculto: quem o revela é o
+                     JS, e só quando a API confirma que não há registro nenhum — falha de
+                     rede não pode virar "nada registrado". -->
+                <section class="card" data-empty-state hidden aria-labelledby="titulo-sem-dados">
                     <div class="empty">
                         <div class="empty__seal seal" aria-hidden="true">
                             <span></span><span></span><span></span><span></span>
@@ -249,14 +263,169 @@
                             <span></span><span></span><span></span><span></span>
                             <span></span><span></span><span></span><span></span>
                         </div>
-                        <p class="empty__title" id="titulo-em-construcao">Este painel ainda será montado</p>
+                        <p class="empty__title" id="titulo-sem-dados">Nenhuma manifestação registrada ainda</p>
                         <p class="empty__text">
-                            As ocorrências já estão sendo registradas e nada se perde: assim que
-                            houver histórico suficiente para saber o que vale acompanhar, os
-                            indicadores aparecem aqui.
+                            Assim que a secretaria executiva registrar a primeira solicitação de
+                            um cooperado, os indicadores deste painel aparecem aqui.
                         </p>
                     </div>
                 </section>
+
+                <!-- O painel inteiro. Oculto até a carga terminar, para os indicadores
+                     nunca aparecerem zerados antes de haver resposta. -->
+                <div class="stack-32" data-dashboard hidden>
+
+                    <!-- ==============================================================
+                         1. Indicadores
+                         ============================================================== -->
+                    <section aria-labelledby="titulo-indicadores">
+                        <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do período</h2>
+
+                        <div class="stat-grid">
+
+                            <!-- O indicador que a diretoria pede: quantas manifestações
+                                 existem no período escolhido. A linha de apoio diz de que
+                                 período o número fala, para ele nunca circular sozinho. -->
+                            <article class="stat">
+                                <p class="stat__label">Manifestações registradas</p>
+                                <p class="stat__value tabular" data-kpi-total>-</p>
+                                <p class="stat__delta" data-kpi-total-note></p>
+                            </article>
+
+                            <article class="stat stat--info">
+                                <p class="stat__label">Cooperados atendidos</p>
+                                <p class="stat__value tabular" data-kpi-members>-</p>
+                                <p class="stat__delta" data-kpi-members-note></p>
+                            </article>
+
+                            <article class="stat stat--accent">
+                                <p class="stat__label">Média por mês</p>
+                                <p class="stat__value tabular" data-kpi-average>-</p>
+                                <p class="stat__delta" data-kpi-average-note></p>
+                            </article>
+
+                            <!-- Percentual, e não contagem: o que interessa aqui é se a
+                                 demanda se concentra em um assunto só. O nome do tipo vai
+                                 na linha de apoio, porque não cabe no tamanho do valor. -->
+                            <article class="stat stat--warning">
+                                <p class="stat__label">Concentração no tipo mais frequente</p>
+                                <p class="stat__value tabular" data-kpi-top-type>-</p>
+                                <p class="stat__delta" data-kpi-top-type-note></p>
+                            </article>
+                        </div>
+                    </section>
+
+                    <!-- ==============================================================
+                         2. Volume por mês
+                         ============================================================== -->
+                    <section class="card" aria-labelledby="titulo-mensal">
+                        <div class="card__header chart-head">
+                            <div>
+                                <h2 class="card__title" id="titulo-mensal">Volume por mês</h2>
+                                <p class="card__subtitle" data-monthly-caption></p>
+                            </div>
+
+                            <!-- O par acessível do gráfico: os mesmos números em tabela,
+                                 sem depender de cor nem de ponteiro. -->
+                            <button type="button" class="btn btn--secondary" data-table-toggle
+                                    aria-expanded="false" aria-controls="tabela-mensal">
+                                Ver dados
+                            </button>
+                        </div>
+
+                        <div class="card__body">
+                            <!-- O desenho é feito em pixels reais pelo JS e refeito quando o
+                                 card muda de largura. -->
+                            <div class="chart" data-chart-monthly>
+                                <div class="chart__tooltip" data-tooltip hidden>
+                                    <p class="chart__tooltip-value" data-tooltip-value></p>
+                                    <p class="chart__tooltip-label" data-tooltip-label></p>
+                                </div>
+                            </div>
+
+                            <!-- Só faz sentido quando o gráfico realmente tem uma coluna
+                                 parcial: em um ano já fechado, não há mês em curso a
+                                 explicar. Quem mostra e esconde é o JS. -->
+                            <p class="chart__note" data-partial-note hidden>
+                                O mês em curso aparece em tom mais claro: ele ainda não terminou,
+                                e cheio pareceria queda.
+                            </p>
+
+                            <p class="chart-empty" data-empty-monthly hidden>
+                                Nenhuma manifestação registrada neste período.
+                            </p>
+                        </div>
+
+                        <div class="table-wrap" id="tabela-mensal" data-monthly-table-wrap hidden>
+                            <table class="table">
+                                <caption class="visually-hidden">
+                                    Manifestações registradas por mês no período selecionado.
+                                </caption>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Mês</th>
+                                        <th scope="col" class="table__num">Manifestações</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-monthly-table>
+                                    <!-- PREENCHIDO VIA JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- ==============================================================
+                         3. Dois recortes lado a lado
+
+                         Barra em HTML, e não gráfico: os rótulos são longos e cada linha
+                         já traz rótulo e valor como texto, então a lista se lê inteira
+                         sem hover e sem uma tabela à parte.
+                         ============================================================== -->
+                    <div class="dashboard-split">
+
+                        <section class="card" aria-labelledby="titulo-tipos">
+                            <div class="card__header">
+                                <div>
+                                    <h2 class="card__title" id="titulo-tipos">Por tipo de manifestação</h2>
+                                    <p class="card__subtitle">
+                                        Os sete assuntos mais frequentes; o restante entra em "Outros".
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="card__body">
+                                <ul class="rank" data-rank-types>
+                                    <!-- PREENCHIDO VIA JS -->
+                                </ul>
+
+                                <p class="chart-empty" data-empty-types hidden>
+                                    Nenhuma manifestação registrada neste período.
+                                </p>
+                            </div>
+                        </section>
+
+                        <section class="card" aria-labelledby="titulo-cooperados">
+                            <div class="card__header">
+                                <div>
+                                    <h2 class="card__title" id="titulo-cooperados">Cooperados que mais solicitaram</h2>
+                                    <p class="card__subtitle">
+                                        Os sete com mais manifestações no período.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="card__body">
+                                <ul class="rank" data-rank-members>
+                                    <!-- PREENCHIDO VIA JS -->
+                                </ul>
+
+                                <p class="chart-empty" data-empty-members hidden>
+                                    Nenhuma manifestação registrada neste período.
+                                </p>
+                            </div>
+                        </section>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -264,5 +433,6 @@
 
 <!-- Shell (sidebar, dropdown e usuário logado), comum a todas as telas. -->
 <script type="module" th:src="@{/js/pages/shell.js}"></script>
+<script type="module" th:src="@{/js/pages/occurrences_dashboard.js}"></script>
 </body>
 </html>

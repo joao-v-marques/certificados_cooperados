@@ -1,9 +1,232 @@
 /* ==========================================================================
    occurrences_dashboard.css — estilos exclusivos do dashboard de ocorrências.
 
-   A folha nasce vazia de propósito: a página ainda não tem conteúdo, e o
-   <link> já está no template para que montar o dashboard seja só escrever aqui,
-   sem precisar lembrar de ligar o arquivo depois.
+   Cabeçalho de página, cards, indicadores (.stat-grid), tabela, filtro de
+   período e estado vazio vêm de components.css. Aqui fica o que só existe
+   nesta tela: a moldura dos gráficos e as barras dos dois rankings.
 
-   Ao escrever: nenhum hexadecimal fora de tokens.css — use os --color-*.
+   Nenhum hexadecimal: as marcas de dado leem --color-primary e a grade
+   --color-border, os dois de tokens.css. Uma paleta categórica não entra
+   porque não há série concorrente — cada gráfico mostra uma medida só, e
+   colorir cada barra de um jeito gastaria o canal da identidade para repetir
+   o que o comprimento da barra já diz.
    ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Grade da página
+   -------------------------------------------------------------------------- */
+
+/* Os dois recortes de baixo dividem a linha no desktop e empilham quando não
+   sobra largura para os rótulos longos dos tipos. */
+.dashboard-split {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.dashboard-split > .card {
+  grid-column: span 6;
+  min-width: 0;
+}
+
+@media (max-width: 1023px) {
+  .dashboard-split > .card { grid-column: span 12; }
+}
+
+/* Cabeçalho de card com ação à direita (o botão da visão em tabela). */
+.chart-head {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+/* --------------------------------------------------------------------------
+   Gráfico de colunas
+
+   O SVG é desenhado em pixels reais pelo JS — o que está aqui é só a moldura
+   e a cor das marcas. A altura sai do desenho e já inclui a faixa dos rótulos
+   do eixo x, para o card não ganhar um scroll interno só por causa deles.
+   -------------------------------------------------------------------------- */
+
+.chart {
+  position: relative;
+}
+
+.chart svg {
+  display: block;
+  width: 100%;
+}
+
+.chart[hidden] { display: none; }
+
+/* Grade e eixo: linha cheia de 1px, um passo fora da superfície. Tracejado se
+   lê como projeção ou limite — aqui é só régua, e precisa desaparecer atrás
+   do dado. */
+.chart__grid {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.chart__tick {
+  fill: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* O rótulo de valor usa cor de texto, nunca a cor da marca: verde sobre branco
+   em corpo pequeno é ilegível, e a identidade já vem da barra ao lado. */
+.chart__value {
+  fill: var(--color-text-strong);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__bar {
+  fill: var(--color-primary);
+  transition: fill var(--duration-fast) var(--ease);
+}
+
+/* Mês em curso: mesma cor, mais clara. É o único jeito honesto de mostrar um
+   mês que ainda não acabou — cheio, ele pareceria queda. O tom claro custa
+   contraste, e quem repõe a leitura é o número escrito em cima da coluna —
+   ou, na largura em que os rótulos não cabem, a tabela do botão "Ver dados". */
+.chart__bar--partial {
+  fill: var(--color-primary);
+  opacity: 0.45;
+}
+
+/* O alvo do ponteiro é a faixa inteira do mês, não a barra. Fica transparente
+   e por cima; o realce que responde ao hover é o escurecimento da barra. */
+.chart__hit {
+  fill: transparent;
+}
+
+.chart__band:hover .chart__bar,
+.chart__band:focus-within .chart__bar {
+  fill: var(--color-primary-hover);
+  opacity: 1;
+}
+
+.chart__hit:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.chart__note {
+  margin-top: var(--space-16);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
+
+/* Tooltip ----------------------------------------------------------------- */
+
+/* Some junto com o gráfico quando não há dado, e nunca captura o ponteiro:
+   quem responde ao mouse é a faixa embaixo dele. */
+.chart__tooltip {
+  position: absolute;
+  z-index: 1;
+  transform: translateX(-50%);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface-inverse);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.chart__tooltip[hidden] { display: none; }
+
+/* O valor lidera e o rótulo segue: quem já está com o ponteiro no mês quer o
+   número, não o nome do mês de novo. */
+.chart__tooltip-value {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-on-inverse-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__tooltip-label {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-on-inverse);
+}
+
+/* --------------------------------------------------------------------------
+   Rankings
+
+   Rótulo em cima, barra embaixo. Os nomes de tipo passam de 40 caracteres
+   ("SOLICITAÇÃO DE CREDENCIAMENTO NOVO EXAME/PROCEDIME") e, numa coluna ao
+   lado da barra, sobraria largura para nenhum dos dois.
+   -------------------------------------------------------------------------- */
+
+.rank {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.rank__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-4) var(--space-16);
+  align-items: baseline;
+}
+
+.rank__label {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text);
+  /* O nome inteiro, quebrando em duas linhas se precisar: cortar com
+     reticências esconde justamente o fim, que é onde esses rótulos se
+     diferenciam ("...DE CONGRESSO" e "...DE COMPROVANTES"). */
+  overflow-wrap: anywhere;
+}
+
+/* "Outros" não é uma categoria do cadastro, é a soma do que não coube. O tom
+   apagado é do texto, não da barra — a marca continua sendo a mesma medida. */
+.rank__row--tail .rank__label {
+  color: var(--color-text-muted);
+}
+
+.rank__value {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.rank__track {
+  grid-column: 1 / -1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-sunken);
+}
+
+/* Nasce reta na linha de base e termina arredondada, que é a ponta do dado. */
+.rank__fill {
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background-color: var(--color-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Vazio de um recorte
+
+   Diferente do vazio da base (esse é o bloco .empty do topo da página): aqui é
+   "o período escolhido não tem manifestação", um aviso curto dentro do card.
+   -------------------------------------------------------------------------- */
+
+.chart-empty {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+.chart-empty[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chart__bar { transition: none; }
+}

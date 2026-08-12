@@ -5,28 +5,9 @@
    barra de filtros e estado vazio vêm de components.css.
    ========================================================================== */
 
-/* --------------------------------------------------------------------------
-   Indicadores — grade de 12 colunas, 4 cards de 3 colunas no desktop.
-   -------------------------------------------------------------------------- */
-
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--gutter);
-}
-
-.stat-grid > .stat {
-  grid-column: span 3;
-}
-
-@media (max-width: 1199px) {
-  .stat-grid > .stat { grid-column: span 6; }
-}
-
-@media (max-width: 599px) {
-  .stat-grid { gap: var(--space-16); }
-  .stat-grid > .stat { grid-column: span 12; }
-}
+/* A grade de indicadores (.stat-grid) saiu daqui para components.css quando o
+   dashboard de ocorrências passou a usar a mesma faixa de quatro cards: duas
+   telas com a mesma grade não podem manter duas cópias que saem de sincronia. */
 
 /* --------------------------------------------------------------------------
    Barra de filtros

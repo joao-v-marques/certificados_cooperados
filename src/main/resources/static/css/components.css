@@ -712,6 +712,16 @@ button.input-wrap__affix[aria-pressed="true"] {
   margin: 0;
 }
 
+/* Uma linha de contexto embaixo do título — o que o card mostra, o recorte a
+   que se refere. Fica no mesmo bloco do título, então o .card__header precisa
+   receber os dois dentro de um <div> para não espalhá-los lado a lado. */
+.card__subtitle {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
 .card__body {
   padding: var(--space-24);
 }
@@ -728,6 +738,28 @@ button.input-wrap__affix[aria-pressed="true"] {
 }
 
 /* Card de indicador ------------------------------------------------------- */
+
+/* Faixa de indicadores: 12 colunas, quatro cards de 3 no desktop. Vive aqui,
+   e não na folha de uma página, porque o painel de controle e o dashboard de
+   ocorrências desenham a mesma faixa. */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.stat-grid > .stat {
+  grid-column: span 3;
+}
+
+@media (max-width: 1199px) {
+  .stat-grid > .stat { grid-column: span 6; }
+}
+
+@media (max-width: 599px) {
+  .stat-grid { gap: var(--space-16); }
+  .stat-grid > .stat { grid-column: span 12; }
+}
 
 .stat {
   display: flex;
