@@ -63,7 +63,7 @@ public class OccurrenceService {
 
         // resolve as FK's e dá erro se não existir
         OccurrenceType occurrenceType = occurrenceTypeRepository.findById(request.occurrenceTypeId())
-                .orElseThrow(() -> new IllegalArgumentException("Tipo de ocorrência não encontrado."));
+                .orElseThrow(() -> new IllegalArgumentException("Tipo de ocorrência não encontrada."));
         CooperativeMember cooperativeMember = cooperativeMemberRepository.findById(request.cooperativeMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("Cooperado não encontrado."));
 
@@ -95,6 +95,37 @@ public class OccurrenceService {
 
         // transforma a entidade para dto de saída(response) e retorna
         return toResponse(saved);
+    }
+
+    // UPDATE de uma ocorrencia já existente
+    @Transactional
+    public OccurrenceResponse update(Integer id, OccurrenceRequest request) {
+
+        // Validar se a Ocorrencia editada realmente existe
+        Occurrence occurrence = occurrenceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("A ocorrência que tentou editar não existe."));
+
+        // Já valida se as FK's passadas existem, caso não exista já retorna erro
+        OccurrenceType occurrenceType = occurrenceTypeRepository.findById(request.occurrenceTypeId())
+                .orElseThrow(() -> new IllegalArgumentException("Tipo de ocorrência não encontrada."));
+        CooperativeMember cooperativeMember = cooperativeMemberRepository.findById(request.cooperativeMemberId())
+                .orElseThrow(() -> new IllegalArgumentException("O Cooperado inserido não foi encontrado."));
+
+        // Validações e regras que as DTO's não estão cobrindo
+        if (!occurrenceType.isActive()) {
+            throw new IllegalArgumentException("O tipo de ocorrência selecionado não está ativo.");
+        }
+        if (!cooperativeMember.isActive()) {
+            throw new IllegalArgumentException("O Cooperado selecionado não está mais ativo.");
+        }
+
+        // Atualizando entidade já existente
+        occurrence.setOccurrenceDate(request.occurrenceDate());
+        occurrence.setObservations(request.observations().trim());
+        occurrence.setOccurrenceType(occurrenceType);
+        occurrence.setCooperativeMember(cooperativeMember);
+
+        return toResponse(occurrence);
     }
 
     // Entidade → DTO de saída, usado no retorno do create.
