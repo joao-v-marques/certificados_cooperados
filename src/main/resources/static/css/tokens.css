@@ -84,6 +84,12 @@
   --color-text-disabled:   var(--palette-neutral-400);
   --color-text-on-brand:   var(--palette-white);
   --color-text-on-inverse: var(--palette-teal-100);
+  /* Ênfase sobre o petróleo: item atual e cabeçalho de grupo aberto na sidebar,
+     que precisam de mais peso que o texto corrente da mesma superfície. */
+  --color-text-on-inverse-strong: var(--palette-white);
+  /* O degrau de baixo, para o que é apoio e não conteúdo sobre o petróleo:
+     rótulo de seção, texto do rodapé e o caret do grupo. */
+  --color-text-on-inverse-muted:  var(--palette-teal-200);
 
   /* Bordas ----------------------------------------------------------------- */
   --color-border:          var(--palette-neutral-200);

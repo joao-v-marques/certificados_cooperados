@@ -113,6 +113,14 @@ function initSidebar() {
    clicar fora e só um fica aberto por vez. Aqui é navegação — dois grupos podem
    estar abertos juntos, e clicar no conteúdo da página não pode fechar o menu
    que mostra onde o usuário está.
+
+   Duas classes saem daqui para o CSS desenhar o grupo:
+     .is-open     acompanha o aria-expanded — é o que veste o grupo aberto de
+                  poço, com fundo próprio e a guia dos filhos. Precisa ser
+                  classe: o [hidden] fica no <ul>, e o fundo é do <li> em volta.
+     .has-active  o grupo guarda a página atual. Fechado, ele mostra por isso
+                  uma pílula curta no lugar da barra do item atual; não muda
+                  durante a sessão, então é marcada uma vez só.
    ========================================================================= */
 
 function initNavGroups() {
@@ -121,18 +129,22 @@ function initNavGroups() {
     const items = group.querySelector('[data-nav-group-items]');
     if (!trigger || !items) return;
 
+    const setOpen = (open) => {
+      items.hidden = !open;
+      trigger.setAttribute('aria-expanded', String(open));
+      group.classList.toggle('is-open', open);
+    };
+
+    const holdsCurrentPage = Boolean(items.querySelector('.is-active'));
+    group.classList.toggle('has-active', holdsCurrentPage);
+
     // O grupo nasce aberto quando guarda a página atual: chegar em "Lançar
     // ocorrência" com o grupo fechado esconderia justamente o item ativo.
-    if (items.querySelector('.is-active')) {
-      items.hidden = false;
-      trigger.setAttribute('aria-expanded', 'true');
-    }
+    // Fora esse caso, o setOpen(false) só copia para a classe o estado que já
+    // veio do HTML.
+    setOpen(holdsCurrentPage);
 
-    trigger.addEventListener('click', () => {
-      const willOpen = items.hidden;
-      items.hidden = !willOpen;
-      trigger.setAttribute('aria-expanded', String(willOpen));
-    });
+    trigger.addEventListener('click', () => setOpen(items.hidden));
   });
 }
 

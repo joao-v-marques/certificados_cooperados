@@ -1810,7 +1810,7 @@ button.input-wrap__affix[aria-pressed="true"] {
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--palette-teal-200);
+  color: var(--color-text-on-inverse-muted);
 }
 
 .sidebar__nav > .sidebar__section:first-child { margin-top: 0; }
@@ -1841,7 +1841,7 @@ button.input-wrap__affix[aria-pressed="true"] {
 
 .nav__link:hover {
   background-color: var(--color-brand-deep-hover);
-  color: var(--palette-white);
+  color: var(--color-text-on-inverse-strong);
   text-decoration: none;
 }
 
@@ -1851,7 +1851,7 @@ button.input-wrap__affix[aria-pressed="true"] {
 
 .nav__link.is-active {
   background-color: var(--color-brand-deep-active);
-  color: var(--palette-white);
+  color: var(--color-text-on-inverse-strong);
   font-weight: var(--weight-semibold);
 }
 
@@ -1871,9 +1871,38 @@ button.input-wrap__affix[aria-pressed="true"] {
 
 /* Grupo da navegação (accordion) ------------------------------------------ */
 
+/*
+   Três coisas diferentes dividem a mesma coluna: o rótulo de seção, que não
+   clica; o link, que leva a uma página; e o grupo, que não leva a lugar nenhum
+   e só guarda outros links. Os dois últimos eram desenhados iguais, e a única
+   diferença era o caret de 16px — pequeno demais para sustentar sozinho a
+   distinção entre "isto navega" e "isto abre".
+
+   O grupo vira um poço: fundo mais escuro que a sidebar, e os filhos pendurados
+   numa guia vertical quando ele abre. Escuro, e não claro, porque os tons claros
+   do petróleo já estão ocupados por hover e item atual — clarear aqui apagaria
+   o realce de quem passa o mouse dentro do próprio grupo.
+
+   O fundo fica também com o grupo fechado, de propósito: fechado é justamente
+   quando ele mais se parece com um link, e o caret sozinho é sutil demais para
+   avisar que aquela linha abre em vez de navegar. De quebra, a margem não muda
+   ao abrir, então os itens de baixo não pulam a cada clique.
+*/
+/* A margem é pequena porque o fundo já faz a separação: dobrá-la só empurraria
+   a sidebar para o scroll em telas de notebook, com o grupo aberto. */
+.nav-group {
+  margin-block: var(--space-4);
+  border-radius: var(--radius-control);
+  background-color: var(--color-brand-deep-dark);
+}
+
+/* Fecha o poço embaixo do último filho. Quem liga e desliga a classe é o
+   js/pages/shell.js, junto com o aria-expanded. */
+.nav-group.is-open { padding-bottom: var(--space-4); }
+
 /* O gatilho é <button>, e não <a>: ele não leva a lugar nenhum, só abre o
-   grupo. Herda .nav__link para ficar idêntico aos vizinhos, e o reset abaixo
-   desfaz o que o navegador impõe a botão. */
+   grupo. Herda .nav__link para o alinhamento e a altura dos vizinhos, e o
+   reset abaixo desfaz o que o navegador impõe a botão. */
 .nav-group__trigger {
   width: 100%;
   border: 0;
@@ -1883,23 +1912,77 @@ button.input-wrap__affix[aria-pressed="true"] {
   cursor: pointer;
 }
 
+/* Aberto, o gatilho deixa de ser um item da lista e passa a ser o cabeçalho do
+   poço — é o único momento em que ganha o peso que o item atual tem. */
+.nav-group.is-open > .nav-group__trigger {
+  color: var(--color-text-on-inverse-strong);
+  font-weight: var(--weight-semibold);
+}
+
 /* Empurra o caret para a direita, sem precisar de elemento espaçador. */
 .nav-group__trigger .nav__label { flex: 1 1 auto; }
 
+/* Mais apagado que o rótulo: o caret é controle, não conteúdo. Ele acende no
+   hover e no grupo aberto, que é quando importa saber que aquilo abre. */
 .nav-group__caret {
   flex: none;
-  transition: transform var(--duration-fast) var(--ease);
+  color: var(--color-text-on-inverse-muted);
+  transition: transform var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.nav-group__trigger:hover .nav-group__caret,
+.nav-group.is-open > .nav-group__trigger .nav-group__caret {
+  color: var(--color-text-on-inverse-strong);
 }
 
 .nav-group__trigger[aria-expanded="true"] .nav-group__caret {
   transform: rotate(180deg);
 }
 
+/* Grupo fechado guardando a página atual: uma pílula curta no lugar em que o
+   item atual usa a barra inteira. Diz "o que você está vendo está aqui dentro"
+   sem afirmar que o próprio gatilho é a página — ele não é destino nenhum.
+   A classe vem do shell.js. Aberto, quem marca é a barra do filho. */
+.nav-group.has-active > .nav-group__trigger[aria-expanded="false"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 30%;
+  bottom: 30%;
+  width: 4px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+}
+
 /* Recuo que liga visualmente os filhos ao grupo. O padding entra à esquerda
-   para o realce de hover continuar ocupando a largura toda do item. */
-.nav-group__items {
+   para o realce de hover continuar ocupando a largura toda do item.
+
+   O seletor repete a classe de propósito: o reset `ul[class]` do base.css zera
+   o padding de toda lista com classe e, por ter um seletor de atributo, vence
+   uma classe sozinha. Era por isso que este recuo não saía do papel — os
+   filhos vinham alinhados com os itens de primeiro nível, e o grupo parecia um
+   punhado de links soltos. Simplificar para `.nav-group__items` desfaz o
+   recuo de novo. */
+.nav.nav-group__items {
+  position: relative;
   margin-top: var(--space-4);
   padding-left: var(--space-16);
+}
+
+/* A guia vertical que prende os filhos ao cabeçalho. Fica exatamente onde a
+   barra do item atual nasce (borda esquerda do link, já recuada pelo padding
+   do <ul>): o realce do filho ativo cobre o trecho correspondente da guia, e o
+   caminho até a página atual se lê de uma vez. */
+.nav-group.is-open .nav-group__items::before {
+  content: "";
+  position: absolute;
+  left: var(--space-16);
+  top: var(--space-4);
+  bottom: 0;
+  width: 2px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-border-inverse);
 }
 
 /* O <ul> também é .nav, que define display:flex — e qualquer regra de autor
@@ -1908,6 +1991,10 @@ button.input-wrap__affix[aria-pressed="true"] {
    fica permanentemente aberto. */
 .nav-group__items[hidden] { display: none; }
 
+/* Os filhos são destino como qualquer outro, um degrau abaixo na hierarquia da
+   coluna. Quem marca o degrau é o recuo, a guia e o peso — não a cor: apagá-los
+   sobre o fundo do poço custaria legibilidade sem dizer nada que o recuo já não
+   diga. */
 .nav-group__items .nav__link { font-weight: var(--weight-regular); }
 
 .nav-group__items .nav__link.is-active { font-weight: var(--weight-semibold); }
@@ -1929,7 +2016,7 @@ button.input-wrap__affix[aria-pressed="true"] {
 .sidebar__footer-text {
   font-size: var(--text-xs);
   line-height: var(--leading-xs);
-  color: var(--palette-teal-200);
+  color: var(--color-text-on-inverse-muted);
 }
 
 /* Sidebar recolhida (desktop) --------------------------------------------- */
@@ -1973,6 +2060,17 @@ button.input-wrap__affix[aria-pressed="true"] {
   margin-top: 0;
   padding-left: 0;
 }
+
+/* Sem gatilho e sem recuo não há grupo a delimitar: o poço e a guia sairiam
+   como um retângulo escuro solto no meio da faixa de ícones. */
+.app.is-collapsed .nav-group {
+  margin-block: 0;
+  background-color: transparent;
+}
+
+.app.is-collapsed .nav-group.is-open { padding-bottom: 0; }
+
+.app.is-collapsed .nav-group__items::before { display: none; }
 
 /* Área de conteúdo -------------------------------------------------------- */
 
@@ -2052,6 +2150,16 @@ button.input-wrap__affix[aria-pressed="true"] {
     margin-top: var(--space-4);
     padding-left: var(--space-16);
   }
+
+  /* Com o accordion de volta, o poço e a guia voltam junto. */
+  .app.is-collapsed .nav-group {
+    margin-block: var(--space-4);
+    background-color: var(--color-brand-deep-dark);
+  }
+
+  .app.is-collapsed .nav-group.is-open { padding-bottom: var(--space-4); }
+
+  .app.is-collapsed .nav-group.is-open .nav-group__items::before { display: block; }
 }
 
 @media (max-width: 899px) {
