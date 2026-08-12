@@ -16,6 +16,43 @@
 }
 
 /* --------------------------------------------------------------------------
+   Barra de filtros
+
+   Grade própria em vez do .filters do painel de controle: lá a busca por texto
+   ocupa a linha inteira e os selects vêm abaixo; aqui são cinco campos de peso
+   parecido, e a grade de 12 os distribui em três + dois.
+
+   O .toolbar de components.css continua cuidando do padding e da borda; esta
+   regra só troca o flex pelo grid.
+   -------------------------------------------------------------------------- */
+
+.occurrences-filters {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-16);
+  align-items: end;
+}
+
+/* Cooperado, tipo e lançado por: nomes longos, três por linha. */
+.occurrences-filters__field--wide {
+  grid-column: span 4;
+  min-width: 0;
+}
+
+/* As duas datas são estreitas e ficam lado a lado, deixando espaço para o
+   botão terminar a linha. */
+.occurrences-filters__field--date {
+  grid-column: span 3;
+  min-width: 0;
+}
+
+.occurrences-filters__actions {
+  grid-column: span 6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* --------------------------------------------------------------------------
    Coluna de observações
 
    O texto vai até 2000 caracteres. A célula mostra duas linhas e o resto fica
@@ -93,5 +130,29 @@
 @media (max-width: 899px) {
   .occurrences-table__excerpt {
     max-width: none;
+  }
+
+  /* Dois campos por linha; as datas continuam juntas para o período seguir
+     lido como um intervalo, e não como dois filtros soltos. */
+  .occurrences-filters__field--wide {
+    grid-column: span 6;
+  }
+
+  .occurrences-filters__actions {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 767px) {
+  .occurrences-filters__field--wide {
+    grid-column: span 12;
+  }
+
+  .occurrences-filters__field--date {
+    grid-column: span 6;
+  }
+
+  .occurrences-filters__actions .btn {
+    width: 100%;
   }
 }

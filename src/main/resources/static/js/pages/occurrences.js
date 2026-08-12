@@ -1,9 +1,11 @@
 /**
- * Listagem de ocorrências: preenche a tabela e abre o detalhe de cada uma.
+ * Listagem de ocorrências: preenche a tabela, filtra e abre o detalhe de cada uma.
  *
  * Contrato com o HTML (data-*):
- *   [data-empty-state]        bloco de "nenhuma ocorrência lançada"
- *   [data-table-count]        rodapé com a contagem de linhas
+ *   [data-filters]            barra de filtros; qualquer mudança refiltra
+ *   [data-clear-filters]      zera os cinco campos de uma vez
+ *   [data-empty-state]        bloco de vazio, com [data-empty-title] e [data-empty-text]
+ *   [data-table-count]        rodapé com a contagem de linhas mostradas
  *   [data-view-occurrence]    gatilho do detalhe; o valor é o id da ocorrência
  *
  * Modal de detalhe, dentro de [data-occurrence-modal]:
@@ -11,11 +13,14 @@
  *   [data-detail-member] / -type / -date / -inserted-by / -created-at
  *   [data-detail-observations]
  *
- * Por id: tbodyOccurrences e cardOccurrencesQtd.
+ * Por id: tbodyOccurrences, cardOccurrencesQtd, filtro-cooperado, filtro-tipo,
+ * filtro-lancado-por, filtro-data-de e filtro-data-ate.
  *
- * O modal não chama a API: GET /api/v1/occurrences já devolve as observações
- * inteiras, então o detalhe é montado com o que a listagem trouxe. Abrir um
- * texto que já está na memória não justifica uma ida ao servidor.
+ * Tudo — filtro e detalhe — acontece sobre a lista que GET /api/v1/occurrences
+ * já trouxe. O endpoint não recebe parâmetro de busca, e enquanto o volume for
+ * o de uma secretaria executiva filtrar no navegador é mais rápido que ir ao
+ * servidor a cada campo. Quando a base crescer a ponto de pesar, o caminho é
+ * mover estes mesmos filtros para query params no OccurrenceController.
  */
 
 import {notifyError} from "../utils/notyf.js";
@@ -27,7 +32,10 @@ const OCCURRENCES_URL = "/certificados-cooperados/api/v1/occurrences";
  *  DOM só para escondê-los em seguida. */
 const EXCERPT_LENGTH = 200;
 
-/** Ocorrências carregadas, por id, para o modal abrir sem nova consulta. */
+/** Tudo que a API devolveu, na ordem em que veio. É a fonte dos filtros. */
+let allOccurrences = [];
+
+/** Ocorrências por id, para o modal abrir sem nova consulta. */
 const occurrencesById = new Map();
 
 /* =========================================================================
@@ -76,6 +84,124 @@ function buildExcerpt(observations) {
     return text.length > EXCERPT_LENGTH
         ? {text: `${text.slice(0, EXCERPT_LENGTH)}…`, truncated: true}
         : {text, truncated: false};
+}
+
+/* =========================================================================
+   Filtros
+   ========================================================================= */
+
+const filterElements = () => ({
+    member: document.getElementById("filtro-cooperado"),
+    type: document.getElementById("filtro-tipo"),
+    insertedBy: document.getElementById("filtro-lancado-por"),
+    from: document.getElementById("filtro-data-de"),
+    to: document.getElementById("filtro-data-ate"),
+});
+
+function readFilters() {
+    const elements = filterElements();
+
+    return {
+        member: elements.member.value,
+        type: elements.type.value,
+        insertedBy: elements.insertedBy.value,
+        from: elements.from.value,
+        to: elements.to.value,
+    };
+}
+
+const hasActiveFilters = filters => Object.values(filters).some(value => value !== "");
+
+/**
+ * Monta as opções de um select a partir dos valores que aparecem nos dados.
+ *
+ * Sai da lista carregada, e não de um endpoint de cadastro, porque o filtro só
+ * deve oferecer o que existe: um cooperado sem nenhuma ocorrência na lista
+ * levaria a tabela a zero resultado sem o usuário entender o motivo.
+ */
+function fillSelect(select, pairs) {
+    // A primeira opção ("Todos...") vem do HTML e é o estado neutro do filtro.
+    const placeholder = select.querySelector("option");
+
+    select.innerHTML = "";
+    select.appendChild(placeholder);
+
+    const fragment = document.createDocumentFragment();
+
+    pairs.forEach(([value, label]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        // textContent, e não innerHTML: o nome vem do banco.
+        option.textContent = label;
+        fragment.appendChild(option);
+    });
+
+    select.appendChild(fragment);
+}
+
+// Pares únicos [valor, rótulo], ordenados pelo rótulo em pt-BR para acento não
+// jogar nomes para o fim da lista.
+function distinctPairs(occurrences, valueOf, labelOf) {
+    const pairs = new Map();
+
+    occurrences.forEach(occurrence => {
+        const value = valueOf(occurrence);
+        if (value === null || value === undefined || value === "") return;
+
+        pairs.set(String(value), labelOf(occurrence));
+    });
+
+    return [...pairs.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+}
+
+function populateFilterOptions(occurrences) {
+    const elements = filterElements();
+
+    fillSelect(elements.member,
+        distinctPairs(occurrences, o => o.cooperativeMemberId, o => o.cooperativeMemberName));
+
+    // O tipo é filtrado pelo nome porque o response não traz o id — e a coluna
+    // name é UNIQUE no banco, então o nome identifica o tipo sem ambiguidade.
+    fillSelect(elements.type,
+        distinctPairs(occurrences, o => o.occurrenceTypeName, o => o.occurrenceTypeName));
+
+    fillSelect(elements.insertedBy,
+        distinctPairs(occurrences, o => o.insertedByName, o => o.insertedByName));
+}
+
+/**
+ * Aplica os cinco filtros. Campo vazio não filtra nada.
+ *
+ * As datas são comparadas como texto ISO (yyyy-MM-dd), em que a ordem
+ * alfabética é a ordem cronológica. Evita converter para Date só para comparar
+ * — e, de quebra, evita de novo o deslocamento de fuso.
+ */
+function filterOccurrences(filters) {
+    return allOccurrences.filter(occurrence => {
+        if (filters.member && String(occurrence.cooperativeMemberId) !== filters.member) return false;
+        if (filters.type && occurrence.occurrenceTypeName !== filters.type) return false;
+        if (filters.insertedBy && occurrence.insertedByName !== filters.insertedBy) return false;
+
+        const date = occurrence.occurrenceDate ?? "";
+        if (filters.from && date < filters.from) return false;
+        if (filters.to && date > filters.to) return false;
+
+        return true;
+    });
+}
+
+/**
+ * Cada ponta do período limita a outra, para não existir intervalo invertido.
+ * O teto dos dois é hoje: ocorrência futura não é aceita no lançamento, então
+ * também não há o que procurar depois de hoje.
+ */
+function syncDateBounds() {
+    const elements = filterElements();
+    const today = new Date().toLocaleDateString("en-CA");
+
+    elements.from.max = elements.to.value || today;
+    elements.to.min = elements.from.value || "";
+    elements.to.max = today;
 }
 
 /* =========================================================================
@@ -131,14 +257,61 @@ function buildRow(occurrence) {
     return row;
 }
 
-async function populateOccurrencesTable() {
+/**
+ * Desenha as linhas visíveis e acerta rodapé e estado vazio.
+ *
+ * O vazio tem dois textos diferentes: sem nenhum lançamento no sistema e sem
+ * resultado para o filtro escolhido são situações distintas, e usar a mesma
+ * frase faria o usuário achar que os registros sumiram.
+ */
+function renderOccurrences(occurrences, filters) {
     const tbody = document.getElementById("tbodyOccurrences");
     const emptyState = document.querySelector("[data-empty-state]");
+    const emptyTitle = document.querySelector("[data-empty-title]");
+    const emptyText = document.querySelector("[data-empty-text]");
     const countTarget = document.querySelector("[data-table-count]");
-    const card = document.getElementById("cardOccurrencesQtd");
 
     tbody.innerHTML = ``;
-    occurrencesById.clear();
+
+    const fragment = document.createDocumentFragment();
+    occurrences.forEach(occurrence => fragment.appendChild(buildRow(occurrence)));
+    tbody.appendChild(fragment);
+
+    const filtering = hasActiveFilters(filters);
+
+    if (occurrences.length) {
+        countTarget.textContent = filtering
+            ? `${occurrences.length} de ${allOccurrences.length} ocorrências`
+            : `${allOccurrences.length} ${allOccurrences.length === 1 ? "ocorrência lançada" : "ocorrências lançadas"}`;
+    } else {
+        countTarget.textContent = "";
+    }
+
+    emptyState.hidden = occurrences.length > 0;
+
+    if (occurrences.length) return;
+
+    if (filtering) {
+        emptyTitle.textContent = "Nenhuma ocorrência corresponde aos filtros";
+        emptyText.textContent = "Ajuste ou limpe os filtros para ver os demais registros.";
+    } else {
+        emptyTitle.textContent = "Nenhuma ocorrência lançada ainda";
+        emptyText.textContent = "Assim que a secretaria executiva registrar a primeira solicitação de um cooperado, ela aparece aqui.";
+    }
+}
+
+function applyFilters() {
+    const filters = readFilters();
+
+    syncDateBounds();
+
+    document.querySelector("[data-clear-filters]").disabled = !hasActiveFilters(filters);
+
+    renderOccurrences(filterOccurrences(filters), filters);
+}
+
+async function loadOccurrences() {
+    const card = document.getElementById("cardOccurrencesQtd");
 
     try {
         const response = await fetch(OCCURRENCES_URL, {credentials: "same-origin"});
@@ -157,31 +330,23 @@ async function populateOccurrencesTable() {
         const responseJSON = await response.json();
 
         // A API devolve um array puro; a guarda evita quebrar caso isso mude.
-        const occurrences = Array.isArray(responseJSON) ? responseJSON : [];
+        allOccurrences = Array.isArray(responseJSON) ? responseJSON : [];
 
-        const fragment = document.createDocumentFragment();
+        occurrencesById.clear();
+        allOccurrences.forEach(occurrence => occurrencesById.set(String(occurrence.id), occurrence));
 
-        occurrences.forEach(occurrence => {
-            occurrencesById.set(String(occurrence.id), occurrence);
-            fragment.appendChild(buildRow(occurrence));
-        });
+        // O card conta o total lançado, e não o que sobrou do filtro: é o número
+        // do sistema, não da consulta em curso. O recorte fica no rodapé.
+        card.textContent = allOccurrences.length;
 
-        tbody.appendChild(fragment);
-
-        card.textContent = occurrences.length;
-        countTarget.textContent = occurrences.length === 1
-            ? "1 ocorrência lançada"
-            : `${occurrences.length} ocorrências lançadas`;
-
-        // Só agora, com a resposta em mãos, dá para afirmar que não há
-        // ocorrência: tem alguma na lista, esconde o bloco; lista vazia, revela.
-        emptyState.hidden = occurrences.length > 0;
+        populateFilterOptions(allOccurrences);
+        applyFilters();
     } catch (error) {
         // Falha de rede não é "nenhuma ocorrência lançada" — o bloco continua
         // oculto para não mentir sobre o estado do sistema.
-        emptyState.hidden = true;
+        document.querySelector("[data-empty-state]").hidden = true;
+        document.querySelector("[data-table-count]").textContent = "";
         card.textContent = "-";
-        countTarget.textContent = "";
 
         notifyError("Não foi possível carregar as ocorrências. Atualize a página.");
         console.error(error);
@@ -213,7 +378,7 @@ function openOccurrenceModal(occurrenceId) {
 function initOccurrenceModal() {
     const modal = document.querySelector("[data-occurrence-modal]");
 
-    // Delegação: as linhas são reescritas a cada carga, e ouvinte por botão
+    // Delegação: as linhas são reescritas a cada filtro, e ouvinte por botão
     // morreria junto com a linha antiga.
     document.getElementById("tbodyOccurrences").addEventListener("click", event => {
         // A coluna de ações tem os botões de editar e excluir; clique ali não é
@@ -240,9 +405,29 @@ function initOccurrenceModal() {
    Ligação
    ========================================================================= */
 
+function initFilters() {
+    const filters = document.querySelector("[data-filters]");
+    if (!filters) return;
+
+    // Um ouvinte na barra inteira cobre os cinco campos: change basta para
+    // select e para input[type=date], que só emitem com a escolha concluída.
+    filters.addEventListener("change", applyFilters);
+
+    document.querySelector("[data-clear-filters]").addEventListener("click", () => {
+        Object.values(filterElements()).forEach(element => {
+            element.value = "";
+        });
+
+        applyFilters();
+    });
+
+    syncDateBounds();
+}
+
 function init() {
+    initFilters();
     initOccurrenceModal();
-    populateOccurrencesTable();
+    loadOccurrences();
 }
 
 // Rodar tudo

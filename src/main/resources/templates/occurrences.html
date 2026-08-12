@@ -264,6 +264,57 @@
                         <h2 class="card__title" id="titulo-tabela">Registros</h2>
                     </div>
 
+                    <!-- Os filtros são aplicados no navegador, sobre as ocorrências que a
+                         listagem já trouxe: nenhuma ida ao servidor a cada troca de
+                         campo. As opções dos três selects saem dos próprios dados
+                         carregados, e não de um endpoint de cadastro — assim a lista
+                         nunca oferece um cooperado ou um tipo que resultaria em tabela
+                         vazia. -->
+                    <div class="toolbar occurrences-filters" data-filters>
+
+                        <div class="toolbar__filter occurrences-filters__field--wide">
+                            <label class="field__label" for="filtro-cooperado">Cooperado</label>
+                            <select class="select" id="filtro-cooperado" name="cooperativeMemberId">
+                                <option value="">Todos os cooperados</option>
+                            </select>
+                        </div>
+
+                        <div class="toolbar__filter occurrences-filters__field--wide">
+                            <label class="field__label" for="filtro-tipo">Tipo de ocorrência</label>
+                            <select class="select" id="filtro-tipo" name="occurrenceTypeName">
+                                <option value="">Todos os tipos</option>
+                            </select>
+                        </div>
+
+                        <div class="toolbar__filter occurrences-filters__field--wide">
+                            <label class="field__label" for="filtro-lancado-por">Lançado por</label>
+                            <select class="select" id="filtro-lancado-por" name="insertedByName">
+                                <option value="">Todos os usuários</option>
+                            </select>
+                        </div>
+
+                        <!-- O período é fechado nas duas pontas e cada campo limita o
+                             outro pelo min/max: sem isso dá para pedir "de 2026 até
+                             2025" e receber uma tabela vazia sem entender por quê. -->
+                        <div class="toolbar__filter occurrences-filters__field--date">
+                            <label class="field__label" for="filtro-data-de">Data de</label>
+                            <input class="input tabular" type="date" id="filtro-data-de" name="from">
+                        </div>
+
+                        <div class="toolbar__filter occurrences-filters__field--date">
+                            <label class="field__label" for="filtro-data-ate">Data até</label>
+                            <input class="input tabular" type="date" id="filtro-data-ate" name="to">
+                        </div>
+
+                        <div class="occurrences-filters__actions">
+                            <!-- Nasce desabilitado: sem filtro aplicado não há o que
+                                 limpar, e um botão que não faz nada ensina a ignorá-lo. -->
+                            <button type="button" class="btn btn--secondary" data-clear-filters disabled>
+                                Limpar filtros
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="table-wrap">
                         <table class="table table--cards occurrences-table">
                             <caption class="visually-hidden">
@@ -296,8 +347,11 @@
                             <span></span><span></span><span></span><span></span>
                             <span></span><span></span><span></span><span></span>
                         </div>
-                        <p class="empty__title">Nenhuma ocorrência lançada ainda</p>
-                        <p class="empty__text">
+                        <!-- O texto varia: "nada lançado ainda" e "nada corresponde ao
+                             filtro" são situações diferentes, e trocar uma pela outra faria
+                             o usuário achar que perdeu registro. Quem reescreve é o JS. -->
+                        <p class="empty__title" data-empty-title>Nenhuma ocorrência lançada ainda</p>
+                        <p class="empty__text" data-empty-text>
                             Assim que a secretaria executiva registrar a primeira solicitação de
                             um cooperado, ela aparece aqui.
                         </p>
