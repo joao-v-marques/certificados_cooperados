@@ -1,0 +1,97 @@
+/* ==========================================================================
+   occurrences.css — estilos exclusivos da listagem de ocorrências.
+
+   A tabela, o card de indicador, o estado vazio e o modal vêm de
+   components.css. Aqui fica só o que nasce desta tela: a coluna de
+   observações, que precisa caber um texto longo sem esticar a linha, e os
+   botões de ação ainda desabilitados.
+   ========================================================================== */
+
+/* Mesma faixa do indicador de cooperados: um card só, largura de leitura. */
+.occurrences-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--gutter);
+  max-width: 320px;
+}
+
+/* --------------------------------------------------------------------------
+   Coluna de observações
+
+   O texto vai até 2000 caracteres. A célula mostra duas linhas e o resto fica
+   no modal — sem o clamp, uma única ocorrência bem descrita empurraria a
+   altura da linha e quebraria a leitura da tabela inteira.
+   -------------------------------------------------------------------------- */
+
+.occurrences-table__excerpt {
+  display: block;
+  width: 100%;
+  max-width: 42ch;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+
+  /* Duas linhas e reticências. O -webkit-* é o que os navegadores atuais
+     implementam, inclusive fora do WebKit. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.occurrences-table__excerpt:hover {
+  color: var(--color-primary-text);
+  text-decoration: underline;
+}
+
+/* Some quando a ocorrência não tem texto suficiente para valer o clique. */
+.occurrences-table__more {
+  display: block;
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-primary-text);
+}
+
+/* --------------------------------------------------------------------------
+   Ações da linha
+
+   Editar e excluir ainda não têm endpoint. Ficam visíveis, e não escondidos,
+   para a coluna já nascer com o lugar delas — mas desabilitadas, com o motivo
+   no title, para ninguém tentar adivinhar por que não respondem.
+   -------------------------------------------------------------------------- */
+
+.occurrences-table__action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   Texto das observações no modal
+   -------------------------------------------------------------------------- */
+
+/* pre-wrap preserva as quebras de linha que a secretaria digitou: um texto
+   escrito em parágrafos vira um bloco só sem isso. */
+.occurrence-detail__text {
+  white-space: pre-wrap;
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  color: var(--color-text);
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo
+   -------------------------------------------------------------------------- */
+
+/* Em .table--cards cada linha vira um cartão empilhado: o limite de largura da
+   coluna deixa de fazer sentido e o trecho pode ocupar a linha toda. */
+@media (max-width: 899px) {
+  .occurrences-table__excerpt {
+    max-width: none;
+  }
+}

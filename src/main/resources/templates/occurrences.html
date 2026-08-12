@@ -1,13 +1,375 @@
 <!doctype html>
-<html lang="pt-BR">
+<!--
+  occurrences.html — listagem de todas as ocorrências lançadas.
+
+  A tabela é preenchida por js/pages/occurrences.js a partir de
+  GET /api/v1/occurrences, que já devolve o cooperado, o tipo e quem lançou
+  resolvidos por nome (OccurrenceResponse).
+
+  As observações vão até 2000 caracteres e não cabem na célula: a tabela mostra
+  um trecho e o texto inteiro fica no modal de detalhe, aberto pela linha.
+
+  Os botões de editar e excluir nascem desabilitados: os endpoints ainda não
+  existem, e a aplicação inteira é append-only por enquanto.
+-->
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Ocorrências lançadas</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/notyf.css}">
+    <link rel="stylesheet" th:href="@{/css/occurrences.css}">
 </head>
+
 <body>
-    <h1>Esta é a página de occurrences</h1>
+<div class="app" data-app>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar__lead">
+            <button type="button"
+                    class="btn-icon topbar__menu"
+                    data-sidebar-toggle
+                    aria-controls="sidebar"
+                    aria-expanded="false">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span class="visually-hidden">Abrir ou fechar o menu de navegação</span>
+            </button>
+
+            <!-- TODO: substituir pelo nome e pela marca definitivos da aplicação -->
+            <a class="brand" th:href="@{/home}">
+            <span class="brand__mark" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect width="28" height="28" rx="8" fill="currentColor"/>
+                <rect x="6" y="6" width="6" height="6" rx="1.5" fill="var(--color-accent)"/>
+                <rect x="16" y="6" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="6" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="16" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary-subtle)"/>
+              </svg>
+            </span>
+                <span class="brand__name">Certificados Cooperados</span>
+            </a>
+        </div>
+
+        <div class="topbar__actions">
+            <div class="dropdown" data-dropdown>
+                <button type="button" class="user-trigger" data-dropdown-trigger
+                        aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
+                    <!-- Preenchidos pelo shell (js/pages/shell.js) com o usuário autenticado. -->
+                    <span class="avatar" aria-hidden="true" data-user-initials></span>
+                    <span class="user-trigger__identity">
+                        <span class="user-trigger__name" data-user-name>Carregando...</span>
+                        <span class="user-trigger__role" data-user-role></span>
+                    </span>
+                    <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                         aria-hidden="true">
+                        <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                    <span class="visually-hidden">Abrir menu da conta</span>
+                </button>
+
+                <div class="dropdown__menu" id="menu-usuario" data-dropdown-menu hidden>
+                    <div class="dropdown__header">
+                        <div class="dropdown__name" data-user-name>Carregando...</div>
+                        <div class="dropdown__meta" data-user-email></div>
+                    </div>
+                    <hr class="dropdown__separator">
+                    <!-- O POST do logout é feito por js/auth/logout.js. -->
+                    <button type="button" class="dropdown__item dropdown__item--danger" data-logout>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M6.5 2.5H3.5A1 1 0 0 0 2.5 3.5v9a1 1 0 0 0 1 1h3" stroke="currentColor"
+                                  stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M10 5.5 12.5 8 10 10.5M12.5 8H6" stroke="currentColor" stroke-width="1.4"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="app__body">
+        <!-- SIDEBAR -->
+        <aside class="sidebar on-inverse" id="sidebar" data-sidebar>
+            <nav class="sidebar__nav" aria-label="Navegação principal">
+
+                <p class="sidebar__section">Operação</p>
+                <ul class="nav">
+                    <li>
+                        <a class="nav__link" th:href="@{/home}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="m3 8.5 7-5.5 7 5.5V16a1 1 0 0 1-1 1h-3.5v-5h-5v5H4a1 1 0 0 1-1-1V8.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Início</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav__link" th:href="@{/painel-controle}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M4 4h5v5H4V4ZM11 4h5v5h-5V4ZM4 11h5v5H4v-5ZM11 11h5v5h-5v-5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Painel de controle</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav__link" th:href="@{/novo-curso}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Lançar curso</span>
+                        </a>
+                    </li>
+
+                    <!-- Grupo de ocorrências. O shell (js/pages/shell.js) abre o
+                         grupo sozinho quando um dos filhos é a página atual. -->
+                    <li class="nav-group" data-nav-group>
+                        <button type="button" class="nav__link nav-group__trigger" data-nav-group-trigger
+                                aria-expanded="false" aria-controls="nav-ocorrencias">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M4 4.5h12v8a1 1 0 0 1-1 1H8.5L4.5 17V4.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                <path d="M7.5 8h5M7.5 10.5h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Ocorrências</span>
+                            <svg class="nav-group__caret" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <ul class="nav nav-group__items" id="nav-ocorrencias" data-nav-group-items hidden>
+                            <li>
+                                <a class="nav__link" th:href="@{/nova-ocorrencia}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M5.5 3.5h5l4 4V16a.5.5 0 0 1-.5.5H5.5A.5.5 0 0 1 5 16V4a.5.5 0 0 1 .5-.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M10 10v3.5M8.25 11.75h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Lançar ocorrência</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link is-active" th:href="@{/ocorrencias}" aria-current="page">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M4.5 5.5h11M4.5 10h11M4.5 14.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Ocorrências lançadas</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link" th:href="@{/dashboard-ocorrencias}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M5 15.5V9.5M10 15.5v-11M15 15.5v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Dashboard ocorrências</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <p class="sidebar__section">Cadastros</p>
+                <ul class="nav">
+                    <li>
+                        <a class="nav__link" th:href="@{/cooperados}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle cx="8" cy="7" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M2.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M13.5 5.5a2.5 2.5 0 0 1 0 5M15 16a5 5 0 0 0-1.5-3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Cooperados</span>
+                        </a>
+                    </li>
+                    <!-- Só o administrador enxerga: nasce oculto e o shell
+                         (js/pages/shell.js) revela quando o perfil confere. -->
+                    <li hidden data-nav-admin>
+                        <a class="nav__link" th:href="@{/usuarios}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M4.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Usuários</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar__footer">
+                <div class="sidebar__seal seal" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                </div>
+                <p class="sidebar__footer-text">
+                    Registro de cursos e certificados dos cooperados.
+                </p>
+            </div>
+        </aside>
+
+        <!-- Fundo escuro do menu em overlay (mobile) -->
+        <div class="sidebar-scrim" data-sidebar-scrim hidden></div>
+
+        <!-- ==================================================================
+             CONTEÚDO
+             ================================================================== -->
+        <main class="app__main" id="conteudo">
+            <div class="container stack-32">
+
+                <!-- ==============================================================
+                     Cabeçalho da página
+                     ============================================================== -->
+                <header class="page-head">
+                    <div class="page-head__text">
+                        <h1 class="page-head__title">Ocorrências lançadas</h1>
+                        <p class="page-head__subtitle">
+                            Todas as ocorrências registradas no sistema, da mais recente para a
+                            mais antiga. Abra uma linha para ler as observações completas.
+                        </p>
+                    </div>
+                    <div class="page-head__actions">
+                        <a class="btn btn--primary" th:href="@{/nova-ocorrencia}">Lançar ocorrência</a>
+                    </div>
+                </header>
+
+                <!-- ==============================================================
+                     1. Indicador
+                     ============================================================== -->
+                <section aria-labelledby="titulo-indicador">
+                    <h2 class="visually-hidden" id="titulo-indicador">Resumo das ocorrências</h2>
+
+                    <div class="occurrences-summary">
+                        <article class="stat">
+                            <p class="stat__label">Ocorrências lançadas</p>
+                            <p class="stat__value tabular" id="cardOccurrencesQtd">-</p>
+                        </article>
+                    </div>
+                </section>
+
+                <!-- ==============================================================
+                     2. Tabela e estado vazio
+                     ============================================================== -->
+                <section class="card" aria-labelledby="titulo-tabela">
+                    <div class="card__header">
+                        <h2 class="card__title" id="titulo-tabela">Registros</h2>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="table table--cards occurrences-table">
+                            <caption class="visually-hidden">
+                                Ocorrências lançadas no sistema, com o cooperado que solicitou, o
+                                tipo, a data, um trecho das observações e quem realizou o
+                                lançamento.
+                            </caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Cooperado</th>
+                                    <th scope="col">Tipo</th>
+                                    <th scope="col">Data</th>
+                                    <th scope="col">Observações</th>
+                                    <th scope="col">Lançado por</th>
+                                    <th scope="col"><span class="visually-hidden">Ações</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyOccurrences">
+                                <!-- PREENCHIDO VIA JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Estado vazio. Nasce oculto: quem o revela é o JS, e só quando a
+                         API confirma que não há nenhuma ocorrência lançada. -->
+                    <div class="empty" data-empty-state hidden>
+                        <div class="empty__seal seal" aria-hidden="true">
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                        <p class="empty__title">Nenhuma ocorrência lançada ainda</p>
+                        <p class="empty__text">
+                            Assim que a secretaria executiva registrar a primeira solicitação de
+                            um cooperado, ela aparece aqui.
+                        </p>
+                    </div>
+
+                    <div class="card__footer table-foot">
+                        <p class="text-sm text-muted tabular" data-table-count></p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- ==================================================================
+     Modal de detalhe da ocorrência
+
+     Nasce fechado e vazio; quem preenche e abre é o occurrences.js. Ao
+     contrário do detalhe do cooperado no painel, aqui não há chamada nova à
+     API: a listagem já traz as observações inteiras, e o modal só mostra o que
+     está em mãos.
+
+     É <dialog> nativo de propósito: Esc, foco preso dentro e fundo inerte vêm
+     do próprio elemento, sem JS para nada disso.
+     ================================================================== -->
+<dialog class="modal" data-occurrence-modal aria-labelledby="modal-ocorrencia-cooperado">
+
+    <header class="modal__head">
+        <div>
+            <h2 class="modal__title" id="modal-ocorrencia-cooperado" data-detail-member>Ocorrência</h2>
+            <p class="modal__subtitle" data-detail-type></p>
+        </div>
+
+        <button type="button" class="btn-icon modal__close" data-modal-close>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+            </svg>
+            <span class="visually-hidden">Fechar o detalhe da ocorrência</span>
+        </button>
+    </header>
+
+    <div class="modal__body">
+
+        <dl class="facts">
+            <div class="facts__item">
+                <dt class="facts__label">Data da ocorrência</dt>
+                <dd class="facts__value tabular" data-detail-date>—</dd>
+            </div>
+            <div class="facts__item">
+                <dt class="facts__label">Lançado por</dt>
+                <dd class="facts__value" data-detail-inserted-by>—</dd>
+            </div>
+            <div class="facts__item">
+                <dt class="facts__label">Lançado em</dt>
+                <dd class="facts__value tabular" data-detail-created-at>—</dd>
+            </div>
+        </dl>
+
+        <section class="modal__section" aria-labelledby="modal-ocorrencia-observacoes">
+            <div class="modal__section-head">
+                <h3 class="modal__section-title" id="modal-ocorrencia-observacoes">Observações</h3>
+            </div>
+
+            <!-- O texto é digitado por uma pessoa e preserva as quebras de linha
+                 originais (white-space no CSS); o JS grava por textContent. -->
+            <p class="occurrence-detail__text" data-detail-observations></p>
+        </section>
+    </div>
+</dialog>
+
+<!-- Shell (sidebar, dropdown e usuário logado), comum a todas as telas. -->
+<script type="module" th:src="@{/js/pages/shell.js}"></script>
+<script type="module" th:src="@{/js/pages/occurrences.js}"></script>
 </body>
 </html>
