@@ -97,11 +97,11 @@ public class OccurrenceService {
         return toResponse(saved);
     }
 
-    // UPDATE de uma ocorrencia já existente
+    // UPDATE de uma ocorrência já existente
     @Transactional
     public OccurrenceResponse update(Integer id, OccurrenceRequest request) {
 
-        // Validar se a Ocorrencia editada realmente existe
+        // Validar se a Ocorrência editada realmente existe
         Occurrence occurrence = occurrenceRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("A ocorrência que tentou editar não existe."));
 
