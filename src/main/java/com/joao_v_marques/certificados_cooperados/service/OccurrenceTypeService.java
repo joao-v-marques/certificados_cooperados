@@ -58,7 +58,7 @@ public class OccurrenceTypeService {
         OccurrenceType occurrenceType = occurrenceTypeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("O ID do tipo de ocorrência inserido não existe."));
 
-        occurrenceType.setName(request.name());
+        occurrenceType.setName(request.name().trim());
 
         return toResponse(occurrenceType);
     }
