@@ -1,6 +1,7 @@
 package com.joao_v_marques.certificados_cooperados.service;
 
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeResponse;
+import com.joao_v_marques.certificados_cooperados.entity.OccurrenceType;
 import com.joao_v_marques.certificados_cooperados.repository.OccurrenceTypeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +18,25 @@ public class OccurrenceTypeService {
     }
 
     @Transactional(readOnly = true)
+    public List<OccurrenceTypeResponse> findAll() {
+        return occurrenceTypeRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<OccurrenceTypeResponse> findAllActiveTypes() {
         return occurrenceTypeRepository.findActiveOrderByName()
                 .stream()
                 .map(type -> new OccurrenceTypeResponse(type.getId(), type.getName()))
                 .toList();
+    }
+
+    private OccurrenceTypeResponse toResponse(OccurrenceType occurrenceType) {
+        return new OccurrenceTypeResponse(
+            occurrenceType.getId(),
+            occurrenceType.getName()
+        );
     }
 }

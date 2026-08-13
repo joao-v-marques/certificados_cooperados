@@ -18,6 +18,12 @@ public class OccurrenceTypeController {
         this.occurrenceTypeService = occurrenceTypeService;
     }
 
+    // GET de todos os tipos de ocorrência cadastrados no sistema
+    @GetMapping("/all")
+    public List<OccurrenceTypeResponse> finAll() {
+        return occurrenceTypeService.findAll();
+    }
+
     // GET de todos os tipos de ocorrência cadastrados como ATIVO
     @GetMapping
     public List<OccurrenceTypeResponse> findAllActive() {
