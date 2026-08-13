@@ -24,7 +24,7 @@ public class OccurrenceTypeService {
     // GET de todos os tipos cadastrados no sistema
     @Transactional(readOnly = true)
     public List<OccurrenceTypeResponse> findAll() {
-        return occurrenceTypeRepository.findAll()
+        return occurrenceTypeRepository.findAllOrderByName()
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -43,6 +43,10 @@ public class OccurrenceTypeService {
     @Transactional
     public OccurrenceTypeResponse create(OccurrenceTypeRequest request) {
 
+        if (occurrenceTypeRepository.existsByNameIgnoreCase(request.name().trim())) {
+            throw new IllegalArgumentException("Já existe um tipo de ocorrência com esse nome");
+        }
+
         // Montar entidade, DTO nunca vira entidade sozinho
         OccurrenceType occurrenceType = new OccurrenceType();
         occurrenceType.setName(request.name().trim());
@@ -57,6 +61,10 @@ public class OccurrenceTypeService {
 
         OccurrenceType occurrenceType = occurrenceTypeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("O ID do tipo de ocorrência inserido não existe."));
+
+        if (occurrenceTypeRepository.existsByNameIgnoreCaseAndIdNot(request.name().trim(), id)) {
+            throw new IllegalArgumentException("Já existe um tipo de ocorrência com esse nome");
+        }
 
         occurrenceType.setName(request.name().trim());
 
