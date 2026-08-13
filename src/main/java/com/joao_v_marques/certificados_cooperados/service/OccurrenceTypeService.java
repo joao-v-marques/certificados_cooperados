@@ -1,6 +1,7 @@
 package com.joao_v_marques.certificados_cooperados.service;
 
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceRequest;
+import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeDelete;
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeRequest;
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeResponse;
 import com.joao_v_marques.certificados_cooperados.entity.Occurrence;
@@ -63,11 +64,13 @@ public class OccurrenceTypeService {
     }
 
     @Transactional
-    public void delete(Integer id) {
+    public OccurrenceTypeResponse delete(Integer id, OccurrenceTypeDelete request) {
         OccurrenceType occurrenceType = occurrenceTypeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("O tipo de ocorrência com esse ID não existe."));
 
-        occurrenceTypeRepository.delete(occurrenceType);
+        occurrenceType.setActive(request.isActive());
+
+        return toResponse(occurrenceType);
     }
 
     private OccurrenceTypeResponse toResponse(OccurrenceType occurrenceType) {

@@ -1,5 +1,6 @@
 package com.joao_v_marques.certificados_cooperados.controller;
 
+import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeDelete;
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeRequest;
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeResponse;
 import com.joao_v_marques.certificados_cooperados.service.OccurrenceTypeService;
@@ -52,9 +53,9 @@ public class OccurrenceTypeController {
 
     // DELETE de um tipo de ocorrência
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> create(@PathVariable Integer id) {
-        occurrenceTypeService.delete(id);
+    public ResponseEntity<OccurrenceTypeResponse> create(@PathVariable Integer id, @Valid @RequestBody OccurrenceTypeDelete request) {
+        OccurrenceTypeResponse occurrenceTypeResponse = occurrenceTypeService.delete(id, request);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().body(occurrenceTypeResponse);
     }
 }
