@@ -2,7 +2,6 @@ package com.joao_v_marques.certificados_cooperados.service;
 
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceRequest;
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceResponse;
-import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeResponse;
 import com.joao_v_marques.certificados_cooperados.entity.CooperativeMember;
 import com.joao_v_marques.certificados_cooperados.entity.Occurrence;
 import com.joao_v_marques.certificados_cooperados.entity.OccurrenceType;
@@ -32,14 +31,6 @@ public class OccurrenceService {
         this.occurrenceTypeRepository = occurrenceTypeRepository;
         this.cooperativeMemberRepository = cooperativeMemberRepository;
         this.userRepository = userRepository;
-    }
-
-    @Transactional(readOnly = true)
-    public List<OccurrenceTypeResponse> findAllActiveTypes() {
-        return occurrenceTypeRepository.findActiveOrderByName()
-                .stream()
-                .map(type -> new OccurrenceTypeResponse(type.getId(), type.getName()))
-                .toList();
     }
 
     @Transactional(readOnly = true)
