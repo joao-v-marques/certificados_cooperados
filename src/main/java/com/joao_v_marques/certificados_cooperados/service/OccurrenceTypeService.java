@@ -34,7 +34,7 @@ public class OccurrenceTypeService {
     public List<OccurrenceTypeResponse> findAllActiveTypes() {
         return occurrenceTypeRepository.findActiveOrderByName()
                 .stream()
-                .map(type -> new OccurrenceTypeResponse(type.getId(), type.getName()))
+                .map(type -> new OccurrenceTypeResponse(type.getId(), type.getName(), type.isActive()))
                 .toList();
     }
 
@@ -73,7 +73,8 @@ public class OccurrenceTypeService {
     private OccurrenceTypeResponse toResponse(OccurrenceType occurrenceType) {
         return new OccurrenceTypeResponse(
             occurrenceType.getId(),
-            occurrenceType.getName()
+            occurrenceType.getName(),
+            occurrenceType.isActive()
         );
     }
 }
