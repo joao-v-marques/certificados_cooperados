@@ -17,5 +17,6 @@ public class ViewConfig implements WebMvcConfigurer {
         registry.addViewController("/nova-ocorrencia").setViewName("new_occurrence");
         registry.addViewController("/dashboard-ocorrencias").setViewName("occurrences_dashboard");
         registry.addViewController("/ocorrencias").setViewName("occurrences");
+        registry.addViewController("/tipos-ocorrencia").setViewName("occurrences_types");
     }
 }
