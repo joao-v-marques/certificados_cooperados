@@ -19,8 +19,7 @@ public class OccurrenceType {
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
 
-    // Desativar o tipo tira ele do lançamento sem apagar as ocorrências que já
-    // apontam para ele — por isso soft delete, e não DELETE.
+    // Campo de isActive para soft delete, remover das lógicas sem excluir
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 }

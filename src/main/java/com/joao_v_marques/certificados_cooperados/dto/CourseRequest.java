@@ -17,9 +17,6 @@ public record CourseRequest(
         Integer totalMinutes,
 
         // O formato fica preso em ISO (yyyy-MM-dd), que é o que <input type="date">
-        // envia. Sem isto o binder cai no formato do locale da requisição, e a
-        // mesma string passaria a significar datas diferentes conforme o
-        // Accept-Language de quem chama.
         @NotNull(message = "Informe a data de conclusão.")
         @PastOrPresent(message = "A data de conclusão não pode ser futura.")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

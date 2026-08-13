@@ -23,26 +23,12 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * Download de certificado, um a um ou em lote.
- *
- * A divisão em duas etapas — preparar e só depois escrever — é o ponto central
- * daqui. O que pode dar errado (cooperado inexistente, ano fora da faixa, ano
- * sem certificado, arquivo sumido do disco) é resolvido em `prepareArchive`,
- * antes de a resposta começar a sair; `writeZip` só copia bytes. Depois que o
- * primeiro byte foi escrito não dá mais para trocar o status HTTP, e o usuário
- * receberia um zip corrompido no lugar de uma mensagem de erro.
- *
- * Como consequência, a leitura do banco acontece dentro da transação e a leitura
- * do disco fora dela: o que atravessa a fronteira são caminhos já conferidos
- * pelo CertificateStorage, nunca o `stored_path` cru.
- */
 @Service
 public class CertificateDownloadService {
 
     private static final Logger log = LoggerFactory.getLogger(CertificateDownloadService.class);
 
-    /** Prefixo do nome do arquivo dentro do zip: mantém a ordem cronológica na listagem da pasta. */
+    // Prefixo do nome do arquivo dentro do zip: mantém a ordem cronológica na listagem da pasta.
     private static final DateTimeFormatter ENTRY_DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
@@ -59,15 +45,15 @@ public class CertificateDownloadService {
         this.certificateStorage = certificateStorage;
     }
 
-    /** Um certificado pronto para virar resposta: arquivo em disco, nome de download e tipo. */
+    // Um certificado pronto para virar resposta: arquivo em disco, nome de download e tipo.
     public record CertificateFile(Path path, String downloadName, String contentType) {
     }
 
-    /** Um arquivo dentro do zip, já com o nome que ele terá lá dentro. */
+    // Um arquivo dentro do zip, já com o nome que ele terá lá dentro.
     public record ArchiveEntry(Path path, String nameInZip) {
     }
 
-    /** O zip inteiro, resolvido e conferido, faltando só escrever. */
+    // O zip inteiro, resolvido e conferido, faltando só escrever.
     public record CertificateArchive(String filename, List<ArchiveEntry> entries) {
     }
 
@@ -80,9 +66,6 @@ public class CertificateDownloadService {
         Path path = certificateStorage.resolve(found.getStoredPath());
 
         if (!Files.isReadable(path)) {
-            // O registro existe e o arquivo não: é o caso de pasta de
-            // certificados apontando para outro lugar, ou de arquivo removido na
-            // mão. Vale dizer isso ao usuário em vez de devolver 500.
             log.warn("Certificado {} sem arquivo legível em disco", certificateId);
             throw new IllegalArgumentException("O arquivo deste certificado não está disponível no servidor.");
         }
@@ -90,13 +73,6 @@ public class CertificateDownloadService {
         return new CertificateFile(path, downloadNameOf(found), contentTypeOf(found));
     }
 
-    /**
-     * Resolve todos os certificados do cooperado no ano-base.
-     *
-     * Certificado cujo arquivo sumiu do disco é descartado com registro no log,
-     * e não derruba o lote: o usuário ainda leva os que existem. Se não sobrar
-     * nenhum, aí sim é erro — um zip vazio pareceria download bem-sucedido.
-     */
     @Transactional(readOnly = true)
     public CertificateArchive prepareArchive(Integer memberId, int year) {
 
@@ -110,9 +86,6 @@ public class CertificateDownloadService {
 
         List<ArchiveEntry> entries = new ArrayList<>(found.size());
 
-        // Dois cursos com o mesmo título e a mesma data gerariam a mesma entrada;
-        // nome repetido dentro de um zip faz descompactador sobrescrever ou
-        // recusar o arquivo.
         Set<String> usedNames = new HashSet<>();
 
         for (CourseCertificateRepository.CertificateFile certificate : found) {
@@ -146,14 +119,6 @@ public class CertificateDownloadService {
         }
     }
 
-    /**
-     * Nome do arquivo dentro do zip: data de conclusão, título do curso e a
-     * extensão do original.
-     *
-     * O nome enviado no upload não serve aqui — "certificado.pdf" repetido vinte
-     * vezes não diz nada a quem abre a pasta. Data na frente para a listagem sair
-     * em ordem cronológica sozinha.
-     */
     private String entryNameOf(CourseCertificateRepository.CertificateFile certificate) {
 
         LocalDate completionDate = certificate.getCompletionDate();
@@ -181,12 +146,6 @@ public class CertificateDownloadService {
         }
     }
 
-    /**
-     * Nome com que o certificado desce sozinho: o do upload, quando ele existe.
-     *
-     * `getFilename` corta qualquer caminho que tenha vindo junto — o valor foi
-     * digitado pelo navegador do usuário e vai para um header de resposta.
-     */
     private String downloadNameOf(CourseCertificateRepository.CertificateFile certificate) {
 
         String original = StringUtils.getFilename(certificate.getOriginalFilename());

@@ -14,13 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
 
-/**
- * Download de um certificado avulso.
- *
- * Fica separado do lote (que é por cooperado e ano, e por isso mora no
- * CooperativeMemberController) porque aqui o recurso é o certificado em si — o
- * id vem da própria linha do curso no detalhe do cooperado.
- */
+// Controller para certificados no geral, adicionado apenas download de certificados avulsos (fora do zip) neste controller até o momento
 @RestController
 @RequestMapping("/api/v1/certificates")
 public class CertificateController {

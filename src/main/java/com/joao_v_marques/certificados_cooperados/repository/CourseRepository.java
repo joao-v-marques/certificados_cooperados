@@ -10,15 +10,6 @@ import java.util.List;
 
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 
-    /**
-     * Projeção enxuta para o relatório anual: um curso vira o cooperado dono, a
-     * carga horária — que é do que a regra de pontos precisa — e a marcação de
-     * cooperativismo, que alimenta o indicador de capacitados.
-     *
-     * O apelido é `cooperativism` e não `isCooperativism` só para o getter não
-     * virar getIsCooperativism(); a coluna e o campo da entidade seguem com o
-     * prefixo.
-     */
     interface MemberCourseMinutes {
         Integer getCooperativeMemberId();
 
@@ -27,11 +18,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
         Boolean getCooperativism();
     }
 
-    // Traz os cursos do ano-base sem carregar a entidade inteira nem os LAZY.
-    // A soma de pontos não é feita aqui de propósito: a faixa de pontuação é
-    // regra de negócio e mora no CoursePointsPolicy. Pelo mesmo motivo o
-    // cooperativismo volta curso a curso, e não como contagem pronta: quem
-    // decide o que é "cooperado capacitado" é o service.
+
     @Query("""
             select c.cooperativeMember.id as cooperativeMemberId,
                    c.totalMinutes as totalMinutes,
@@ -42,12 +29,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     List<MemberCourseMinutes> findMemberMinutesByCompletionDateBetween(@Param("start") LocalDate start,
                                                                        @Param("end") LocalDate end);
 
-    /**
-     * Uma linha da lista de cursos do detalhe do cooperado.
-     *
-     * Traz o certificado junto porque a tela mostra os dois na mesma linha; sem
-     * isso seria uma consulta por curso só para saber se existe arquivo.
-     */
+
     interface MemberCourseDetail {
         Integer getId();
 
@@ -64,12 +46,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
         String getCertificateFilename();
     }
 
-    // Os cursos de um cooperado no ano-base, do mais recente para o mais antigo.
-    //
-    // O join do certificado é `left` porque o schema não obriga o curso a ter
-    // um: sem isso, um curso sem arquivo sumiria da lista em vez de aparecer sem
-    // o botão de download. Um curso tem no máximo um certificado — é o que o
-    // lançamento grava —, então o left join não multiplica linha.
+
     @Query("""
             select c.id as id,
                    c.title as title,
@@ -88,8 +65,6 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
                                                                          @Param("start") LocalDate start,
                                                                          @Param("end") LocalDate end);
 
-    // Anos que têm curso concluído, para montar as opções do select de ano-base
-    // em vez de deixar a lista fixa no HTML.
     @Query("""
             select distinct year(c.completionDate)
             from Course c

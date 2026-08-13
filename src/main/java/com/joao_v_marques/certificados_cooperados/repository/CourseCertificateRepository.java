@@ -11,13 +11,6 @@ import java.util.Optional;
 
 public interface CourseCertificateRepository extends JpaRepository<CourseCertificate, Integer> {
 
-    /**
-     * O que o download precisa saber de um certificado: onde está o arquivo, com
-     * que nome ele volta para o usuário e a que curso pertence.
-     *
-     * É projeção, e não a entidade, porque `course` é LAZY e o download acontece
-     * fora da transação — a leitura do título estouraria com a sessão fechada.
-     */
     interface CertificateFile {
         Integer getId();
 

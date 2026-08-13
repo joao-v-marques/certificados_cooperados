@@ -31,19 +31,13 @@ public class UserController {
         return userService.findAll();
     }
 
-    // Quem está logado agora, para a topbar. Quem responde é sempre o dono do
-    // token — o id vem do SecurityContext, nunca da URL, então não há como pedir
-    // os dados de outro usuário por aqui.
+    // Retorna o usuário atualmente logado, usado na label da navbar
     @GetMapping("/api/v1/users/me")
     public CurrentUserResponse findCurrent(@AuthenticationPrincipal UserPrincipal principal) {
         return userService.findCurrent(principal.getId());
     }
 
-    // Usuário não tem upload, então o corpo é JSON: @RequestBody, e não
-    // @ModelAttribute como no lançamento de curso (lá o corpo é multipart).
-    //
-    // Restrito ao perfil de administrador pelo SecurityConfig; sem ele a
-    // requisição nem chega aqui, e o 403 sai como ApiError.
+    // POST de um novo usuário na aplicação, recebe os dados pelo @RequestBody
     @PostMapping(value = "/api/v1/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest request) {
 

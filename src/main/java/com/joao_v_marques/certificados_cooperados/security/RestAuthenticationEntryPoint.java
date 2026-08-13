@@ -12,10 +12,8 @@ import java.io.IOException;
 
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    /** Código enviado para a tela de login quando não havia token nenhum. */
     private static final String LOGIN_REQUIRED = "login-necessario";
 
-    /** Código enviado quando o token existia, mas estava expirado ou inválido. */
     private static final String SESSION_EXPIRED = "sessao-expirada";
 
     private final ObjectMapper objectMapper;
@@ -34,10 +32,6 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
             return;
         }
 
-        // Sem sessão (a aplicação é stateless) não há flash attribute: o motivo
-        // viaja como código na query string e a tela de login o traduz em texto.
-        // Só códigos fixos vão na URL — texto livre vindo do cliente acabaria
-        // refletido na página.
         boolean invalidToken = Boolean.TRUE.equals(request.getAttribute(JwtAuthenticationFilter.INVALID_TOKEN_ATTRIBUTE));
         String reason = invalidToken ? SESSION_EXPIRED : LOGIN_REQUIRED;
 

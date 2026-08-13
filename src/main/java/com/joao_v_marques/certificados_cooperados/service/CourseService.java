@@ -86,16 +86,12 @@ public class CourseService {
         cert.setSizeBytes((int) certificate.getSize());
         courseCertificateRepository.save(cert);
 
-        // Última operação da transação de propósito: se a gravação em disco
-        // falhar, a UncheckedIOException derruba junto o curso e o certificado.
         certificateStorage.write(certificate, storedPath);
 
         // transforma a entidade para dto de saída(response) e retorna
         return toResponse(saved);
     }
 
-    // transforma a entidade para DTO de saída, utilizado no retorno do create
-    // precisa de rodar dentro da transação: cooperativeMember e insertedBy são LAZY
     private CourseResponse toResponse(Course course) {
         return new CourseResponse(
                 course.getId(),

@@ -32,9 +32,6 @@ public class CooperativeMemberController {
         this.certificateDownloadService = certificateDownloadService;
     }
 
-    // Sem `active` devolve todo o cadastro, que é o que a tela de cooperados
-    // mostra; com `active=true` devolve só quem pode receber lançamento, que é o
-    // que a select de novo curso precisa.
     @GetMapping
     public List<CooperativeMemberResponse> findAll(@RequestParam(required = false) Boolean active) {
 
@@ -54,8 +51,7 @@ public class CooperativeMemberController {
         return cooperativeMemberService.findYearReport(baseYear);
     }
 
-    // Detalhe de um cooperado no ano-base, que é o que o modal do painel abre.
-    // Mesma regra de ano do relatório: sem year, o corrente.
+    // GET dos dados de um Cooperado com base no ano passado como parametro. Caso não tenha passado nenhum ano, assume o atual
     @GetMapping("/{id}/annual-report")
     public CooperativeMemberYearDetailResponse findMemberYearDetail(@PathVariable Integer id,
                                                                     @RequestParam(required = false) Integer year) {
@@ -65,14 +61,7 @@ public class CooperativeMemberController {
         return cooperativeMemberService.findYearDetail(id, baseYear);
     }
 
-    /**
-     * Os certificados do cooperado no ano-base, em um zip só.
-     *
-     * O `prepareArchive` roda antes do streaming de propósito: é ele que valida e
-     * pode falhar, e uma exceção depois do primeiro byte não conseguiria mais
-     * trocar o status — o navegador salvaria um zip quebrado achando que deu
-     * certo. Depois dele, só sobra copiar arquivo.
-     */
+    // Função para fazer download de todos os certificados de um Cooperado e baixar como .zip
     @GetMapping(value = "/{id}/certificates", produces = "application/zip")
     public ResponseEntity<StreamingResponseBody> downloadCertificates(@PathVariable Integer id,
                                                                       @RequestParam(required = false) Integer year) {

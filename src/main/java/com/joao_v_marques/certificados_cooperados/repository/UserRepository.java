@@ -12,8 +12,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT u FROM User u JOIN FETCH u.role WHERE u.username = :username")
     Optional<User> findByUsername(@Param("username") String username);
 
-    // Ignorando a caixa de propósito: o UNIQUE da coluna só barra repetição
-    // exata, e dois usuários que diferem apenas em maiúscula ("admin" e "Admin")
-    // são um convite a entrar na conta errada.
     boolean existsByUsernameIgnoreCase(String username);
 }

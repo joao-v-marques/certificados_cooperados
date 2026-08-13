@@ -25,7 +25,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    /** Ver app.security.cookie-secure no application.yaml. */
+    // Ver app.security.cookie-secure no application.yaml.
     private final boolean secureCookie;
 
     public AuthController(AuthenticationManager authenticationManager,

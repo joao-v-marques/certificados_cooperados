@@ -24,14 +24,13 @@ public class OccurrenceController {
         this.occurrenceService = occurrenceService;
     }
 
-    // Função de GET, retorna todas as ocorrencias cadastradas no sistema
+    // Função de GET, retorna todas as ocorrências cadastradas no sistema
     @GetMapping
     public List<OccurrenceResponse> findAll() {
         return occurrenceService.findAll();
     }
 
-    // Ocorrência não tem anexo, então o corpo é JSON: @RequestBody, e não
-    // @ModelAttribute como no lançamento de curso (lá o corpo é multipart).
+    // POST de uma novo ocorrência, recebe os dados via @RequestBody
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OccurrenceResponse> create(@Valid @RequestBody OccurrenceRequest request, @AuthenticationPrincipal UserPrincipal currentUser) {
         // quem lança a ocorrência é sempre o usuário autenticado; a rota exige login no SecurityConfig

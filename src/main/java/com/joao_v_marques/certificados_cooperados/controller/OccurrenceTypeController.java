@@ -8,15 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/**
- * Os tipos de ocorrência são um recurso próprio na URL porque a tela os consulta
- * sozinhos, para montar o select antes de existir qualquer lançamento.
- *
- * O service é o de ocorrências, e não um OccurrenceTypeService: os tipos são
- * vocabulário semeado por migration, sem cadastro nem regra própria — um service
- * separado seria só um repasse. É o mesmo arranjo de CooperativeMemberController,
- * que também não tem um service por endpoint.
- */
 @RestController
 @RequestMapping("/api/v1/occurrence-types")
 public class OccurrenceTypeController {
@@ -27,8 +18,7 @@ public class OccurrenceTypeController {
         this.occurrenceService = occurrenceService;
     }
 
-    // Só os ativos: é o que o select pode oferecer sem propor uma opção que o
-    // POST de ocorrência recusaria.
+    // GET de todos os tipos de ocorrência cadastrados como ATIVO
     @GetMapping
     public List<OccurrenceTypeResponse> findAllActive() {
         return occurrenceService.findAllActiveTypes();

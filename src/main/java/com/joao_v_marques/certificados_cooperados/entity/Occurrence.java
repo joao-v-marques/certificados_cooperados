@@ -19,13 +19,9 @@ public class Occurrence {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Quando a ocorrência aconteceu, informado por quem lança. Não se confunde
-    // com createdAt, que é quando a secretaria registrou no sistema.
     @Column(name = "occurrence_date", nullable = false)
     private LocalDate occurrenceDate;
 
-    // Aqui a observação é o próprio conteúdo do registro, por isso obrigatória —
-    // ao contrário de Course, onde ela só complementa o título.
     @Column(name = "observations", columnDefinition = "TEXT", nullable = false)
     private String observations;
 

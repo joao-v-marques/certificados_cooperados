@@ -36,39 +36,23 @@ public class ApiExceptionHandler {
                 .body(new ApiError("Revise os campos destacados.", fields));
     }
 
-    /**
-     * A mensagem que vai para a tela.
-     *
-     * Erro de anotação (@NotBlank, @Positive…) já tem texto escrito para o usuário.
-     * Erro de conversão não: o texto que o Spring monta é interno ("Failed to
-     * convert value of type java.lang.String to required type java.time.LocalDate…"),
-     * e mostrar isso no campo do formulário só confunde e ainda expõe o tipo
-     * interno. Nesse caso a mensagem é trocada por uma que o usuário entende.
-     */
     private String messageOf(FieldError error) {
         return error.isBindingFailure()
                 ? "O valor informado não é válido para este campo."
                 : error.getDefaultMessage();
     }
 
-    // Falta uma parte obrigatória do multipart — hoje, o arquivo do certificado.
-    // Sem isto cairia no handler de Exception e viraria 500, quando na verdade é
-    // envio incompleto.
     @ExceptionHandler(MissingServletRequestPartException.class)
     public ResponseEntity<ApiError> handleMissingPart(MissingServletRequestPartException ex) {
         return ResponseEntity.badRequest()
                 .body(ApiError.of("Anexe o arquivo do certificado."));
     }
 
-    // regras de negócio do service: cooperado inativo, arquivo fora do padrão, etc.
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleBusiness(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ApiError.of(ex.getMessage()));
     }
 
-    // Rede de proteção para as constraints UNIQUE: o service já consulta antes de
-    // gravar, mas dois envios simultâneos podem passar pela consulta e só colidir
-    // no insert. Sem isto a colisão viraria 500.
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex) {
         log.warn("Violação de integridade no banco", ex);
@@ -82,9 +66,6 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(ApiError.of("O certificado deve ter no máximo 10 MB."));
     }
 
-    // As quatro abaixo já têm status próprio no Spring, mas o handler de Exception
-    // as capturaria antes e devolveria 500. Precisam de tratamento explícito.
-
     // Corpo ausente, JSON malformado ou tipo de campo incompatível
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableBody(HttpMessageNotReadableException ex) {
@@ -92,8 +73,6 @@ public class ApiExceptionHandler {
                 .body(ApiError.of("Não foi possível ler o corpo da requisição. Envie um JSON válido."));
     }
 
-    // Parâmetro de query com tipo incompatível — ?year=abc, por exemplo.
-    // Sem isto cairia no handler de Exception e viraria 500.
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return ResponseEntity.badRequest()

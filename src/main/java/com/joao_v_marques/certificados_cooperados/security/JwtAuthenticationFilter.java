@@ -18,11 +18,6 @@ import org.slf4j.Logger;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    /**
-     * Marca a requisição que trouxe um token inválido ou expirado. O
-     * {@link RestAuthenticationEntryPoint} lê este atributo para diferenciar
-     * "sessão expirou" de "nunca fez login" na mensagem mostrada ao usuário.
-     */
     public static final String INVALID_TOKEN_ATTRIBUTE = "jwt.invalidToken";
 
     private final JwtService jwtService;
@@ -34,22 +29,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
-    /**
-     * Autentica também no despacho assíncrono.
-     *
-     * O OncePerRequestFilter pula o despacho ASYNC por padrão, e resposta que
-     * transmite em fluxo (o zip de certificados) roda justamente nele: sem este
-     * override, o corpo já teria começado a sair quando o AuthorizationFilter
-     * rodasse de novo, agora sem ninguém autenticado no contexto — ele nega, não
-     * consegue mais trocar o status porque a resposta já foi comprometida, e o
-     * download morre no meio ("ERR_INCOMPLETE_CHUNKED_ENCODING" com status 200).
-     *
-     * A sessão é stateless: não há contexto guardado para o segundo despacho
-     * reaproveitar, então o jeito de ele saber quem está agindo é ler o token
-     * outra vez. Custa uma releitura do JWT e uma consulta do usuário por
-     * requisição transmitida em fluxo — e mantém a autorização valendo nos dois
-     * despachos, em vez de liberar o ASYNC de qualquer conferência.
-     */
     @Override
     protected boolean shouldNotFilterAsyncDispatch() {
         return false;

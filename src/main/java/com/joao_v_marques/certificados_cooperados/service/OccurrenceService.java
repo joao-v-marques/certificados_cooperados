@@ -34,9 +34,6 @@ public class OccurrenceService {
         this.userRepository = userRepository;
     }
 
-    // GET dos tipos que o select do lançamento pode oferecer. Só os ativos: o
-    // create recusa tipo desativado, então listá-lo seria deixar o usuário
-    // escolher algo que volta como erro.
     @Transactional(readOnly = true)
     public List<OccurrenceTypeResponse> findAllActiveTypes() {
         return occurrenceTypeRepository.findActiveOrderByName()
@@ -45,9 +42,6 @@ public class OccurrenceService {
                 .toList();
     }
 
-    // GET de todas as ocorrências lançadas, para a tabela da tela.
-    // Usa a projeção do repository em vez de findAll(): sem ela, cada linha
-    // dispararia consultas a mais para percorrer as associações LAZY.
     @Transactional(readOnly = true)
     public List<OccurrenceResponse> findAll() {
         return occurrenceRepository.findAllDetails()
@@ -56,8 +50,6 @@ public class OccurrenceService {
                 .toList();
     }
 
-    // POST de uma nova ocorrência. Quem solicitou é o cooperado; quem lançou é o
-    // usuário autenticado, que chega pelo id e nunca pelo corpo da requisição.
     @Transactional
     public OccurrenceResponse create(OccurrenceRequest request, Integer currentUserId) {
 
@@ -67,9 +59,6 @@ public class OccurrenceService {
         CooperativeMember cooperativeMember = cooperativeMemberRepository.findById(request.cooperativeMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("Cooperado não encontrado."));
 
-        // IllegalStateException, e não IllegalArgumentException: o id vem do
-        // token, então um usuário inexistente aqui é falha do sistema e não erro
-        // de quem preencheu o formulário — vira 500, não 400.
         User insertedBy = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new IllegalStateException("Usuário responsável não encontrado."));
 
@@ -137,9 +126,6 @@ public class OccurrenceService {
         occurrenceRepository.delete(occurrence);
     }
 
-    // Entidade → DTO de saída, usado no retorno do create.
-    // Precisa rodar dentro da transação: occurrenceType, cooperativeMember e
-    // insertedBy são LAZY e open-in-view está desligado.
     private OccurrenceResponse toResponse(Occurrence occurrence) {
         return new OccurrenceResponse(
                 occurrence.getId(),
@@ -153,8 +139,6 @@ public class OccurrenceService {
         );
     }
 
-    // Projeção → DTO de saída, usado na listagem. Mesma saída do caminho de
-    // cima, mas partindo dos campos que a consulta já trouxe resolvidos.
     private OccurrenceResponse toResponse(OccurrenceRepository.OccurrenceDetail detail) {
         return new OccurrenceResponse(
                 detail.getId(),
@@ -168,9 +152,6 @@ public class OccurrenceService {
         );
     }
 
-    // O nome do usuário é opcional no cadastro; sem ele a tela mostra o username.
-    // Fica em um método só porque os dois caminhos acima precisam da mesma regra,
-    // que é a que CourseService também aplica.
     private String displayNameOf(String name, String username) {
         return name != null ? name : username;
     }

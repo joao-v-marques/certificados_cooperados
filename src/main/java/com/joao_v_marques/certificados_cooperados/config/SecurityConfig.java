@@ -33,28 +33,13 @@ public class SecurityConfig {
 
         return http
                 .authorizeHttpRequests(auth -> auth
-                        // O logout é público de propósito: com o token vencido a
-                        // requisição levaria 401 e o cookie ficaria pendurado no
-                        // navegador. Quem não está autenticado não perde nada em
-                        // pedir para apagar o próprio cookie.
+                        // Logout é público de propósito, caso alguém não autenticado tente fazer logout, retorna 401 e só exclui o próprio cookie.
                         .requestMatchers("/login", "/api/v1/auth/login", "/api/v1/auth/logout", "/css/**", "/js/**").permitAll()
 
-                        // Criar usuário é dar acesso à aplicação, então só o
-                        // administrador faz. A regra fica aqui, e não em
-                        // @PreAuthorize no controller, para todas as permissões
-                        // continuarem legíveis em um lugar só.
-                        //
-                        // hasRole("administrator") casa com a authority
-                        // ROLE_administrator, montada pelo UserPrincipal a partir
-                        // do nome da role — o prefixo é do Spring Security.
-                        //
-                        // O verbo entra no matcher de propósito: o GET da mesma
-                        // URL é a listagem, que qualquer autenticado enxerga.
+                        // Validação liberar apenas administradores para cadastrar novos usuários na aplicação
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("administrator")
 
-                        // A tela do cadastro segue a mesma regra do endpoint que
-                        // ela chama. Esconder o item na sidebar não basta: a URL
-                        // continua digitável.
+                        // Validação para bloquear não administradores de acessar a página de cadastro de usuário
                         .requestMatchers("/usuarios").hasRole("administrator")
 
                         .anyRequest().authenticated())
