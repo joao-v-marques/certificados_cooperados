@@ -1,11 +1,9 @@
 package com.joao_v_marques.certificados_cooperados.controller;
 
-import com.joao_v_marques.certificados_cooperados.dto.OccurrenceRequest;
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeRequest;
 import com.joao_v_marques.certificados_cooperados.dto.OccurrenceTypeResponse;
 import com.joao_v_marques.certificados_cooperados.service.OccurrenceTypeService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +40,14 @@ public class OccurrenceTypeController {
         URI location = URI.create("/api/v1/occurrences-types/" + createdOccurrenceType.id());
 
         return ResponseEntity.created(location).body(createdOccurrenceType);
+    }
+
+    // UPDATE de um tipo de ocorrência
+    @PutMapping("/{id}")
+    public ResponseEntity<OccurrenceTypeResponse> update(@PathVariable Integer id, @Valid @RequestBody OccurrenceTypeRequest request) {
+        OccurrenceTypeResponse occurrenceTypeResponse = occurrenceTypeService.update(id, request);
+
+        return ResponseEntity.ok().body(occurrenceTypeResponse);
     }
 
     // DELETE de um tipo de ocorrência
