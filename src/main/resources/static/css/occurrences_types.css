@@ -1,0 +1,196 @@
+/* ==========================================================================
+   occurrences_types.css — estilos exclusivos do cadastro de tipos de ocorrência.
+
+   Cabeçalho de página, indicadores (.stat), card, campos, tabela, badges,
+   estado vazio e modais vêm de components.css. Aqui só entra o arranjo dos
+   três blocos da tela — indicadores, formulário e tabela — e o pouco que os
+   dois modais precisam por cima do componente.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Indicadores
+
+   Três cards em grade de 12 colunas, 4 cada: mesma largura dos indicadores do
+   painel de controle e do cadastro de cooperados, para as telas terem cards do
+   mesmo tamanho.
+   -------------------------------------------------------------------------- */
+
+.types-summary {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.types-summary > .stat {
+  grid-column: span 4;
+}
+
+@media (max-width: 1199px) {
+  .types-summary > .stat { grid-column: span 6; }
+}
+
+@media (max-width: 599px) {
+  .types-summary > .stat { grid-column: span 12; }
+}
+
+/* --------------------------------------------------------------------------
+   Formulário
+
+   O cadastro tem um campo só (o nome), e a situação não entra aqui: tipo novo
+   nasce ativo. Mesmo assim a grade de duas colunas fica declarada, porque é
+   ela que dá o mesmo respiro dos outros formulários da aplicação e acomoda um
+   segundo campo sem refazer o bloco.
+   -------------------------------------------------------------------------- */
+
+.types-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-24);
+  align-items: start;
+}
+
+.types-form__full {
+  grid-column: 1 / -1;
+}
+
+.types-form__half {
+  grid-column: span 1;
+}
+
+/* --------------------------------------------------------------------------
+   Ações do formulário
+   -------------------------------------------------------------------------- */
+
+.types-actions {
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Tabela
+
+   São três colunas curtas: a largura mínima de 960px de .table faria a tabela
+   pedir scroll horizontal sem necessidade.
+   -------------------------------------------------------------------------- */
+
+.types-table {
+  min-width: 520px;
+}
+
+/* A coluna de ações não precisa de mais que os dois botões: sem isto ela
+   dividiria a sobra de largura com as outras e afastaria o nome da situação. */
+.types-table th:last-child,
+.types-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Ações da linha
+
+   Editar abre o modal de edição; o outro botão abre a confirmação de
+   desativar ou de reativar, conforme a situação da linha. O vermelho do
+   desativar só aparece no hover, para a coluna não ficar gritando em toda
+   linha da tabela.
+   -------------------------------------------------------------------------- */
+
+.types-table__action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.types-table__action--danger:hover:not(:disabled) {
+  color: var(--color-danger-text);
+}
+
+.types-table__action--restore:hover:not(:disabled) {
+  color: var(--color-success-text);
+}
+
+/* O nome do tipo desativado continua legível, mas para de competir com os
+   ativos na leitura da coluna. */
+.types-table__name--inactive {
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Modal de edição
+
+   O <form> é o único filho do <dialog> e assume o papel que o painel teria:
+   sem isto o .modal[open] esticaria o formulário inteiro e o corpo deixaria
+   de rolar, empurrando o rodapé com os botões para fora da tela.
+   -------------------------------------------------------------------------- */
+
+.type-edit {
+  display: flex;
+  flex-direction: column;
+  /* min-height: 0 para o corpo poder encolher e rolar dentro do flex. */
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* A edição é um formulário, e não uma ficha de leitura: o respiro de 32px do
+   .modal__body separaria demais os campos, que a .form-grid já espaça. */
+.type-edit .modal__body {
+  gap: var(--space-24);
+}
+
+/* --------------------------------------------------------------------------
+   Modal de situação (desativar / reativar)
+   -------------------------------------------------------------------------- */
+
+/* Três blocos curtos e encadeados (pergunta, nome, aviso): o gap de leitura do
+   .modal__body os afastaria a ponto de parecerem blocos soltos. */
+.type-status .modal__body {
+  gap: var(--space-16);
+}
+
+/* O tipo que está prestes a mudar de situação, destacado do texto ao redor
+   para ser lido antes do clique. */
+.type-status__name {
+  padding: var(--space-16);
+  border-left: 3px solid var(--color-border-strong);
+  background-color: var(--color-surface-sunken);
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .types-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-16);
+  }
+
+  .types-form__half {
+    grid-column: 1 / -1;
+  }
+
+  /* Empilhado, a ação primária fica por último e ocupa a linha toda. */
+  .types-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .types-actions .spacer {
+    display: none;
+  }
+
+  .types-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Em .table--cards cada linha vira um cartão empilhado: travar a largura da
+   coluna de ações deixa de fazer sentido. */
+@media (max-width: 899px) {
+  .types-table th:last-child,
+  .types-table td:last-child {
+    width: auto;
+  }
+}
