@@ -51,6 +51,14 @@ public class OccurrenceTypeService {
         return toResponse(savedOccurrenceType);
     }
 
+    @Transactional
+    public void delete(Integer id) {
+        OccurrenceType occurrenceType = occurrenceTypeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("O tipo de ocorrência com esse ID não existe."));
+
+        occurrenceTypeRepository.delete(occurrenceType);
+    }
+
     private OccurrenceTypeResponse toResponse(OccurrenceType occurrenceType) {
         return new OccurrenceTypeResponse(
             occurrenceType.getId(),
