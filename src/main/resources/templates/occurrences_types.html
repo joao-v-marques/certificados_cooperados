@@ -285,11 +285,9 @@
                      js/utils/notyf.js. O erro de cada campo continua no
                      <p class="field__error"> correspondente. -->
 
-                <!-- TODO: o envio ainda não está ligado à API — falta o POST
-                     /api/v1/occurrence-types. O submit já é interceptado para a
-                     página não navegar, mas hoje só avisa que a gravação está
-                     pendente. TODO: campo oculto do token CSRF quando o CSRF for
-                     reativado. -->
+                <!-- O envio é feito pelo JS (fetch em JSON), por isso não há action:
+                     o submit é interceptado. TODO: campo oculto do token CSRF quando
+                     o CSRF for reativado. -->
                 <form class="card" data-type-form>
 
                     <div class="card__header">

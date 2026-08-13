@@ -1,11 +1,17 @@
 /**
- * Página de tipos de ocorrência: lista os cadastrados e prepara os gestos de
- * cadastro, edição e mudança de situação.
+ * Página de tipos de ocorrência: lista, cadastra, edita e ativa/desativa.
  *
- * ATENÇÃO — primeira etapa, só o frontend. A única conversa com a API aqui é o
- * GET que preenche a tabela. Cadastrar, editar e desativar já abrem e fecham as
- * telas certas, mas ainda não gravam nada: os pontos de ligação estão marcados
- * com TODO, um para cada endpoint que falta.
+ * Endpoints (todos sob o context-path da aplicação):
+ *   GET    /api/v1/occurrence-types/all   lista com ativos e inativos, ordenada
+ *                                         por nome — é a desta tela
+ *   POST   /api/v1/occurrence-types       {name}      → 201 + o tipo criado
+ *   PUT    /api/v1/occurrence-types/{id}  {name}      → 200 + o tipo atualizado
+ *   DELETE /api/v1/occurrence-types/{id}  {isActive}  → 200 + o tipo atualizado
+ *
+ * O DELETE é soft: ele não apaga, grava `is_active`. Por isso serve tanto para
+ * desativar (`false`) quanto para reativar (`true`) — o registro precisa
+ * continuar existindo porque `occurrences.occurrence_type_id` é FK obrigatória,
+ * e apagar o tipo levaria junto o histórico do cooperado.
  *
  * Contrato com o HTML (data-*):
  *   [data-type-form]          formulário de cadastro, submit interceptado
@@ -32,12 +38,17 @@
  * tipo-nome/erro-tipo-nome e edicao-tipo-nome/erro-edicao-tipo-nome.
  *
  * O retorno de sucesso e de erro sai em toast (ver utils/notyf.js); o que é
- * específico de um campo continua no <p class="field__error"> dele.
+ * específico de um campo continua no <p class="field__error"> dele. Com um
+ * <dialog> aberto o toast fica atrás dele, então a recusa dentro de um modal
+ * aparece no rodapé do próprio modal.
  */
 
-import {dismissNotifications, notifyError, notifyInfo} from "../utils/notyf.js";
+import {dismissNotifications, notifyError, notifySuccess} from "../utils/notyf.js";
 
 const API_URL = "/certificados-cooperados/api/v1/occurrence-types";
+
+/** Esta tela precisa dos inativos para poder reativá-los; o GET raiz só traz ativos. */
+const API_ALL_URL = `${API_URL}/all`;
 
 // Liga o campo que o backend devolve em `fields` aos elementos da tela. Cada
 // formulário tem o seu mapa porque o cadastro e a edição usam o mesmo nome de
@@ -59,15 +70,25 @@ const EDIT_FIELDS = {
 const typesById = new Map();
 
 /* =========================================================================
-   Erros de campo
+   Texto vindo do banco
    ========================================================================= */
 
-// O nome do tipo é digitado pelo usuário e volta da API, então não pode ser
-// interpolado cru em innerHTML.
+/**
+ * O nome do tipo é digitado pelo usuário e volta da API, então não pode ser
+ * interpolado cru.
+ *
+ * Vale para a tabela e também para o toast: o Notyf grava a mensagem com
+ * innerHTML (vendor/notyf/notyf.es.js), então um tipo cadastrado com marcação
+ * no nome viraria HTML na hora de confirmar a ação.
+ */
 function escapeHtml(value) {
     const characters = {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"};
     return String(value ?? "").replace(/[&<>"']/g, character => characters[character]);
 }
+
+/* =========================================================================
+   Erros de campo e de modal
+   ========================================================================= */
 
 function clearFieldErrors(fieldMap) {
     Object.values(fieldMap).forEach(({inputId, errorId}) => {
@@ -101,8 +122,6 @@ function showFieldErrors(fieldMap, fields) {
     return firstInvalid;
 }
 
-// O erro geral dos modais: com o <dialog> aberto o toast fica atrás dele, então
-// a recusa que não é de campo precisa aparecer dentro do próprio painel.
 function showModalError(element, message) {
     element.textContent = message;
     element.classList.remove("is-hidden");
@@ -111,6 +130,49 @@ function showModalError(element, message) {
 function clearModalError(element) {
     element.textContent = "";
     element.classList.add("is-hidden");
+}
+
+/* =========================================================================
+   Chamadas à API
+
+   Todas passam por aqui para o 401 ter um tratamento só: sessão expirada volta
+   para o login em vez de virar "não foi possível salvar". Repetir isso nas
+   quatro operações convidaria a esquecer em uma delas.
+   ========================================================================= */
+
+/**
+ * Devolve {ok, status, body} — ou `null` quando a sessão caiu e a navegação
+ * para o login já foi disparada. Quem chama precisa parar nesse caso.
+ */
+async function apiRequest(url, {method = "GET", body} = {}) {
+    const options = {method, credentials: "same-origin"};
+
+    if (body !== undefined) {
+        options.headers = {"Content-Type": "application/json"};
+        options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, options);
+
+    if (response.status === 401) {
+        window.location.href = "login";
+        return null;
+    }
+
+    // Corpo vazio (204) ou resposta que não é JSON não podem derrubar a leitura.
+    const parsed = await response.json().catch(() => null);
+
+    return {ok: response.ok, status: response.status, body: parsed};
+}
+
+/** A mensagem do ApiError, com um texto de reserva quando ela não vem. */
+function messageOf(result, fallback) {
+    return result.body?.message || fallback;
+}
+
+/** O mapa campo → mensagem do ApiError; vazio quando a recusa é de regra de negócio. */
+function fieldsOf(result) {
+    return result.body?.fields ?? {};
 }
 
 /* =========================================================================
@@ -191,35 +253,16 @@ async function populateOccurrenceTypesTable() {
     const occurrenceTypesFragment = document.createDocumentFragment();
 
     try {
-        const response = await fetch(API_URL, {credentials: "same-origin"});
+        const result = await apiRequest(API_ALL_URL);
+        if (!result) return;
 
-        // Mesma regra das outras telas: sessão expirada volta para o login em
-        // vez de virar "não foi possível carregar".
-        if (response.status === 401) {
-            window.location.href = "login";
-            return;
+        if (!result.ok) {
+            throw new Error(`A API respondeu ${result.status}`);
         }
 
-        if (!response.ok) {
-            throw new Error(`A API respondeu ${response.status}`);
-        }
-
-        const responseJSON = await response.json();
-
-        // A API devolve um array puro; a guarda evita quebrar caso isso mude.
-        const rawTypes = Array.isArray(responseJSON) ? responseJSON : [];
-
-        // TODO: hoje o GET /api/v1/occurrence-types devolve só os tipos ativos
-        // (OccurrenceTypeService.findAllActiveTypes) e o OccurrenceTypeResponse
-        // não tem o campo isActive — por isso o `?? true`. Esta tela é de
-        // configuração e precisa enxergar os desativados para poder reativá-los:
-        // quando o endpoint passar a devolver todos, com a situação de cada um,
-        // a coluna e os indicadores já funcionam sem mexer aqui.
-        const occurrenceTypes = rawTypes.map(type => ({
-            id: type.id,
-            name: type.name,
-            isActive: type.isActive ?? true,
-        }));
+        // A API devolve um array puro, já ordenado por nome (findAllOrderByName);
+        // a guarda evita quebrar caso isso mude.
+        const occurrenceTypes = Array.isArray(result.body) ? result.body : [];
 
         occurrenceTypes.forEach(occurrenceType => {
             typesById.set(String(occurrenceType.id), occurrenceType);
@@ -261,9 +304,77 @@ function initModalClosers() {
     });
 }
 
-/* -------------------------------------------------------------------------
-   Edição
-   ------------------------------------------------------------------------- */
+/* =========================================================================
+   Cadastro (POST)
+   ========================================================================= */
+
+async function handleSubmit(event) {
+    event.preventDefault();
+
+    // Os toasts do envio anterior saem da tela: o que vale é o resultado deste.
+    dismissNotifications();
+    clearFieldErrors(FORM_FIELDS);
+
+    // Guardado agora: depois do primeiro await o event.currentTarget já é null,
+    // porque o disparo do evento terminou.
+    const form = event.currentTarget;
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    const name = document.getElementById("tipo-nome").value.trim();
+
+    // Campo obrigatório barrado aqui: evita uma ida ao servidor para ouvir de
+    // volta o que a tela já sabe. O resto da recusa continua sendo do backend.
+    if (!name) {
+        showFieldErrors(FORM_FIELDS, {name: "Informe o nome do tipo de ocorrência."})?.focus();
+        return;
+    }
+
+    submitButton.disabled = true;
+
+    try {
+        const result = await apiRequest(API_URL, {method: "POST", body: {name}});
+        if (!result) return;
+
+        if (!result.ok) {
+            // Nome repetido chega como regra de negócio (400 com `fields` vazio),
+            // então o toast é o único lugar em que ela aparece.
+            notifyError(messageOf(result, "Não foi possível cadastrar o tipo de ocorrência. Tente de novo."));
+            showFieldErrors(FORM_FIELDS, fieldsOf(result))?.focus();
+            return;
+        }
+
+        // Limpar antes de avisar: reset() dispara o evento de reset, que derruba
+        // os toasts — na ordem inversa o sucesso apareceria e sumiria na hora.
+        form.reset();
+        notifySuccess(`${escapeHtml(result.body?.name ?? "O tipo")} já pode ser usado no lançamento de ocorrências.`);
+
+        // A lista só é recarregada depois do 201, para não mostrar um tipo que o
+        // backend recusou.
+        await populateOccurrenceTypesTable();
+    } catch (error) {
+        notifyError("Não foi possível conectar ao servidor. Tente de novo.");
+        console.error(error);
+    } finally {
+        submitButton.disabled = false;
+    }
+}
+
+function initTypeForm() {
+    const form = document.querySelector("[data-type-form]");
+    if (!form) return;
+
+    form.addEventListener("submit", handleSubmit);
+
+    // "Limpar campos" também zera o que sobrou do envio anterior.
+    form.addEventListener("reset", () => {
+        dismissNotifications();
+        clearFieldErrors(FORM_FIELDS);
+    });
+}
+
+/* =========================================================================
+   Edição (PUT)
+   ========================================================================= */
 
 function openEditModal(occurrenceType) {
     const modal = document.querySelector("[data-type-edit-modal]");
@@ -282,32 +393,51 @@ function openEditModal(occurrenceType) {
     input.select();
 }
 
-function handleEditSubmit(event) {
+async function handleEditSubmit(event) {
     event.preventDefault();
 
     const form = event.currentTarget;
+    const submitButton = form.querySelector('button[type="submit"]');
     const errorElement = document.querySelector("[data-edit-error]");
+    const modal = document.querySelector("[data-type-edit-modal]");
+    const id = form.dataset.typeId;
 
     clearFieldErrors(EDIT_FIELDS);
     clearModalError(errorElement);
 
     const name = document.getElementById("edicao-tipo-nome").value.trim();
 
-    // Validação de campo obrigatório fica aqui mesmo depois que o PUT existir:
-    // é o que evita uma ida ao servidor para ouvir de volta "o nome é
-    // obrigatório". O resto da recusa continua sendo do backend.
     if (!name) {
-        showFieldErrors(EDIT_FIELDS, {name: "Informe o nome do tipo de ocorrência."});
+        showFieldErrors(EDIT_FIELDS, {name: "Informe o nome do tipo de ocorrência."})?.focus();
         return;
     }
 
-    // TODO: trocar pelo PUT /api/v1/occurrence-types/{id} com {name}. O retorno
-    // segue o ApiError das outras telas: `fields` preenchido na validação das
-    // anotações (showFieldErrors) e vazio quando é regra de negócio, como nome
-    // repetido (showModalError). Fechado o modal, recarregar a tabela com
-    // populateOccurrenceTypesTable().
-    showModalError(errorElement, "A edição ainda não está ligada ao servidor.");
-    console.info("PUT pendente", {id: form.dataset.typeId, name});
+    submitButton.disabled = true;
+
+    try {
+        const result = await apiRequest(`${API_URL}/${id}`, {method: "PUT", body: {name}});
+        if (!result) return;
+
+        if (!result.ok) {
+            // Com o modal aberto o toast fica atrás dele, então a recusa vai
+            // para o rodapé do painel — inclusive a de nome repetido.
+            showModalError(errorElement, messageOf(result, "Não foi possível salvar a edição. Tente de novo."));
+            showFieldErrors(EDIT_FIELDS, fieldsOf(result))?.focus();
+            return;
+        }
+
+        // Fechar antes de avisar: com o <dialog> na top layer, o toast
+        // desenhado embaixo dele passaria despercebido.
+        modal.close();
+        notifySuccess(`O tipo agora se chama ${escapeHtml(result.body?.name ?? name)}.`);
+
+        await populateOccurrenceTypesTable();
+    } catch (error) {
+        showModalError(errorElement, "Não foi possível conectar ao servidor. Tente de novo.");
+        console.error(error);
+    } finally {
+        submitButton.disabled = false;
+    }
 }
 
 function initEditModal() {
@@ -317,13 +447,13 @@ function initEditModal() {
     form.addEventListener("submit", handleEditSubmit);
 }
 
-/* -------------------------------------------------------------------------
-   Situação (desativar / reativar)
+/* =========================================================================
+   Situação (DELETE, soft)
 
    O mesmo modal serve para as duas ações: os textos são reescritos a cada
    abertura, porque desativar e reativar têm consequências opostas e um texto
    neutro não avisaria nada.
-   ------------------------------------------------------------------------- */
+   ========================================================================= */
 
 function openStatusModal(occurrenceType) {
     const modal = document.querySelector("[data-type-status-modal]");
@@ -359,24 +489,44 @@ function openStatusModal(occurrenceType) {
     confirmButton.focus();
 }
 
-function handleStatusConfirm(event) {
+async function handleStatusConfirm(event) {
     const confirmButton = event.currentTarget;
     const errorElement = document.querySelector("[data-status-error]");
-    const occurrenceType = typesById.get(confirmButton.dataset.typeId);
+    const modal = document.querySelector("[data-type-status-modal]");
+
+    const id = confirmButton.dataset.typeId;
+    const occurrenceType = typesById.get(id);
+    if (!occurrenceType) return;
+
+    // A situação alvo é o inverso da atual — é o mesmo botão para os dois lados.
+    const target = !occurrenceType.isActive;
 
     clearModalError(errorElement);
+    confirmButton.disabled = true;
 
-    // TODO: trocar pela chamada que grava a situação — PATCH
-    // /api/v1/occurrence-types/{id}/situacao, ou DELETE para o desativar e PATCH
-    // para o reativar, conforme ficar definido no controller. É soft delete:
-    // occurrences.occurrence_type_id é FK obrigatória (V5), então o registro
-    // nunca sai da tabela, só muda is_active. Confirmado, fechar o modal e
-    // recarregar a tabela com populateOccurrenceTypesTable().
-    showModalError(errorElement, "A mudança de situação ainda não está ligada ao servidor.");
-    console.info("Mudança de situação pendente", {
-        id: confirmButton.dataset.typeId,
-        isActive: occurrenceType?.isActive,
-    });
+    try {
+        // DELETE com corpo é o que este endpoint espera: ele não apaga, grava
+        // `is_active`, e por isso precisa saber para qual valor.
+        const result = await apiRequest(`${API_URL}/${id}`, {method: "DELETE", body: {isActive: target}});
+        if (!result) return;
+
+        if (!result.ok) {
+            showModalError(errorElement, messageOf(result, "Não foi possível mudar a situação. Tente de novo."));
+            return;
+        }
+
+        modal.close();
+        notifySuccess(target
+            ? `${escapeHtml(occurrenceType.name)} voltou a aparecer no lançamento de ocorrências.`
+            : `${escapeHtml(occurrenceType.name)} não aparece mais no lançamento de ocorrências.`);
+
+        await populateOccurrenceTypesTable();
+    } catch (error) {
+        showModalError(errorElement, "Não foi possível conectar ao servidor. Tente de novo.");
+        console.error(error);
+    } finally {
+        confirmButton.disabled = false;
+    }
 }
 
 function initStatusModal() {
@@ -386,12 +536,12 @@ function initStatusModal() {
     confirmButton.addEventListener("click", handleStatusConfirm);
 }
 
-/* -------------------------------------------------------------------------
+/* =========================================================================
    Ações da linha
 
    Um listener só no <tbody>, e não um por botão: as linhas são redesenhadas a
    cada recarga da tabela, e ligar botão a botão exigiria refazer tudo junto.
-   ------------------------------------------------------------------------- */
+   ========================================================================= */
 
 function initRowActions() {
     const tbody = document.getElementById("tbodyOccurrenceTypes");
@@ -410,48 +560,6 @@ function initRowActions() {
             const occurrenceType = typesById.get(statusButton.dataset.statusType);
             if (occurrenceType) openStatusModal(occurrenceType);
         }
-    });
-}
-
-/* =========================================================================
-   Cadastro
-   ========================================================================= */
-
-function handleSubmit(event) {
-    event.preventDefault();
-
-    // Os toasts do envio anterior saem da tela: o que vale é o resultado deste.
-    dismissNotifications();
-    clearFieldErrors(FORM_FIELDS);
-
-    const name = document.getElementById("tipo-nome").value.trim();
-
-    // Mesma razão da edição: o campo obrigatório é barrado aqui, o resto é do
-    // backend.
-    if (!name) {
-        const firstInvalid = showFieldErrors(FORM_FIELDS, {name: "Informe o nome do tipo de ocorrência."});
-        firstInvalid?.focus();
-        return;
-    }
-
-    // TODO: trocar pelo POST /api/v1/occurrence-types com {name}, no mesmo
-    // formato do cadastro de cooperados: 401 volta para o login, ApiError vira
-    // toast mais erro de campo, e o 201 limpa o formulário (form.reset() antes
-    // do notifySuccess, porque o reset derruba os toasts) e recarrega a tabela.
-    notifyInfo("O cadastro de tipo de ocorrência ainda não está ligado ao servidor.");
-    console.info("POST pendente", {name});
-}
-
-function initTypeForm() {
-    const form = document.querySelector("[data-type-form]");
-    if (!form) return;
-
-    form.addEventListener("submit", handleSubmit);
-
-    // "Limpar campos" também zera o que sobrou do envio anterior.
-    form.addEventListener("reset", () => {
-        dismissNotifications();
-        clearFieldErrors(FORM_FIELDS);
     });
 }
 
