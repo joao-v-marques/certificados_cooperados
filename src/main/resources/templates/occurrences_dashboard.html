@@ -179,6 +179,41 @@
                             </li>
                         </ul>
                     </li>
+                    <!-- Grupo de pontuação premiada. O shell (js/pages/shell.js) abre o
+                         grupo sozinho quando um dos filhos é a página atual. -->
+                    <li class="nav-group" data-nav-group>
+                        <button type="button" class="nav__link nav-group__trigger" data-nav-group-trigger
+                                aria-expanded="false" aria-controls="nav-pontuacao-premiada">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M10 3.5l1.9 3.9 4.3.6-3.1 3 .7 4.3-3.8-2-3.8 2 .7-4.3-3.1-3 4.3-.6L10 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Pontuação premiada</span>
+                            <svg class="nav-group__caret" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <ul class="nav nav-group__items" id="nav-pontuacao-premiada" data-nav-group-items hidden>
+                            <li>
+                                <a class="nav__link" th:href="@{/eventos-premiados}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M4 5.5h12v10a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M7 3.5v3M13 3.5v3M4 9h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Eventos premiados</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link" th:href="@{/pontuacao-premiada}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M3.5 4.5h13v11h-13v-11Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M3.5 8h13M8 8v7.5M12.5 8v7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Matriz de pontuação</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 </ul>
 
                 <p class="sidebar__section">Cadastros</p>
