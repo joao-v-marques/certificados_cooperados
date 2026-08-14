@@ -135,6 +135,21 @@
   --color-danger-bg:       var(--palette-pink-200);
   --color-danger-text:     var(--palette-red-800);
 
+  /* Faixas da pontuação premiada — cinco degraus do menor para o maior percentual
+     do total possível do ano. Reaproveitam os pastéis oficiais em vez de inventar
+     cor nova, e são semânticos de propósito: mudar a régua das faixas em
+     PointsBandPolicy não deve exigir mexer em cor de tela. */
+  --color-band-1-bg:   var(--palette-pink-200);
+  --color-band-1-text: var(--palette-clay-700);
+  --color-band-2-bg:   var(--palette-sand-200);
+  --color-band-2-text: var(--palette-yellow-800);
+  --color-band-3-bg:   var(--palette-yellow-200);
+  --color-band-3-text: var(--palette-yellow-800);
+  --color-band-4-bg:   var(--palette-blue-200);
+  --color-band-4-text: var(--palette-teal-800);
+  --color-band-5-bg:   var(--palette-green-200);
+  --color-band-5-text: var(--palette-green-800);
+
   /* Controles -------------------------------------------------------------- */
   --color-field-bg:          var(--palette-white);
   --color-field-bg-disabled: var(--palette-neutral-100);
