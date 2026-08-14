@@ -1,0 +1,435 @@
+<!doctype html>
+<!--
+  bonus_points.html — matriz da pontuação premiada do ano.
+
+  Uma linha por cooperado ativo e uma coluna por evento do ano, espelhando a
+  planilha que a secretaria já usava. A célula marcada significa que o cooperado
+  participou e levou a pontuação cheia daquele evento.
+
+  O percentual é sobre o total possível do ano — soma dos eventos ativos mais a
+  meta de pontos de curso — e é ele, não o total bruto, que define a faixa. Por
+  isso a tela inteira é escopada por um ano-base: dois anos com números de
+  eventos diferentes não são comparáveis em pontos absolutos.
+
+  Tudo vem de uma chamada só (GET /api/v1/bonus-points/report), de propósito:
+  cabeçalho, indicadores e linhas precisam falar sempre do mesmo ano.
+-->
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Matriz de pontuação</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/notyf.css}">
+    <link rel="stylesheet" th:href="@{/css/bonus_points.css}">
+</head>
+
+<body>
+<div class="app" data-app>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar__lead">
+            <button type="button"
+                    class="btn-icon topbar__menu"
+                    data-sidebar-toggle
+                    aria-controls="sidebar"
+                    aria-expanded="false">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span class="visually-hidden">Abrir ou fechar o menu de navegação</span>
+            </button>
+
+            <!-- TODO: substituir pelo nome e pela marca definitivos da aplicação -->
+            <a class="brand" th:href="@{/home}">
+            <span class="brand__mark" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect width="28" height="28" rx="8" fill="currentColor"/>
+                <rect x="6" y="6" width="6" height="6" rx="1.5" fill="var(--color-accent)"/>
+                <rect x="16" y="6" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="6" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="16" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary-subtle)"/>
+              </svg>
+            </span>
+                <span class="brand__name">Certificados Cooperados</span>
+            </a>
+        </div>
+
+        <div class="topbar__actions">
+            <div class="dropdown" data-dropdown>
+                <button type="button" class="user-trigger" data-dropdown-trigger
+                        aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
+                    <!-- Preenchidos pelo shell (js/pages/shell.js) com o usuário autenticado. -->
+                    <span class="avatar" aria-hidden="true" data-user-initials></span>
+                    <span class="user-trigger__identity">
+                        <span class="user-trigger__name" data-user-name>Carregando...</span>
+                        <span class="user-trigger__role" data-user-role></span>
+                    </span>
+                    <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                         aria-hidden="true">
+                        <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                    <span class="visually-hidden">Abrir menu da conta</span>
+                </button>
+
+                <div class="dropdown__menu" id="menu-usuario" data-dropdown-menu hidden>
+                    <div class="dropdown__header">
+                        <div class="dropdown__name" data-user-name>Carregando...</div>
+                        <div class="dropdown__meta" data-user-email></div>
+                    </div>
+                    <hr class="dropdown__separator">
+                    <!-- O POST do logout é feito por js/auth/logout.js. -->
+                    <button type="button" class="dropdown__item dropdown__item--danger" data-logout>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M6.5 2.5H3.5A1 1 0 0 0 2.5 3.5v9a1 1 0 0 0 1 1h3" stroke="currentColor"
+                                  stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M10 5.5 12.5 8 10 10.5M12.5 8H6" stroke="currentColor" stroke-width="1.4"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="app__body">
+        <!-- SIDEBAR -->
+        <aside class="sidebar on-inverse" id="sidebar" data-sidebar>
+            <nav class="sidebar__nav" aria-label="Navegação principal">
+
+                <p class="sidebar__section">Operação</p>
+                <ul class="nav">
+                    <li>
+                        <a class="nav__link" th:href="@{/home}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="m3 8.5 7-5.5 7 5.5V16a1 1 0 0 1-1 1h-3.5v-5h-5v5H4a1 1 0 0 1-1-1V8.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Início</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav__link" th:href="@{/painel-controle}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M4 4h5v5H4V4ZM11 4h5v5h-5V4ZM4 11h5v5H4v-5ZM11 11h5v5h-5v-5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Painel de controle</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav__link" th:href="@{/novo-curso}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Lançar curso</span>
+                        </a>
+                    </li>
+
+                    <!-- Grupo de ocorrências. O shell (js/pages/shell.js) abre o
+                         grupo sozinho quando um dos filhos é a página atual. -->
+                    <li class="nav-group" data-nav-group>
+                        <button type="button" class="nav__link nav-group__trigger" data-nav-group-trigger
+                                aria-expanded="false" aria-controls="nav-ocorrencias">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M4 4.5h12v8a1 1 0 0 1-1 1H8.5L4.5 17V4.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                <path d="M7.5 8h5M7.5 10.5h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Ocorrências</span>
+                            <svg class="nav-group__caret" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <ul class="nav nav-group__items" id="nav-ocorrencias" data-nav-group-items hidden>
+                            <li>
+                                <a class="nav__link" th:href="@{/nova-ocorrencia}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M5.5 3.5h5l4 4V16a.5.5 0 0 1-.5.5H5.5A.5.5 0 0 1 5 16V4a.5.5 0 0 1 .5-.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M10 10v3.5M8.25 11.75h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Lançar ocorrência</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link" th:href="@{/ocorrencias}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M4.5 5.5h11M4.5 10h11M4.5 14.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Ocorrências lançadas</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link" th:href="@{/dashboard-ocorrencias}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M5 15.5V9.5M10 15.5v-11M15 15.5v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Dashboard ocorrências</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!-- Grupo de pontuação premiada. O shell (js/pages/shell.js) abre o
+                         grupo sozinho quando um dos filhos é a página atual. -->
+                    <li class="nav-group" data-nav-group>
+                        <button type="button" class="nav__link nav-group__trigger" data-nav-group-trigger
+                                aria-expanded="false" aria-controls="nav-pontuacao-premiada">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M10 3.5l1.9 3.9 4.3.6-3.1 3 .7 4.3-3.8-2-3.8 2 .7-4.3-3.1-3 4.3-.6L10 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Pontuação premiada</span>
+                            <svg class="nav-group__caret" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <ul class="nav nav-group__items" id="nav-pontuacao-premiada" data-nav-group-items hidden>
+                            <li>
+                                <a class="nav__link" th:href="@{/eventos-premiados}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M4 5.5h12v10a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M7 3.5v3M13 3.5v3M4 9h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Eventos premiados</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link is-active" th:href="@{/pontuacao-premiada}" aria-current="page">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M3.5 4.5h13v11h-13v-11Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M3.5 8h13M8 8v7.5M12.5 8v7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Matriz de pontuação</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <p class="sidebar__section">Cadastros</p>
+                <ul class="nav">
+                    <li>
+                        <a class="nav__link" th:href="@{/cooperados}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle cx="8" cy="7" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M2.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M13.5 5.5a2.5 2.5 0 0 1 0 5M15 16a5 5 0 0 0-1.5-3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Cooperados</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav__link" th:href="@{/tipos-ocorrencia}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M4.5 5.5h11M4.5 10h11M4.5 14.5h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <circle cx="15.5" cy="14.5" r="3" fill="var(--color-accent)" stroke="none"/>
+                            </svg>
+                            <span class="nav__label">Tipos de ocorrência</span>
+                        </a>
+                    </li>
+                    <!-- Só o administrador enxerga: nasce oculto e o shell
+                         (js/pages/shell.js) revela quando o perfil confere. -->
+                    <li hidden data-nav-admin>
+                        <a class="nav__link" th:href="@{/usuarios}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M4.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Usuários</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar__footer">
+                <div class="sidebar__seal seal" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                </div>
+                <p class="sidebar__footer-text">
+                    Registro de cursos e certificados dos cooperados.
+                </p>
+            </div>
+        </aside>
+
+        <!-- Fundo escuro do menu em overlay (mobile) -->
+        <div class="sidebar-scrim" data-sidebar-scrim hidden></div>
+
+        <!-- ==================================================================
+             CONTEÚDO
+             ================================================================== -->
+        <main class="app__main" id="conteudo">
+            <div class="container stack-32">
+
+                <header class="page-head">
+                    <div class="page-head__text">
+                        <h1 class="page-head__title">Matriz de pontuação</h1>
+                        <p class="page-head__subtitle">
+                            Quanto cada cooperado somou no ano entre cursos e eventos premiados,
+                            e quanto isso representa do total possível.
+                        </p>
+                    </div>
+
+                    <div class="page-head__actions">
+                        <!-- Recorte de toda a tela: o total possível muda a cada ano, então
+                             pontos de anos diferentes não são comparáveis. -->
+                        <div class="year-filter">
+                            <label class="year-filter__label" for="filtro-ano">Ano-base</label>
+                            <select class="select year-filter__select" id="filtro-ano" name="ano" data-year-filter>
+                            </select>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Base sem nenhum cooperado ativo. Nasce oculto: quem o revela é o JS,
+                     e só quando a API confirma — falha de rede não pode virar "nada
+                     cadastrado". -->
+                <section class="card" data-empty-state hidden aria-labelledby="titulo-sem-dados">
+                    <div class="empty">
+                        <div class="empty__seal seal" aria-hidden="true">
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                        <p class="empty__title" id="titulo-sem-dados">Nenhum cooperado ativo no cadastro</p>
+                        <p class="empty__text">
+                            A matriz lista os cooperados ativos. Cadastre o primeiro para
+                            acompanhar a pontuação do ano.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- A matriz inteira. Oculta até a carga terminar, para os indicadores
+                     nunca aparecerem zerados antes de haver resposta. -->
+                <div class="stack-32" data-report hidden>
+
+                    <!-- ==============================================================
+                         1. Indicadores
+                         ============================================================== -->
+                    <section aria-labelledby="titulo-indicadores">
+                        <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do ano</h2>
+
+                        <div class="stat-grid">
+
+                            <!-- O denominador de tudo. A linha de apoio abre a conta, senão
+                                 o número circula sem ninguém saber de onde saiu. -->
+                            <article class="stat stat--info">
+                                <p class="stat__label">Total possível do ano</p>
+                                <p class="stat__value tabular" data-kpi-max>-</p>
+                                <p class="stat__delta" data-kpi-max-note></p>
+                            </article>
+
+                            <article class="stat">
+                                <p class="stat__label">Cooperados ativos</p>
+                                <p class="stat__value tabular" data-kpi-members>-</p>
+                                <p class="stat__delta" data-kpi-members-note></p>
+                            </article>
+
+                            <article class="stat stat--accent">
+                                <p class="stat__label">Percentual médio</p>
+                                <p class="stat__value tabular" data-kpi-average>-</p>
+                                <p class="stat__delta">Média do quanto cada um alcançou.</p>
+                            </article>
+
+                            <!-- Quem ainda não pontuou é a lista de trabalho da secretaria:
+                                 é por ela que se sabe quem precisa ser chamado. -->
+                            <article class="stat stat--warning">
+                                <p class="stat__label">Ainda sem pontuar</p>
+                                <p class="stat__value tabular" data-kpi-zero>-</p>
+                                <p class="stat__delta" data-kpi-zero-note></p>
+                            </article>
+                        </div>
+                    </section>
+
+                    <!-- ==============================================================
+                         2. Legenda das faixas
+
+                         Os limites vêm da resposta, e não escritos aqui: mudar a régua
+                         em PointsBandPolicy não deve exigir mexer nesta tela.
+                         ============================================================== -->
+                    <section class="card" aria-labelledby="titulo-faixas">
+                        <div class="card__header">
+                            <div>
+                                <h2 class="card__title" id="titulo-faixas">Faixas</h2>
+                                <p class="card__subtitle">
+                                    Calculadas sobre o percentual do total possível do ano, e não
+                                    sobre os pontos brutos.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="card__body">
+                            <ul class="band-legend" data-band-legend>
+                                <!-- PREENCHIDO VIA JS -->
+                            </ul>
+                        </div>
+                    </section>
+
+                    <!-- ==============================================================
+                         3. A matriz
+
+                         A coluna do nome fica fixa e o contêiner rola na horizontal: com
+                         muitos eventos a tabela cresce para o lado sem nunca fazer a
+                         página inteira rolar de lado.
+                         ============================================================== -->
+                    <section class="card" aria-labelledby="titulo-matriz">
+                        <div class="card__header">
+                            <div>
+                                <h2 class="card__title" id="titulo-matriz">Cooperados</h2>
+                                <p class="card__subtitle" data-matrix-caption></p>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap matrix-wrap">
+                            <table class="table matrix">
+                                <caption class="visually-hidden">
+                                    Pontuação de cada cooperado no ano: pontos de curso, participação
+                                    em cada evento premiado, total, percentual e faixa.
+                                </caption>
+                                <thead>
+                                    <tr data-matrix-head>
+                                        <!-- As colunas de evento são inseridas pelo JS entre
+                                             "Cursos" e "Total". -->
+                                    </tr>
+                                </thead>
+                                <tbody data-matrix-body>
+                                    <!-- PREENCHIDO VIA JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Ano sem evento nenhum: a matriz continua válida, mas só com a
+                             coluna de cursos. Vale avisar, senão parece defeito. -->
+                        <p class="matrix-note" data-no-events-note hidden>
+                            Este ano ainda não tem evento premiado cadastrado, então o percentual
+                            considera apenas a meta de pontos de curso.
+                        </p>
+
+                        <div class="card__footer table-foot">
+                            <p class="text-sm text-muted tabular" data-table-count></p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Shell (sidebar, dropdown e usuário logado), comum a todas as telas. -->
+<script type="module" th:src="@{/js/pages/shell.js}"></script>
+<script type="module" th:src="@{/js/pages/bonus_points.js}"></script>
+</body>
+</html>

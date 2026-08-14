@@ -1,0 +1,316 @@
+/* ==========================================================================
+   bonus_points.css — estilos exclusivos da matriz de pontuação premiada.
+
+   Cabeçalho de página, indicadores (.stat), card, tabela, badges e estado vazio
+   vêm de components.css. Aqui só entram a legenda das faixas e o que a matriz
+   precisa por cima da tabela: coluna do nome fixa e rolagem horizontal.
+
+   As cores das faixas são tokens (--color-band-*, em tokens.css) e não valores
+   escritos aqui: mudar a régua em PointsBandPolicy não deve exigir mexer em cor.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Legenda das faixas
+   -------------------------------------------------------------------------- */
+
+.band-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.band-legend__item {
+  flex: 1 1 140px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-16);
+  border-radius: var(--radius-control);
+}
+
+.band-legend__range {
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.band-legend__name {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
+
+/* Quantos cooperados caíram nesta faixa no ano: a legenda vira distribuição,
+   e não só uma tabela de cores. */
+.band-legend__count {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+/* --------------------------------------------------------------------------
+   Pílula da faixa
+
+   Usada na legenda e na última coluna da matriz, com o mesmo par de tokens nos
+   dois lugares para a leitura ser imediata entre uma e outra.
+   -------------------------------------------------------------------------- */
+
+.band {
+  display: inline-block;
+  padding: 2px var(--space-8);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.band--1, .band-legend__item--1 { background-color: var(--color-band-1-bg); color: var(--color-band-1-text); }
+.band--2, .band-legend__item--2 { background-color: var(--color-band-2-bg); color: var(--color-band-2-text); }
+.band--3, .band-legend__item--3 { background-color: var(--color-band-3-bg); color: var(--color-band-3-text); }
+.band--4, .band-legend__item--4 { background-color: var(--color-band-4-bg); color: var(--color-band-4-text); }
+.band--5, .band-legend__item--5 { background-color: var(--color-band-5-bg); color: var(--color-band-5-text); }
+
+/* --------------------------------------------------------------------------
+   Matriz
+
+   Duas âncoras que não podem se perder na rolagem: a coluna do nome (senão não
+   se sabe de quem é a linha ao chegar no último evento) e a linha de cabeçalho
+   (senão não se sabe de que evento é a coluna, com 200 cooperados na tabela).
+
+   Por isso o contêiner rola nos dois eixos e é dentro dele que as duas grudam.
+   -------------------------------------------------------------------------- */
+
+.matrix-wrap {
+  overflow: auto;
+  /* Teto para o cabeçalho ter onde grudar; o resto da página continua rolando
+     normalmente. Sem min-height de propósito: com poucos cooperados a tabela
+     encolhe e não deixa faixa vazia embaixo. */
+  max-height: calc(100vh - 260px);
+  overscroll-behavior: contain;
+}
+
+/* width: auto vence o width: 100% de .table. Com 100%, muitas colunas fazem o
+   navegador espremer todas para caber na largura do card, e as últimas saem
+   cortadas; com auto, a tabela cresce e quem resolve é a rolagem do contêiner.
+   O min-width: 100% garante que ela ainda ocupe o card inteiro quando o ano tem
+   poucos eventos. */
+.matrix {
+  width: auto;
+  min-width: 100%;
+}
+
+/* O cabeçalho gruda no topo do contêiner, e não abaixo da topbar: aqui quem
+   rola é o .matrix-wrap, então o deslocamento de --topbar-height que .table usa
+   deixaria a linha flutuando fora de lugar. */
+.matrix thead th {
+  top: 0;
+  z-index: 2;
+}
+
+/* A coluna do nome acompanha a rolagem horizontal.
+
+   O padding precisa ser declarado aqui: o .table dá respiro a `thead th` e a
+   `tbody td`, e esta célula é um `th` dentro do `tbody` — não cai em nenhuma das
+   duas regras e ficaria colada na borda. Os 16px são os mesmos do cabeçalho,
+   para o nome alinhar por baixo de "Cooperado". */
+.matrix th[scope="row"] {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding: var(--space-8) var(--space-16);
+  text-align: left;
+  background-color: var(--color-surface);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+
+  white-space: nowrap;
+}
+
+/* Mesmo motivo do cabeçalho de evento: o teto vai no conteúdo, não na célula.
+   Nome longo não pode alargar a coluna fixa a ponto de sobrar pouco espaço para
+   os eventos; corta com reticências e o nome inteiro fica no title. */
+.matrix__member-name {
+  display: block;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* O canto superior esquerdo cruza as duas âncoras, então precisa ficar acima
+   das duas — sem isto as linhas passam por cima dele na rolagem vertical. */
+.matrix thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  text-align: left;
+  background-color: var(--color-surface-sunken);
+}
+
+/* O separador da coluna fixa é sombra, e não borda: com o border-collapse:
+   collapse de base.css a borda pertence à grade da tabela e não acompanha a
+   célula grudada, sumindo assim que a rolagem começa. */
+.matrix th[scope="row"],
+.matrix thead th:first-child {
+  box-shadow: 1px 0 0 var(--color-border);
+}
+
+/* A célula do nome tem fundo próprio (precisa, para as colunas passarem por
+   baixo dela), então não herda o hover da linha. Sem isto, passar o mouse
+   destacaria a linha inteira menos justamente o nome dela. */
+.matrix tbody tr:hover th[scope="row"] {
+  background-color: var(--color-surface-sunken);
+}
+
+/* O cabeçalho de evento tem duas linhas (nome em cima, data e valor embaixo),
+   e o .table fixa height: var(--control-height) no <th> — 40px cortariam a
+   segunda linha. Aqui a altura passa a ser a do conteúdo. */
+.matrix thead th {
+  height: auto;
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+  vertical-align: bottom;
+}
+
+/* Cabeçalho de evento: nome em cima, data e valor embaixo. Centralizado porque
+   as células da coluna são marcas curtas, não texto.
+
+   O seletor precisa ser `.matrix thead th.matrix__event` (0,2,2) para vencer
+   `.table thead th` (0,1,2) do components.css. Só `.matrix__event` é (0,1,0) e
+   perdia: o cabeçalho continuava com text-align: left, white-space: nowrap e
+   caixa alta do componente. Era isso que deixava a data e a pontuação encostadas
+   à esquerda, enquanto o nome parecia certo por se centralizar sozinho com o
+   margin auto do bloco. */
+.matrix thead th.matrix__event {
+  text-align: center;
+  white-space: normal;
+
+  /* Aqui o cabeçalho carrega dado do cadastro, e não um rótulo fixo como nas
+     outras colunas: caixa alta e tracking de rótulo deformam o nome do evento. */
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* O teto de largura fica num elemento interno, e NÃO na célula.
+
+   max-width em célula de tabela tem comportamento indefinido na especificação e
+   cada navegador resolve de um jeito: a célula é pintada na largura da coluna
+   enquanto o conteúdo se limita a outra, e o cabeçalho deixa de ficar sobre os
+   valores da própria coluna. Com o teto no <span>, o <th> segue a coluna e quem
+   se limita é o texto. */
+.matrix__event-name {
+  display: block;
+  max-width: 150px;
+  margin: 0 auto;
+  overflow-wrap: break-word;
+}
+
+/* Respiro lateral idêntico em cabeçalho e dado da mesma coluna.
+
+   Estava espalhado: os cabeçalhos de evento tinham 8px, os de Cursos/Total/%/
+   Faixa herdavam os 16px do .table, e todas as células do corpo tinham 8px. Com
+   caixas de largura diferente em cima e embaixo, a coluna aparenta estar torta
+   mesmo o navegador alinhando a grade certo. Uma regra só para as duas pontas
+   elimina a chance de divergirem de novo.
+
+   Os 8px são propositais: com muitas colunas estreitas, os 16px do .table somam
+   mais que o próprio conteúdo, que é só um número. */
+.matrix thead th,
+.matrix tbody th,
+.matrix tbody td {
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
+}
+
+/* A coluna do nome é a exceção: texto longo precisa de mais respiro, e os 16px
+   são os mesmos nas duas pontas para o nome alinhar sob "Cooperado". */
+.matrix thead th:first-child,
+.matrix tbody th[scope="row"] {
+  padding-left: var(--space-16);
+  padding-right: var(--space-16);
+}
+
+/* A classe sozinha basta: o span é outro elemento, então o que vem de
+   `.table thead th` é herança, e herança perde para qualquer regra que case
+   direto com o elemento — ao contrário do <th>, onde há disputa real. */
+.matrix__event-points {
+  display: block;
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.matrix__cell {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cursos, Total, % e Faixa: cabeçalho centralizado junto com o dado.
+
+   O .table__num do componente alinha o cabeçalho à direita, o que é certo numa
+   tabela de números encostados na direita — mas aqui os valores são curtos e
+   centralizados, e o cabeçalho à direita desencontrava de todos eles. */
+.matrix thead th.matrix__num {
+  text-align: center;
+}
+
+/* As três regras abaixo precisam do `.matrix tbody td` na frente para chegar a
+   (0,2,2) e vencer `.table tbody td` (0,1,2), que fixa `color` em todas as
+   células do corpo. Só a classe seria (0,1,0) e a cor do componente prevaleceria
+   — a matriz sairia inteira na cor de texto padrão. */
+
+/* Participou: o valor aparece na cor da marca. */
+.matrix tbody td.matrix__hit {
+  color: var(--color-primary-text);
+  font-weight: var(--weight-semibold);
+}
+
+/* Não participou: o traço fica presente mas apagado, para a linha continuar
+   legível como sequência sem que o vazio compita com o que pontuou. */
+.matrix tbody td.matrix__miss {
+  color: var(--color-text-disabled);
+}
+
+.matrix tbody td.matrix__total {
+  font-weight: var(--weight-bold);
+  color: var(--color-text-strong);
+}
+
+/* --------------------------------------------------------------------------
+   Aviso de ano sem evento
+   -------------------------------------------------------------------------- */
+
+.matrix-note {
+  margin: 0;
+  padding: var(--space-16) var(--space-24);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+.matrix-note[hidden] {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo
+
+   A matriz não vira cartão empilhado como as outras tabelas: a leitura dela é
+   justamente cruzar cooperado com evento, e empilhar destruiria o cruzamento.
+   Em tela estreita ela continua rolando na horizontal.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .band-legend__item {
+    flex-basis: 100%;
+  }
+}

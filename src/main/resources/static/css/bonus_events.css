@@ -1,0 +1,340 @@
+/* ==========================================================================
+   bonus_events.css — estilos exclusivos do cadastro de eventos premiados.
+
+   Cabeçalho de página, indicadores (.stat), card, campos, tabela, badges,
+   estado vazio e modais vêm de components.css. Aqui só entra o arranjo dos
+   blocos da tela e o que os três modais precisam por cima do componente —
+   principalmente a lista de presença, que é o único bloco sem equivalente
+   em outra página.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Indicadores
+
+   Três cards em grade de 12 colunas, 4 cada: mesma largura dos indicadores das
+   outras telas, para os cards terem sempre o mesmo tamanho na aplicação.
+   -------------------------------------------------------------------------- */
+
+.events-summary {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.events-summary > .stat {
+  grid-column: span 4;
+}
+
+@media (max-width: 1199px) {
+  .events-summary > .stat { grid-column: span 6; }
+}
+
+@media (max-width: 599px) {
+  .events-summary > .stat { grid-column: span 12; }
+}
+
+/* --------------------------------------------------------------------------
+   Formulário
+
+   Nome ocupa a linha inteira; data e pontuação dividem a de baixo, porque são
+   dois campos curtos que se leem juntos.
+   -------------------------------------------------------------------------- */
+
+.events-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-24);
+  align-items: start;
+}
+
+.events-form__full {
+  grid-column: 1 / -1;
+}
+
+.events-form__half {
+  grid-column: span 1;
+}
+
+.events-actions {
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Tabela
+   -------------------------------------------------------------------------- */
+
+.events-table {
+  min-width: 720px;
+}
+
+/* A coluna de ações não precisa de mais que os três botões: sem isto ela
+   dividiria a sobra de largura com as outras e afastaria os dados entre si. */
+.events-table th:last-child,
+.events-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.events-table__action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.events-table__action--danger:hover:not(:disabled) {
+  color: var(--color-danger-text);
+}
+
+/* O nome do evento desativado continua legível, mas para de competir com os
+   ativos na leitura da coluna. */
+.events-table__name--inactive {
+  color: var(--color-text-muted);
+}
+
+/* Quantos cooperados já estão marcados naquele evento, abaixo do nome: é o
+   dado que decide se a linha ainda precisa de atenção. */
+.events-table__marked {
+  display: block;
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Modais de edição e de situação
+   -------------------------------------------------------------------------- */
+
+/* O <form> é o único filho do <dialog> e assume o papel que o painel teria:
+   sem isto o .modal[open] esticaria o formulário inteiro e o corpo deixaria
+   de rolar, empurrando o rodapé com os botões para fora da tela. */
+.event-edit {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.event-edit .modal__body {
+  gap: var(--space-24);
+}
+
+.event-status .modal__body {
+  gap: var(--space-16);
+}
+
+/* O evento que está prestes a mudar de situação, destacado do texto ao redor
+   para ser lido antes do clique. */
+.event-status__name {
+  padding: var(--space-16);
+  border-left: 3px solid var(--color-border-strong);
+  background-color: var(--color-surface-sunken);
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+/* --------------------------------------------------------------------------
+   Modal da lista de presença
+
+   O quadro de cooperados é longo, então o painel é o mais alto que o modal
+   permite e quem rola é a lista, não a página: a busca, o contador e os botões
+   de salvar precisam ficar sempre visíveis.
+   -------------------------------------------------------------------------- */
+
+.presence__panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.presence__body {
+  gap: var(--space-16);
+  /* min-height: 0 para a lista poder encolher e rolar dentro do flex. */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.presence__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.presence__search {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.presence__bulk {
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.presence__counter {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+/* O número de marcados sozinho não diz nada: o que a secretaria confere é
+   quantos pontos aquele evento vai distribuir. */
+.presence__counter strong {
+  color: var(--color-text-strong);
+  font-weight: var(--weight-semibold);
+}
+
+.presence__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  min-height: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface);
+}
+
+.presence__item {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.presence__item:last-child {
+  border-bottom: 0;
+}
+
+.presence__item[hidden] {
+  display: none;
+}
+
+.presence__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: var(--space-8) var(--space-16);
+  min-height: var(--control-height);
+  cursor: pointer;
+}
+
+.presence__label:hover {
+  background-color: var(--color-hover-layer);
+}
+
+/* Caixa desenhada à mão porque não existe componente de checkbox: o controle
+   nativo não aceita a cor da marca em todos os navegadores. */
+.presence__check {
+  appearance: none;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 1.5px solid var(--color-field-border);
+  border-radius: 5px;
+  background-color: var(--color-field-bg);
+  cursor: pointer;
+  position: relative;
+  transition: background-color var(--duration-fast) var(--ease),
+              border-color var(--duration-fast) var(--ease);
+}
+
+.presence__check:checked {
+  background-color: var(--color-primary-surface);
+  border-color: var(--color-primary-surface);
+}
+
+.presence__check:checked::after {
+  content: "";
+  position: absolute;
+  left: 6.5px;
+  top: 2.5px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--color-text-on-brand);
+  border-width: 0 2px 2px 0;
+  transform: rotate(43deg);
+}
+
+.presence__check:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.presence__check:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.presence__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text);
+}
+
+/* Cooperado desativado depois de já ter sido marcado: continua na lista e
+   marcado, mas sem poder ser alterado — desmarcá-lo aqui apagaria a
+   participação de alguém que realmente participou. */
+.presence__item--locked .presence__label {
+  cursor: not-allowed;
+}
+
+.presence__item--locked .presence__label:hover {
+  background-color: transparent;
+}
+
+.presence__item--locked .presence__name {
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .events-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-16);
+  }
+
+  .events-form__half {
+    grid-column: 1 / -1;
+  }
+
+  /* Empilhado, a ação primária fica por último e ocupa a linha toda. */
+  .events-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .events-actions .spacer {
+    display: none;
+  }
+
+  .events-actions .btn {
+    width: 100%;
+  }
+
+  .presence__bulk {
+    width: 100%;
+  }
+
+  .presence__bulk .btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* Em .table--cards cada linha vira um cartão empilhado: travar a largura da
+   coluna de ações deixa de fazer sentido. */
+@media (max-width: 899px) {
+  .events-table th:last-child,
+  .events-table td:last-child {
+    width: auto;
+  }
+}
