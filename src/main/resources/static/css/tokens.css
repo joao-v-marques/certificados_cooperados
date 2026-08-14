@@ -47,6 +47,12 @@
   --palette-green-200: #cde3bb;  /* verde claro oficial */
   --palette-blue-200:  #a4d8de;  /* azul claro oficial */
 
+  /* Cores das faixas de pontuação premiada. Não são da identidade da empresa:
+     vêm da planilha que a secretaria já usava, e o objetivo é a matriz na tela
+     ser lida do mesmo jeito que a planilha impressa. */
+  --palette-lilac-300:  #b1a0c7;  /* faixa 2 — informada pelo cliente */
+  --palette-yellow-400: #f2c200;  /* faixa 4 — amarelo cheio, não o pastel */
+
   /* Neutros (papel funcional: texto, bordas, divisores, superfícies) -------- */
   --palette-white:      #ffffff;
   --palette-neutral-50: #f8f7f4;
@@ -136,19 +142,22 @@
   --color-danger-text:     var(--palette-red-800);
 
   /* Faixas da pontuação premiada — cinco degraus do menor para o maior percentual
-     do total possível do ano. Reaproveitam os pastéis oficiais em vez de inventar
-     cor nova, e são semânticos de propósito: mudar a régua das faixas em
-     PointsBandPolicy não deve exigir mexer em cor de tela. */
-  --color-band-1-bg:   var(--palette-pink-200);
-  --color-band-1-text: var(--palette-clay-700);
-  --color-band-2-bg:   var(--palette-sand-200);
-  --color-band-2-text: var(--palette-yellow-800);
-  --color-band-3-bg:   var(--palette-yellow-200);
-  --color-band-3-text: var(--palette-yellow-800);
-  --color-band-4-bg:   var(--palette-blue-200);
-  --color-band-4-text: var(--palette-teal-800);
-  --color-band-5-bg:   var(--palette-green-200);
-  --color-band-5-text: var(--palette-green-800);
+     do total possível do ano, na escala da planilha da secretaria: preto, lilás,
+     vermelho, amarelo e verde.
+     São semânticos de propósito: mudar a régua das faixas em PointsBandPolicy não
+     deve exigir mexer em cor de tela. O texto de cada faixa é escolhido pelo
+     contraste sobre o fundo dela, não por combinar — a pílula é pequena (12px) e
+     precisa dos 4.5:1 de texto normal. */
+  --color-band-1-bg:   var(--palette-black);         /* 0% a 20%   */
+  --color-band-1-text: var(--palette-white);         /* 21.0:1     */
+  --color-band-2-bg:   var(--palette-lilac-300);     /* 21% a 40%  */
+  --color-band-2-text: var(--palette-neutral-900);   /* 7.2:1      */
+  --color-band-3-bg:   var(--palette-red-600);       /* 41% a 60%  */
+  --color-band-3-text: var(--palette-white);         /* 6.5:1      */
+  --color-band-4-bg:   var(--palette-yellow-400);    /* 61% a 80%  */
+  --color-band-4-text: var(--palette-neutral-900);   /* 10.4:1     */
+  --color-band-5-bg:   var(--palette-green-600);     /* 81% a 100% */
+  --color-band-5-text: var(--palette-white);         /* 5.4:1      */
 
   /* Controles -------------------------------------------------------------- */
   --color-field-bg:          var(--palette-white);
