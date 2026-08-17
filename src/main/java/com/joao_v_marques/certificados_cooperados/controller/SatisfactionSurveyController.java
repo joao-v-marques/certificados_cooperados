@@ -5,7 +5,6 @@ import com.joao_v_marques.certificados_cooperados.dto.SatisfactionSurveyResponse
 import com.joao_v_marques.certificados_cooperados.security.UserPrincipal;
 import com.joao_v_marques.certificados_cooperados.service.SatisfactionSurveyService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,7 +14,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/satisfaction-survey")
+@RequestMapping("/api/v1/satisfaction-surveys")
 public class SatisfactionSurveyController {
 
     private final SatisfactionSurveyService satisfactionSurveyService;
@@ -26,7 +25,7 @@ public class SatisfactionSurveyController {
 
     // GET de todas as pesquisas de satisfação cadastradas ordenado pelo ano ASC
     @GetMapping
-    public List<SatisfactionSurveyResponse> findAllOrderByYearAsc(@RequestParam String order) {
+    public List<SatisfactionSurveyResponse> findAllOrderByYearAsc(@RequestParam(defaultValue = "desc") String order) {
         if (order.toLowerCase().equals("asc")) {
             return satisfactionSurveyService.findAllOrderByYearAsc();
         } else {
@@ -41,7 +40,7 @@ public class SatisfactionSurveyController {
 
         SatisfactionSurveyResponse savedSatisfactionSurvey = satisfactionSurveyService.create(request, currentUserId);
 
-        URI location = URI.create("/api/v1/occurrences/" + savedSatisfactionSurvey.id());
+        URI location = URI.create("/api/v1/satisfaction-surveys/" + savedSatisfactionSurvey.id());
 
         return ResponseEntity.created(location).body(savedSatisfactionSurvey);
     }

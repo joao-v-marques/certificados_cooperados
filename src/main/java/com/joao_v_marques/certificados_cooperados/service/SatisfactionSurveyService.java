@@ -49,6 +49,17 @@ public class SatisfactionSurveyService {
         User insertedBy = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário responsável pela inclusão está incorreto"));
 
+        // Validações que a DTO não cobre
+        if (request.respondents() > request.totalMembers()) {
+            throw new IllegalArgumentException("A quantidade de respondentes não pode ser maior que o total de cooperados.");
+        }
+
+        BaseYearPolicy.validate(request.surveyYear());
+
+        if (satisfactionSurveyRepository.existsBySurveyYear(request.surveyYear())) {
+            throw new IllegalArgumentException("Já existe uma pesquisa de satisfação lançada para " + request.surveyYear() + ".");
+        }
+
         // Montar a entidade, DTO nunca vira entidade sozinha
         SatisfactionSurvey satisfactionSurvey = new SatisfactionSurvey();
         satisfactionSurvey.setSurveyYear(request.surveyYear());
@@ -70,6 +81,17 @@ public class SatisfactionSurveyService {
         SatisfactionSurvey satisfactionSurvey = satisfactionSurveyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Pesquisa de Satisfação com esse ID não foi encontrada"));
 
+        // Validações que a DTO não cobre
+        if (request.respondents() > request.totalMembers()) {
+            throw new IllegalArgumentException("A quantidade de respondentes não pode ser maior que o total de cooperados.");
+        }
+
+        BaseYearPolicy.validate(request.surveyYear());
+
+        if (satisfactionSurveyRepository.existsBySurveyYearAndIdNot(request.surveyYear(), id)) {
+            throw new IllegalArgumentException("Já existe uma pesquisa de satisfação lançada para " + request.surveyYear() + ".");
+        }
+
         // Atualizando entidade já existente
         satisfactionSurvey.setSurveyYear(request.surveyYear());
         satisfactionSurvey.setTotalMembers(request.totalMembers());
@@ -80,6 +102,7 @@ public class SatisfactionSurveyService {
     }
 
     // DELETE de uma pesquisa de satisfação já existente
+    @Transactional
     public void delete(Integer id) {
         // Validar se a pesquisa editada realmente existe antes de tentar deletar
         SatisfactionSurvey satisfactionSurvey = satisfactionSurveyRepository.findById(id)
