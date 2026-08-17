@@ -1,0 +1,288 @@
+/* ==========================================================================
+   satisfaction_surveys.css — estilos exclusivos do índice de satisfação.
+
+   Cabeçalho de página, alerta, indicadores (.stat), card, campos, tabela,
+   estado vazio e modais vêm de components.css. Aqui só entra o arranjo dos
+   blocos desta tela — indicadores, gráfico, formulário e tabela — e o pouco
+   que os dois modais precisam por cima do componente.
+
+   O gráfico repete os nomes .chart__* do dashboard de ocorrências de
+   propósito: components.css não é dono de estilo de gráfico, e cada página
+   carrega só a própria folha. São dois desenhos parecidos, não um componente
+   compartilhado.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Indicadores
+
+   Quatro cards em grade de 12 colunas, 3 cada. Abaixo de 1200px caem para
+   dois por linha, e no celular empilham.
+   -------------------------------------------------------------------------- */
+
+.surveys-summary {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.surveys-summary > .stat {
+  grid-column: span 3;
+}
+
+@media (max-width: 1199px) {
+  .surveys-summary > .stat { grid-column: span 6; }
+}
+
+@media (max-width: 599px) {
+  .surveys-summary > .stat { grid-column: span 12; }
+}
+
+/* --------------------------------------------------------------------------
+   Gráfico da evolução
+
+   Altura fixa vem do JS junto com a largura medida, em pixels reais: com
+   viewBox esticada os rótulos ficariam minúsculos no celular e enormes no
+   monitor.
+   -------------------------------------------------------------------------- */
+
+.surveys-chart {
+  position: relative;
+}
+
+.surveys-chart svg {
+  display: block;
+  width: 100%;
+}
+
+/* Grade e eixo: linha cheia de 1px, um passo fora da superfície. Tracejado se
+   lê como projeção ou limite — aqui é só régua, e precisa desaparecer atrás
+   do dado. */
+.chart__grid {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.chart__tick {
+  fill: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* O rótulo de valor usa cor de texto, nunca a cor da marca: verde sobre branco
+   em corpo pequeno é ilegível, e a identidade já vem da barra ao lado. */
+.chart__value {
+  fill: var(--color-text-strong);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__bar {
+  fill: var(--color-primary);
+  transition: fill var(--duration-fast) var(--ease);
+}
+
+/* O ano mais recente é o que a tela toda está descrevendo nos indicadores:
+   destacá-lo liga o gráfico aos cards de cima sem precisar de legenda. */
+.chart__bar--latest {
+  fill: var(--color-primary-active);
+}
+
+.chart__band:hover .chart__bar {
+  fill: var(--color-primary-hover);
+}
+
+/* --------------------------------------------------------------------------
+   Formulário
+
+   Quatro campos em duas colunas, na ordem em que a apuração é lida: o ano e o
+   índice em cima (o que a pesquisa produziu), as duas contagens embaixo (de
+   onde o índice saiu).
+   -------------------------------------------------------------------------- */
+
+.surveys-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-24);
+  align-items: start;
+}
+
+.surveys-form__full {
+  grid-column: 1 / -1;
+}
+
+.surveys-form__half {
+  grid-column: span 1;
+}
+
+/* --------------------------------------------------------------------------
+   Prévia dos derivados
+
+   Não é campo: público não atingido e taxa de resposta não são digitados nem
+   gravados — quem calcula é o backend. O bloco existe para a conferência
+   acontecer antes de salvar, então precisa parecer resultado, e não entrada.
+   -------------------------------------------------------------------------- */
+
+.surveys-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-16) var(--space-24);
+  padding: var(--space-16);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface-sunken);
+}
+
+.surveys-preview__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.surveys-preview__label {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
+
+.surveys-preview__value {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.surveys-preview__note {
+  grid-column: 1 / -1;
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Ações do formulário
+   -------------------------------------------------------------------------- */
+
+.surveys-actions {
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Tabela
+
+   Sete colunas, cinco delas numéricas e curtas: o min-width de 960px de
+   .table pediria scroll horizontal antes da hora.
+   -------------------------------------------------------------------------- */
+
+.surveys-table {
+  min-width: 860px;
+}
+
+/* A coluna de ações não precisa de mais que os dois botões: sem isto ela
+   dividiria a sobra de largura com as outras e afastaria os números do ano. */
+.surveys-table th:last-child,
+.surveys-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Ações da linha
+
+   Editar abre o modal de edição; a lixeira abre a confirmação de exclusão. O
+   vermelho só aparece no hover, para a coluna não ficar gritando em toda
+   linha da tabela.
+   -------------------------------------------------------------------------- */
+
+.surveys-table__action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.surveys-table__action--danger:hover:not(:disabled) {
+  color: var(--color-danger-text);
+}
+
+/* --------------------------------------------------------------------------
+   Modal de edição
+
+   O <form> é o único filho do <dialog> e assume o papel que o painel teria:
+   sem isto o .modal[open] esticaria o formulário inteiro e o corpo deixaria
+   de rolar, empurrando o rodapé com os botões para fora da tela.
+   -------------------------------------------------------------------------- */
+
+.survey-edit {
+  display: flex;
+  flex-direction: column;
+  /* min-height: 0 para o corpo poder encolher e rolar dentro do flex. */
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* A edição é um formulário, e não uma ficha de leitura: o respiro de 32px do
+   .modal__body separaria demais os campos, que a .form-grid já espaça. */
+.survey-edit .modal__body {
+  gap: var(--space-24);
+}
+
+/* --------------------------------------------------------------------------
+   Modal de exclusão
+   -------------------------------------------------------------------------- */
+
+/* Três blocos curtos e encadeados (pergunta, resumo, aviso): o gap de leitura
+   do .modal__body os afastaria a ponto de parecerem blocos soltos. */
+.survey-delete .modal__body {
+  gap: var(--space-16);
+}
+
+/* A pesquisa que está prestes a ser apagada, destacada do texto ao redor para
+   ser lida antes do clique. A borda é vermelha, e não neutra como no modal de
+   situação dos tipos de ocorrência: lá a ação é reversível, aqui não. */
+.survey-delete__summary {
+  padding: var(--space-16);
+  border-left: 3px solid var(--color-danger);
+  background-color: var(--color-surface-sunken);
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .surveys-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-16);
+  }
+
+  .surveys-form__half {
+    grid-column: 1 / -1;
+  }
+
+  /* Empilhado, a ação primária fica por último e ocupa a linha toda. */
+  .surveys-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .surveys-actions .spacer {
+    display: none;
+  }
+
+  .surveys-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Em .table--cards cada linha vira um cartão empilhado: travar a largura da
+   coluna de ações deixa de fazer sentido. */
+@media (max-width: 899px) {
+  .surveys-table th:last-child,
+  .surveys-table td:last-child {
+    width: auto;
+  }
+}

@@ -1,0 +1,698 @@
+<!doctype html>
+<!--
+  satisfaction_surveys.html — lançamento do Índice de Satisfação dos Cooperados.
+
+  A pesquisa é aplicada uma vez por ano pela secretaria executiva, por fora do
+  sistema (Google Forms). Aqui entra só o resultado apurado: quantos cooperados
+  existiam, quantos responderam e o índice final.
+
+  Público não atingido e taxa de resposta NÃO são digitados nem gravados — o
+  backend os calcula a partir do total e dos respondentes (ver o toResponse do
+  SatisfactionSurveyService). Guardar os três deixaria a linha se contradizer.
+
+  A exclusão é definitiva: não há soft delete nesta tabela, porque nenhuma outra
+  tabela referencia satisfaction_surveys. Por isso o modal de confirmação avisa
+  que não há como desfazer.
+-->
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Índice de satisfação</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/notyf.css}">
+    <link rel="stylesheet" th:href="@{/css/satisfaction_surveys.css}">
+</head>
+
+<body>
+<div class="app" data-app>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar__lead">
+            <button type="button"
+                    class="btn-icon topbar__menu"
+                    data-sidebar-toggle
+                    aria-controls="sidebar"
+                    aria-expanded="false">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span class="visually-hidden">Abrir ou fechar o menu de navegação</span>
+            </button>
+
+            <!-- TODO: substituir pelo nome e pela marca definitivos da aplicação -->
+            <a class="brand" th:href="@{/home}">
+            <span class="brand__mark" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect width="28" height="28" rx="8" fill="currentColor"/>
+                <rect x="6" y="6" width="6" height="6" rx="1.5" fill="var(--color-accent)"/>
+                <rect x="16" y="6" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="6" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary)"/>
+                <rect x="16" y="16" width="6" height="6" rx="1.5" fill="var(--color-primary-subtle)"/>
+              </svg>
+            </span>
+                <span class="brand__name">Certificados Cooperados</span>
+            </a>
+        </div>
+
+        <div class="topbar__actions">
+            <div class="dropdown" data-dropdown>
+                <button type="button" class="user-trigger" data-dropdown-trigger
+                        aria-expanded="false" aria-haspopup="true" aria-controls="menu-usuario">
+                    <!-- Preenchidos pelo shell (js/pages/shell.js) com o usuário autenticado. -->
+                    <span class="avatar" aria-hidden="true" data-user-initials></span>
+                    <span class="user-trigger__identity">
+                        <span class="user-trigger__name" data-user-name>Carregando...</span>
+                        <span class="user-trigger__role" data-user-role></span>
+                    </span>
+                    <svg class="user-trigger__caret" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                         aria-hidden="true">
+                        <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                    <span class="visually-hidden">Abrir menu da conta</span>
+                </button>
+
+                <div class="dropdown__menu" id="menu-usuario" data-dropdown-menu hidden>
+                    <div class="dropdown__header">
+                        <div class="dropdown__name" data-user-name>Carregando...</div>
+                        <div class="dropdown__meta" data-user-email></div>
+                    </div>
+                    <hr class="dropdown__separator">
+                    <!-- O POST do logout é feito por js/auth/logout.js. -->
+                    <button type="button" class="dropdown__item dropdown__item--danger" data-logout>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M6.5 2.5H3.5A1 1 0 0 0 2.5 3.5v9a1 1 0 0 0 1 1h3" stroke="currentColor"
+                                  stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M10 5.5 12.5 8 10 10.5M12.5 8H6" stroke="currentColor" stroke-width="1.4"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="app__body">
+        <!-- SIDEBAR -->
+        <aside class="sidebar on-inverse" id="sidebar" data-sidebar>
+            <nav class="sidebar__nav" aria-label="Navegação principal">
+
+                <p class="sidebar__section">Operação</p>
+                <ul class="nav">
+                    <li>
+                        <a class="nav__link" th:href="@{/home}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="m3 8.5 7-5.5 7 5.5V16a1 1 0 0 1-1 1h-3.5v-5h-5v5H4a1 1 0 0 1-1-1V8.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Início</span>
+                        </a>
+                    </li>
+
+                    <!-- Grupo de cursos. O shell (js/pages/shell.js) abre o
+                         grupo sozinho quando um dos filhos é a página atual. -->
+                    <li class="nav-group" data-nav-group>
+                        <button type="button" class="nav__link nav-group__trigger" data-nav-group-trigger
+                                aria-expanded="false" aria-controls="nav-cursos">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="m10 4 7 3.5-7 3.5-7-3.5L10 4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                <path d="M6 9.25v4.05c0 .35.18.67.48.85 1.03.62 2.2.85 3.52.85s2.49-.23 3.52-.85c.3-.18.48-.5.48-.85V9.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Cursos</span>
+                            <svg class="nav-group__caret" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <ul class="nav nav-group__items" id="nav-cursos" data-nav-group-items hidden>
+                            <li>
+                                <a class="nav__link" th:href="@{/painel-controle}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M4 4h5v5H4V4ZM11 4h5v5h-5V4ZM4 11h5v5H4v-5ZM11 11h5v5h-5v-5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span class="nav__label">Painel de controle</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link" th:href="@{/novo-curso}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Lançar curso</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Grupo de ocorrências. O shell (js/pages/shell.js) abre o
+                         grupo sozinho quando um dos filhos é a página atual. -->
+                    <li class="nav-group" data-nav-group>
+                        <button type="button" class="nav__link nav-group__trigger" data-nav-group-trigger
+                                aria-expanded="false" aria-controls="nav-ocorrencias">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M4 4.5h12v8a1 1 0 0 1-1 1H8.5L4.5 17V4.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                <path d="M7.5 8h5M7.5 10.5h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Ocorrências</span>
+                            <svg class="nav-group__caret" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <ul class="nav nav-group__items" id="nav-ocorrencias" data-nav-group-items hidden>
+                            <li>
+                                <a class="nav__link" th:href="@{/nova-ocorrencia}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M5.5 3.5h5l4 4V16a.5.5 0 0 1-.5.5H5.5A.5.5 0 0 1 5 16V4a.5.5 0 0 1 .5-.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M10 10v3.5M8.25 11.75h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Lançar ocorrência</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link" th:href="@{/ocorrencias}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M4.5 5.5h11M4.5 10h11M4.5 14.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Ocorrências lançadas</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link" th:href="@{/dashboard-ocorrencias}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M5 15.5V9.5M10 15.5v-11M15 15.5v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Dashboard ocorrências</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!-- Grupo de pontuação premiada. O shell (js/pages/shell.js) abre o
+                         grupo sozinho quando um dos filhos é a página atual. -->
+                    <li class="nav-group" data-nav-group>
+                        <button type="button" class="nav__link nav-group__trigger" data-nav-group-trigger
+                                aria-expanded="false" aria-controls="nav-pontuacao-premiada">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M10 3.5l1.9 3.9 4.3.6-3.1 3 .7 4.3-3.8-2-3.8 2 .7-4.3-3.1-3 4.3-.6L10 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav__label">Pontuação premiada</span>
+                            <svg class="nav-group__caret" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <ul class="nav nav-group__items" id="nav-pontuacao-premiada" data-nav-group-items hidden>
+                            <li>
+                                <a class="nav__link" th:href="@{/eventos-premiados}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M4 5.5h12v10a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M7 3.5v3M13 3.5v3M4 9h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Eventos premiados</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav__link" th:href="@{/pontuacao-premiada}">
+                                    <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                        <path d="M3.5 4.5h13v11h-13v-11Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M3.5 8h13M8 8v7.5M12.5 8v7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="nav__label">Matriz de pontuação</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a class="nav__link is-active" th:href="@{/pesquisa-satisfacao}" aria-current="page">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M3.5 14a6.5 6.5 0 1 1 13 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="m10 14 3.2-4.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Índice de satisfação</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <p class="sidebar__section">Cadastros</p>
+                <ul class="nav">
+                    <li>
+                        <a class="nav__link" th:href="@{/cooperados}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle cx="8" cy="7" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M2.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M13.5 5.5a2.5 2.5 0 0 1 0 5M15 16a5 5 0 0 0-1.5-3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Cooperados</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav__link" th:href="@{/tipos-ocorrencia}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M4.5 5.5h11M4.5 10h11M4.5 14.5h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <circle cx="15.5" cy="14.5" r="3" fill="var(--color-accent)" stroke="none"/>
+                            </svg>
+                            <span class="nav__label">Tipos de ocorrência</span>
+                        </a>
+                    </li>
+                    <!-- Só o administrador enxerga: nasce oculto e o shell
+                         (js/pages/shell.js) revela quando o perfil confere. -->
+                    <li hidden data-nav-admin>
+                        <a class="nav__link" th:href="@{/usuarios}">
+                            <svg class="nav__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M4.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav__label">Usuários</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar__footer">
+                <div class="sidebar__seal seal" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
+                </div>
+                <p class="sidebar__footer-text">
+                    Registro de cursos e certificados dos cooperados.
+                </p>
+            </div>
+        </aside>
+
+        <!-- Fundo escuro do menu em overlay (mobile) -->
+        <div class="sidebar-scrim" data-sidebar-scrim hidden></div>
+
+        <!-- ==================================================================
+             CONTEÚDO
+             ================================================================== -->
+        <main class="app__main" id="conteudo">
+            <div class="container stack-32">
+
+                <header class="page-head">
+                    <div class="page-head__text">
+                        <h1 class="page-head__title">Índice de satisfação</h1>
+                        <p class="page-head__subtitle">
+                            Registre o resultado apurado da pesquisa anual de satisfação dos
+                            cooperados. A pesquisa continua sendo aplicada por fora do sistema;
+                            aqui entra apenas o número final de cada ano.
+                        </p>
+                    </div>
+                </header>
+
+                <!-- ==============================================================
+                     1. Indicadores
+
+                     Todos saem da mesma listagem da tabela, sempre da pesquisa mais
+                     recente. Ficam em "-" enquanto a resposta não chega.
+                     ============================================================== -->
+                <section aria-labelledby="titulo-indicadores">
+                    <h2 class="visually-hidden" id="titulo-indicadores">Resumo da última pesquisa</h2>
+
+                    <div class="surveys-summary">
+                        <article class="stat">
+                            <p class="stat__label">Última pesquisa</p>
+                            <p class="stat__value tabular" data-kpi-year>-</p>
+                            <p class="stat__delta" data-kpi-year-note></p>
+                        </article>
+
+                        <article class="stat stat--accent">
+                            <p class="stat__label">Índice de satisfação</p>
+                            <p class="stat__value tabular" data-kpi-index>-</p>
+                            <!-- A variação é em pontos percentuais, e não em "%": a diferença
+                                 entre 80% e 84% é de 4 p.p., não de 4%. -->
+                            <p class="stat__delta" data-kpi-index-delta></p>
+                        </article>
+
+                        <article class="stat stat--info">
+                            <p class="stat__label">Taxa de resposta</p>
+                            <p class="stat__value tabular" data-kpi-rate>-</p>
+                            <p class="stat__delta" data-kpi-rate-note></p>
+                        </article>
+
+                        <article class="stat stat--negative">
+                            <p class="stat__label">Público não atingido</p>
+                            <p class="stat__value tabular" data-kpi-not-reached>-</p>
+                            <p class="stat__delta" data-kpi-not-reached-note></p>
+                        </article>
+                    </div>
+                </section>
+
+                <!-- ==============================================================
+                     2. Evolução do índice
+
+                     Só aparece com duas pesquisas ou mais: com um ano só não há
+                     evolução nenhuma para mostrar, e uma coluna sozinha passaria a
+                     impressão de gráfico quebrado.
+                     ============================================================== -->
+                <section class="card" data-chart-card hidden aria-labelledby="titulo-evolucao">
+                    <div class="card__header">
+                        <h2 class="card__title" id="titulo-evolucao">Evolução do índice</h2>
+                        <p class="card__subtitle">
+                            Índice de satisfação apurado em cada ano, do mais antigo ao mais recente.
+                            Os números exatos estão na tabela abaixo.
+                        </p>
+                    </div>
+
+                    <div class="card__body">
+                        <!-- O SVG é desenhado pelo JS em pixels reais e refeito quando o
+                             card muda de largura. -->
+                        <div class="surveys-chart" data-chart></div>
+                    </div>
+                </section>
+
+                <!-- ==============================================================
+                     3. Formulário de cadastro
+
+                     O retorno sai em toast (js/utils/notyf.js); o erro de campo fica
+                     no <p class="field__error"> correspondente.
+
+                     O envio é feito pelo JS (fetch em JSON), por isso não há action.
+                     TODO: campo oculto do token CSRF quando o CSRF for reativado.
+                     ============================================================== -->
+                <form class="card" data-survey-form>
+
+                    <div class="card__header">
+                        <h2 class="card__title">Nova pesquisa</h2>
+                        <p class="card__subtitle">
+                            Um lançamento por ano. Para corrigir um ano já lançado, use a
+                            edição na tabela.
+                        </p>
+                    </div>
+
+                    <div class="card__body surveys-form">
+
+                        <div class="field surveys-form__half">
+                            <label class="field__label" for="pesquisa-ano">Ano da pesquisa</label>
+                            <input class="input tabular" type="number" id="pesquisa-ano" name="surveyYear"
+                                   min="2000" step="1" required inputmode="numeric"
+                                   placeholder="Ex.: 2025" aria-describedby="dica-pesquisa-ano">
+                            <p class="field__hint" id="dica-pesquisa-ano">
+                                Ano a que a pesquisa se refere. Não pode ser futuro nem repetir
+                                um ano já lançado.
+                            </p>
+                            <p class="field__error is-hidden" id="erro-pesquisa-ano"></p>
+                        </div>
+
+                        <div class="field surveys-form__half">
+                            <label class="field__label" for="pesquisa-indice">Índice de satisfação</label>
+                            <div class="input-unit">
+                                <input class="input tabular" type="number" id="pesquisa-indice" name="satisfactionIndex"
+                                       min="0" max="100" step="0.01" required inputmode="decimal"
+                                       placeholder="Ex.: 87,50" aria-describedby="dica-pesquisa-indice">
+                                <span class="input-unit__suffix" aria-hidden="true">%</span>
+                            </div>
+                            <p class="field__hint" id="dica-pesquisa-indice">
+                                Resultado final da apuração, de 0 a 100, com até duas casas decimais.
+                            </p>
+                            <p class="field__error is-hidden" id="erro-pesquisa-indice"></p>
+                        </div>
+
+                        <div class="field surveys-form__half">
+                            <label class="field__label" for="pesquisa-total">Total de cooperados</label>
+                            <input class="input tabular" type="number" id="pesquisa-total" name="totalMembers"
+                                   min="1" step="1" required inputmode="numeric"
+                                   placeholder="Ex.: 200" aria-describedby="dica-pesquisa-total">
+                            <p class="field__hint" id="dica-pesquisa-total">
+                                Quantos cooperados existiam na época da pesquisa. É digitado, e não
+                                contado do cadastro, para o histórico não mudar quando entrar
+                                cooperado novo.
+                            </p>
+                            <p class="field__error is-hidden" id="erro-pesquisa-total"></p>
+                        </div>
+
+                        <div class="field surveys-form__half">
+                            <label class="field__label" for="pesquisa-respondentes">Cooperados que responderam</label>
+                            <input class="input tabular" type="number" id="pesquisa-respondentes" name="respondents"
+                                   min="0" step="1" required inputmode="numeric"
+                                   placeholder="Ex.: 150" aria-describedby="dica-pesquisa-respondentes">
+                            <p class="field__hint" id="dica-pesquisa-respondentes">
+                                Não pode ser maior que o total de cooperados.
+                            </p>
+                            <p class="field__error is-hidden" id="erro-pesquisa-respondentes"></p>
+                        </div>
+
+                        <!-- Prévia do que o backend vai calcular. Não é campo: público não
+                             atingido e taxa de resposta não são digitados nem gravados.
+                             Está aqui para a conferência acontecer antes de salvar. -->
+                        <div class="surveys-preview surveys-form__full" data-preview aria-live="polite">
+                            <div class="surveys-preview__item">
+                                <span class="surveys-preview__label">Público não atingido</span>
+                                <span class="surveys-preview__value tabular" data-preview-not-reached>-</span>
+                            </div>
+                            <div class="surveys-preview__item">
+                                <span class="surveys-preview__label">Taxa de resposta</span>
+                                <span class="surveys-preview__value tabular" data-preview-rate>-</span>
+                            </div>
+                            <p class="surveys-preview__note">
+                                Calculado pelo sistema a partir do total e dos respondentes.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card__footer surveys-actions">
+                        <span class="spacer"></span>
+                        <button type="reset" class="btn btn--secondary">Limpar campos</button>
+                        <button type="submit" class="btn btn--primary">Cadastrar pesquisa</button>
+                    </div>
+                </form>
+
+                <!-- ==============================================================
+                     4. Tabela de pesquisas e estado vazio
+                     ============================================================== -->
+                <section class="card" aria-labelledby="titulo-tabela">
+                    <div class="card__header">
+                        <h2 class="card__title" id="titulo-tabela">Pesquisas lançadas</h2>
+                        <p class="card__subtitle">Da mais recente para a mais antiga.</p>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="table table--cards surveys-table">
+                            <caption class="visually-hidden">
+                                Pesquisas de satisfação lançadas, com o total de cooperados, os
+                                respondentes, o público não atingido, a taxa de resposta, o índice
+                                apurado e as ações de edição e exclusão.
+                            </caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Ano</th>
+                                    <th scope="col" class="table__num">Cooperados</th>
+                                    <th scope="col" class="table__num">Responderam</th>
+                                    <th scope="col" class="table__num">Não atingidos</th>
+                                    <th scope="col" class="table__num">Taxa de resposta</th>
+                                    <th scope="col" class="table__num">Índice</th>
+                                    <th scope="col"><span class="visually-hidden">Ações</span></th>
+                                </tr>
+                            </thead>
+                            <tbody data-surveys-table>
+                                <!-- PREENCHIDO VIA JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Estado vazio. Nasce oculto: quem o revela é o JS, e só quando a
+                         API confirma que não há pesquisa nenhuma lançada. -->
+                    <div class="empty" data-empty-state hidden>
+                        <div class="empty__seal seal" aria-hidden="true">
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                        <p class="empty__title">Nenhuma pesquisa de satisfação lançada ainda</p>
+                        <p class="empty__text">
+                            Use o formulário acima para registrar o resultado do primeiro ano.
+                            A partir da segunda pesquisa a tela passa a mostrar a evolução do índice.
+                        </p>
+                    </div>
+
+                    <div class="card__footer table-foot">
+                        <p class="text-sm text-muted tabular" data-table-count></p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- ==================================================================
+     Aviso de responsabilidade
+
+     Mesmo comportamento do lançamento de curso e de ocorrência: abre sozinho
+     na carga (quem chama o showModal é o js/pages/satisfaction_surveys.js) e
+     só sai pelo botão "Eu concordo" — não há botão de fechar, o clique no
+     fundo não fecha <dialog> nativo e o Esc é barrado no JS.
+     ================================================================== -->
+<dialog class="modal modal--notice" data-responsibility-modal
+        aria-labelledby="titulo-aviso-responsabilidade">
+
+    <header class="modal__head">
+        <h2 class="modal__title" id="titulo-aviso-responsabilidade">Aviso de responsabilidade</h2>
+    </header>
+
+    <div class="modal__body">
+        <p class="modal__text">
+            As informações lançadas nesta página são de responsabilidade da secretaria
+            executiva e precisam vir da apuração final da pesquisa. Confira o total de
+            cooperados, a quantidade de respondentes e o índice antes de salvar: o
+            resultado passa a compor o histórico institucional, fica gravado em nome de
+            quem o lançou e alimenta os indicadores apresentados à diretoria.
+        </p>
+
+        <p class="modal__text">
+            A exclusão de uma pesquisa já lançada é definitiva e não tem como ser desfeita.
+        </p>
+    </div>
+
+    <div class="modal__footer">
+        <button type="button" class="btn btn--primary" data-responsibility-accept>
+            Eu concordo
+        </button>
+    </div>
+</dialog>
+
+<!-- ==================================================================
+     Modal de edição da pesquisa
+
+     É <dialog> nativo de propósito: Esc, foco preso dentro e fundo inerte
+     vêm do próprio elemento, sem JS para nada disso.
+     ================================================================== -->
+<dialog class="modal" data-survey-edit-modal aria-labelledby="titulo-edicao-pesquisa">
+
+    <!-- O <form> é o único filho do dialog e precisa se comportar como o painel
+         inteiro (cabeçalho fixo, corpo rolando): quem faz isso é o .survey-edit
+         em satisfaction_surveys.css. -->
+    <form class="survey-edit" data-survey-edit-form novalidate>
+
+        <header class="modal__head">
+            <div>
+                <h2 class="modal__title" id="titulo-edicao-pesquisa">Editar pesquisa</h2>
+                <p class="modal__subtitle">
+                    Corrigir o total de cooperados ou os respondentes recalcula o público
+                    não atingido e a taxa de resposta daquele ano.
+                </p>
+            </div>
+
+            <button type="button" class="btn-icon modal__close" data-modal-close>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span class="visually-hidden">Fechar a edição da pesquisa</span>
+            </button>
+        </header>
+
+        <div class="modal__body">
+            <div class="form-grid">
+
+                <div class="field form-grid__half">
+                    <label class="field__label" for="edicao-pesquisa-ano">Ano da pesquisa</label>
+                    <input class="input tabular" type="number" id="edicao-pesquisa-ano" name="surveyYear"
+                           min="2000" step="1" inputmode="numeric">
+                    <p class="field__error is-hidden" id="erro-edicao-pesquisa-ano"></p>
+                </div>
+
+                <div class="field form-grid__half">
+                    <label class="field__label" for="edicao-pesquisa-indice">Índice de satisfação</label>
+                    <div class="input-unit">
+                        <input class="input tabular" type="number" id="edicao-pesquisa-indice" name="satisfactionIndex"
+                               min="0" max="100" step="0.01" inputmode="decimal">
+                        <span class="input-unit__suffix" aria-hidden="true">%</span>
+                    </div>
+                    <p class="field__error is-hidden" id="erro-edicao-pesquisa-indice"></p>
+                </div>
+
+                <div class="field form-grid__half">
+                    <label class="field__label" for="edicao-pesquisa-total">Total de cooperados</label>
+                    <input class="input tabular" type="number" id="edicao-pesquisa-total" name="totalMembers"
+                           min="1" step="1" inputmode="numeric">
+                    <p class="field__error is-hidden" id="erro-edicao-pesquisa-total"></p>
+                </div>
+
+                <div class="field form-grid__half">
+                    <label class="field__label" for="edicao-pesquisa-respondentes">Cooperados que responderam</label>
+                    <input class="input tabular" type="number" id="edicao-pesquisa-respondentes" name="respondents"
+                           min="0" step="1" inputmode="numeric">
+                    <p class="field__error is-hidden" id="erro-edicao-pesquisa-respondentes"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal__footer">
+            <!-- A recusa que não é de campo aparece aqui, e não só no toast: o
+                 <dialog> aberto fica na top layer do navegador e cobre o canto
+                 em que o Notyf desenha. -->
+            <p class="field__error modal__error is-hidden" data-edit-error></p>
+
+            <button type="button" class="btn btn--secondary" data-modal-close>Cancelar</button>
+            <button type="submit" class="btn btn--primary">Confirmar edição</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- ==================================================================
+     Modal de confirmação da exclusão
+
+     Aqui a exclusão apaga a linha de verdade: satisfaction_surveys não tem
+     is_active e nenhuma outra tabela a referencia. O ano volta a ficar livre
+     para um novo lançamento, mas o registro anterior e a autoria dele se
+     perdem — por isso o texto diz que não há como desfazer.
+     ================================================================== -->
+<dialog class="modal modal--notice survey-delete" data-survey-delete-modal
+        aria-labelledby="titulo-exclusao-pesquisa">
+
+    <header class="modal__head">
+        <div>
+            <h2 class="modal__title" id="titulo-exclusao-pesquisa">Excluir pesquisa</h2>
+        </div>
+
+        <button type="button" class="btn-icon modal__close" data-modal-close>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+            </svg>
+            <span class="visually-hidden">Fechar a confirmação</span>
+        </button>
+    </header>
+
+    <div class="modal__body">
+        <p class="modal__text">
+            Tem certeza que deseja excluir esta pesquisa de satisfação?
+        </p>
+
+        <!-- O ano e os números entram destacados para a confirmação não depender
+             da memória de qual linha foi clicada. -->
+        <p class="survey-delete__summary" data-delete-summary></p>
+
+        <p class="modal__text text-muted">
+            A exclusão é definitiva e não tem como ser desfeita. O ano sai do histórico
+            e da evolução do índice, e fica livre para ser lançado de novo. Se o objetivo
+            é apenas corrigir um número, use a edição.
+        </p>
+    </div>
+
+    <div class="modal__footer">
+        <!-- Mesmo motivo do modal de edição: com o modal aberto, o toast fica
+             atrás dele. -->
+        <p class="field__error modal__error is-hidden" data-delete-error></p>
+
+        <button type="button" class="btn btn--secondary" data-modal-close>Cancelar</button>
+        <button type="button" class="btn btn--danger" data-delete-confirm>Excluir pesquisa</button>
+    </div>
+</dialog>
+
+<!-- Shell (sidebar, dropdown e usuário logado), comum a todas as telas. -->
+<script type="module" th:src="@{/js/pages/shell.js}"></script>
+<script type="module" th:src="@{/js/pages/satisfaction_surveys.js}"></script>
+</body>
+</html>
