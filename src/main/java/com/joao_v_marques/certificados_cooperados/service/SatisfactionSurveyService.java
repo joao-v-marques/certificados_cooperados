@@ -33,6 +33,15 @@ public class SatisfactionSurveyService {
                 .toList();
     }
 
+    // GET de todas as pesquisas de satisfação cadastradas ordenado pelo ano DESC
+    @Transactional(readOnly = true)
+    public List<SatisfactionSurveyResponse> findAllOrderByYearDesc() {
+        return satisfactionSurveyRepository.findAllByOrderBySurveyYearDesc()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     // POST de uma nova pesquisa de satisfação
     @Transactional
     public SatisfactionSurveyResponse create(SatisfactionSurveyRequest request, Integer currentUserId) {

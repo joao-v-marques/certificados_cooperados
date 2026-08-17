@@ -26,8 +26,12 @@ public class SatisfactionSurveyController {
 
     // GET de todas as pesquisas de satisfação cadastradas ordenado pelo ano ASC
     @GetMapping
-    public List<SatisfactionSurveyResponse> findAllOrderByYearAsc() {
-        return satisfactionSurveyService.findAllOrderByYearAsc();
+    public List<SatisfactionSurveyResponse> findAllOrderByYearAsc(@RequestParam String order) {
+        if (order.toLowerCase().equals("asc")) {
+            return satisfactionSurveyService.findAllOrderByYearAsc();
+        } else {
+            return satisfactionSurveyService.findAllOrderByYearDesc();
+        }
     }
 
     // POST de uma nova pesquisa de satisfação
