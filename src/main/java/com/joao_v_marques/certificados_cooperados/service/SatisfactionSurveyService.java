@@ -63,6 +63,23 @@ public class SatisfactionSurveyService {
         return toResponse(saved);
     }
 
+    // UPDATE de uma pesquisa de satisfação já existente
+    @Transactional
+    public SatisfactionSurveyResponse update(Integer id, SatisfactionSurveyRequest request) {
+
+        // Validar se a pesquisa editada realmente existe
+        SatisfactionSurvey satisfactionSurvey = satisfactionSurveyRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pesquisa de Satisfação com esse ID não foi encontrada"));
+
+        // Atualizando entidade já existente
+        satisfactionSurvey.setSurveyYear(request.surveyYear());
+        satisfactionSurvey.setTotalMembers(request.totalMembers());
+        satisfactionSurvey.setRespondents(request.respondents());
+        satisfactionSurvey.setSatisfactionIndex(request.satisfactionIndex());
+
+        return toResponse(satisfactionSurvey);
+    }
+
     private SatisfactionSurveyResponse toResponse(SatisfactionSurvey satisfactionSurvey) {
         int notReached = satisfactionSurvey.getTotalMembers() - satisfactionSurvey.getRespondents();
 
