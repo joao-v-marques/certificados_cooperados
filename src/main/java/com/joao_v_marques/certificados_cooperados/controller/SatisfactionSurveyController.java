@@ -5,6 +5,7 @@ import com.joao_v_marques.certificados_cooperados.dto.SatisfactionSurveyResponse
 import com.joao_v_marques.certificados_cooperados.security.UserPrincipal;
 import com.joao_v_marques.certificados_cooperados.service.SatisfactionSurveyService;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -45,11 +46,19 @@ public class SatisfactionSurveyController {
         return ResponseEntity.created(location).body(savedSatisfactionSurvey);
     }
 
-    // PUT/UPDATE de uam pesquisa de satisfação já existente
+    // PUT/UPDATE de uma pesquisa de satisfação já existente
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<SatisfactionSurveyResponse> update(@PathVariable Integer id, @Valid @RequestBody SatisfactionSurveyRequest request) {
         SatisfactionSurveyResponse updatedSatisfactionSurvey = satisfactionSurveyService.update(id, request);
 
         return ResponseEntity.ok(updatedSatisfactionSurvey);
+    }
+
+    // DELETE de uma pesquisa
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        satisfactionSurveyService.delete(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

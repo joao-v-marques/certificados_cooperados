@@ -66,7 +66,6 @@ public class SatisfactionSurveyService {
     // UPDATE de uma pesquisa de satisfação já existente
     @Transactional
     public SatisfactionSurveyResponse update(Integer id, SatisfactionSurveyRequest request) {
-
         // Validar se a pesquisa editada realmente existe
         SatisfactionSurvey satisfactionSurvey = satisfactionSurveyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Pesquisa de Satisfação com esse ID não foi encontrada"));
@@ -78,6 +77,15 @@ public class SatisfactionSurveyService {
         satisfactionSurvey.setSatisfactionIndex(request.satisfactionIndex());
 
         return toResponse(satisfactionSurvey);
+    }
+
+    // DELETE de uma pesquisa de satisfação já existente
+    public void delete(Integer id) {
+        // Validar se a pesquisa editada realmente existe antes de tentar deletar
+        SatisfactionSurvey satisfactionSurvey = satisfactionSurveyRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("A pesquisa que tentou excluir não existe"));
+
+        satisfactionSurveyRepository.delete(satisfactionSurvey);
     }
 
     private SatisfactionSurveyResponse toResponse(SatisfactionSurvey satisfactionSurvey) {
