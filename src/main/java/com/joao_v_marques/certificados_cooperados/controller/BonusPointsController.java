@@ -1,6 +1,7 @@
 package com.joao_v_marques.certificados_cooperados.controller;
 
 import com.joao_v_marques.certificados_cooperados.dto.BonusPointsReportResponse;
+import com.joao_v_marques.certificados_cooperados.dto.PointsBandsReportResponse;
 import com.joao_v_marques.certificados_cooperados.service.BonusPointsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,5 +28,15 @@ public class BonusPointsController {
         int baseYear = (year != null) ? year : Year.now().getValue();
 
         return bonusPointsService.findReport(baseYear);
+    }
+
+    // Resumo por faixa do ano-base, sem as linhas individuais da matriz — pensado para
+    // consumo externo (ex.: KPI "% de Cooperados por Faixa" do dashboard_esg).
+    @GetMapping("/bands-report")
+    public PointsBandsReportResponse findBandsReport(@RequestParam(required = false) Integer year) {
+
+        int baseYear = (year != null) ? year : Year.now().getValue();
+
+        return bonusPointsService.findBandsSummary(baseYear);
     }
 }

@@ -3,7 +3,9 @@ package com.joao_v_marques.certificados_cooperados.service;
 import com.joao_v_marques.certificados_cooperados.dto.BonusEventColumnResponse;
 import com.joao_v_marques.certificados_cooperados.dto.BonusPointsReportResponse;
 import com.joao_v_marques.certificados_cooperados.dto.MemberBonusPointsResponse;
+import com.joao_v_marques.certificados_cooperados.dto.PointsBandCountResponse;
 import com.joao_v_marques.certificados_cooperados.dto.PointsBandResponse;
+import com.joao_v_marques.certificados_cooperados.dto.PointsBandsReportResponse;
 import com.joao_v_marques.certificados_cooperados.entity.BonusEvent;
 import com.joao_v_marques.certificados_cooperados.entity.CooperativeMember;
 import com.joao_v_marques.certificados_cooperados.repository.BonusEventParticipationRepository;
@@ -109,6 +111,35 @@ public class BonusPointsService {
                 bands(),
                 events.stream().map(this::toColumn).toList(),
                 members
+        );
+    }
+
+    // Resumo por faixa do ano: reaproveita o findReport já existente e só tabula o band de
+    // cada linha, em vez de recalcular a policy — uma única fonte de verdade para o cálculo.
+    @Transactional(readOnly = true)
+    public PointsBandsReportResponse findBandsSummary(int year) {
+
+        BonusPointsReportResponse report = findReport(year);
+
+        Map<Integer, Integer> countByBand = new HashMap<>();
+        for (MemberBonusPointsResponse member : report.members()) {
+            countByBand.merge(member.band(), 1, Integer::sum);
+        }
+
+        List<PointsBandCountResponse> bands = IntStream.rangeClosed(1, PointsBandPolicy.BAND_COUNT)
+                .mapToObj(band -> new PointsBandCountResponse(
+                        band,
+                        PointsBandPolicy.lowerBoundOf(band),
+                        PointsBandPolicy.upperBoundOf(band),
+                        countByBand.getOrDefault(band, 0)
+                ))
+                .toList();
+
+        return new PointsBandsReportResponse(
+                report.year(),
+                report.totalMembers(),
+                report.availableYears(),
+                bands
         );
     }
 
