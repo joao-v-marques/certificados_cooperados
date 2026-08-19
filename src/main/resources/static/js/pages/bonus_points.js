@@ -121,6 +121,13 @@ function updateSummary(report) {
    Legenda das faixas
    ========================================================================= */
 
+/** Nome de cada faixa por cor, na ordem definida pela PointsBandPolicy. */
+const BAND_NAMES = {1: "Preta", 2: "Roxa", 3: "Vermelha", 4: "Amarela", 5: "Verde"};
+
+function bandLabel(band) {
+    return `Faixa ${BAND_NAMES[band] ?? band}`;
+}
+
 function renderBandLegend(report) {
     const legend = document.querySelector("[data-band-legend]");
     const members = report.members ?? [];
@@ -133,7 +140,7 @@ function renderBandLegend(report) {
             return `
                 <li class="band-legend__item band-legend__item--${band.band}">
                     <span class="band-legend__range">${band.lowerBoundPercent}% a ${band.upperBoundPercent}%</span>
-                    <span class="band-legend__name">Faixa ${band.band}</span>
+                    <span class="band-legend__name">${bandLabel(band.band)}</span>
                     <span class="band-legend__count">${label}</span>
                 </li>
             `;
@@ -193,7 +200,7 @@ function buildRow(member, events) {
         ${eventCells}
         <td class="matrix__cell matrix__total" data-label="Total">${member.totalPoints}</td>
         <td class="matrix__cell matrix__total" data-label="Percentual">${member.percentage}%</td>
-        <td class="matrix__cell" data-label="Faixa"><span class="band band--${member.band}">Faixa ${member.band}</span></td>
+        <td class="matrix__cell" data-label="Faixa"><span class="band band--${member.band}">${bandLabel(member.band)}</span></td>
     `;
 
     return row;
