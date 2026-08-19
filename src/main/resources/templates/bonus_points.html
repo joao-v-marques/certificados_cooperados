@@ -421,6 +421,46 @@
                             </div>
                         </div>
 
+                        <!-- Filtros aplicados no navegador, sobre os cooperados que a matriz já
+                             trouxe: nenhuma ida ao servidor a cada troca de campo. As opções de
+                             faixa e evento saem da própria resposta do ano em vigor. -->
+                        <div class="toolbar bonus-points-filters" data-table-filters>
+                            <div class="toolbar__search bonus-points-filters__field--name">
+                                <label class="field__label" for="filtro-nome">Cooperado</label>
+                                <input class="input" type="search" id="filtro-nome" placeholder="Buscar por nome...">
+                            </div>
+
+                            <div class="toolbar__filter bonus-points-filters__field--band">
+                                <label class="field__label" for="filtro-faixa">Faixa</label>
+                                <select class="select" id="filtro-faixa">
+                                    <option value="">Todas as faixas</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar__filter bonus-points-filters__field--event">
+                                <label class="field__label" for="filtro-evento">Evento</label>
+                                <select class="select" id="filtro-evento">
+                                    <option value="">Todos os eventos</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar__filter bonus-points-filters__field--participation">
+                                <label class="field__label" for="filtro-participacao">Participação</label>
+                                <select class="select" id="filtro-participacao" disabled>
+                                    <option value="">Todos</option>
+                                    <option value="sim">Participou</option>
+                                    <option value="nao">Não participou</option>
+                                </select>
+                            </div>
+
+                            <div class="bonus-points-filters__actions">
+                                <!-- Nasce desabilitado: sem filtro aplicado não há o que limpar. -->
+                                <button type="button" class="btn btn--secondary" data-filter-clear disabled>
+                                    Limpar filtros
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="table-wrap matrix-wrap">
                             <table class="table matrix">
                                 <caption class="visually-hidden">

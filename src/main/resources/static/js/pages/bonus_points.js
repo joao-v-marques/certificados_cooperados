@@ -25,6 +25,8 @@
  *   [data-matrix-caption]  linha de apoio do card
  *   [data-no-events-note]  aviso de ano sem evento cadastrado
  *   [data-table-count]     rodapé com a contagem
+ *   [data-table-filters]   barra de filtros da matriz; qualquer mudança refiltra
+ *   [data-filter-clear]    zera os quatro campos de uma vez
  */
 
 import {notifyError} from "../utils/notyf.js";
@@ -33,6 +35,10 @@ const REPORT_URL = "/certificados-cooperados/api/v1/bonus-points/report";
 
 /** Ano-base em vigor na tela. */
 let currentYear = new Date().getFullYear();
+
+/** Resposta do ano em vigor, guardada para os filtros refazerem a matriz sem
+ *  nova chamada à API a cada campo trocado. */
+let currentReport = null;
 
 /* =========================================================================
    Texto vindo do banco
@@ -149,6 +155,107 @@ function renderBandLegend(report) {
 }
 
 /* =========================================================================
+   Filtros da matriz
+   ========================================================================= */
+
+const filterElements = () => ({
+    name: document.getElementById("filtro-nome"),
+    band: document.getElementById("filtro-faixa"),
+    event: document.getElementById("filtro-evento"),
+    participation: document.getElementById("filtro-participacao"),
+});
+
+function readFilters() {
+    const elements = filterElements();
+
+    return {
+        name: elements.name.value.trim().toLowerCase(),
+        band: elements.band.value,
+        event: elements.event.value,
+        participation: elements.participation.value,
+    };
+}
+
+const hasActiveFilters = filters => Object.values(filters).some(value => value !== "");
+
+/**
+ * Participação só faz sentido com um evento escolhido: sem isso o campo
+ * fica desabilitado e limpo, para não sugerir um filtro que não filtra nada.
+ */
+function syncParticipationAvailability() {
+    const elements = filterElements();
+    const hasEvent = elements.event.value !== "";
+
+    elements.participation.disabled = !hasEvent;
+    if (!hasEvent) elements.participation.value = "";
+}
+
+/** Substitui as opções de um select preservando a escolha atual, se ela
+ *  ainda existir na nova lista — senão o filtro voltaria sozinho para
+ *  "todos" a cada troca de ano. */
+function fillFilterSelect(select, pairs) {
+    const placeholder = select.querySelector("option");
+    const previous = select.value;
+
+    select.innerHTML = "";
+    select.appendChild(placeholder);
+
+    pairs.forEach(([value, label]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        select.appendChild(option);
+    });
+
+    select.value = [...select.options].some(option => option.value === previous) ? previous : "";
+}
+
+function populateBandFilter(bands) {
+    fillFilterSelect(
+        document.getElementById("filtro-faixa"),
+        (bands ?? []).map(band => [String(band.band), bandLabel(band.band)]),
+    );
+}
+
+function populateEventFilter(events) {
+    fillFilterSelect(
+        document.getElementById("filtro-evento"),
+        (events ?? []).map(event => [String(event.id), event.name]),
+    );
+}
+
+function filterMembers(members, filters) {
+    return members.filter(member => {
+        if (filters.name && !member.name.toLowerCase().includes(filters.name)) return false;
+        if (filters.band && String(member.band) !== filters.band) return false;
+
+        if (filters.event) {
+            const participated = new Set(member.participatedEventIds ?? []).has(Number(filters.event));
+            if (filters.participation === "sim" && !participated) return false;
+            if (filters.participation === "nao" && participated) return false;
+        }
+
+        return true;
+    });
+}
+
+function applyFilters() {
+    if (!currentReport) return;
+
+    syncParticipationAvailability();
+
+    const filters = readFilters();
+    const filtering = hasActiveFilters(filters);
+
+    document.querySelector("[data-filter-clear]").disabled = !filtering;
+
+    const allMembers = currentReport.members ?? [];
+    const filteredMembers = filterMembers(allMembers, filters);
+
+    renderMatrixBody(currentReport, filteredMembers, filtering);
+}
+
+/* =========================================================================
    Matriz
    ========================================================================= */
 
@@ -206,18 +313,41 @@ function buildRow(member, events) {
     return row;
 }
 
-function renderMatrix(report) {
+/**
+ * Corpo da matriz para o recorte atual dos filtros. Cabeçalho, legenda e
+ * indicadores continuam falando do ano inteiro — só a lista de cooperados
+ * é que se estreita.
+ */
+function renderMatrixBody(report, filteredMembers, filtering) {
     const body = document.querySelector("[data-matrix-body]");
     const events = report.events ?? [];
-    const members = report.members ?? [];
-
-    renderHead(events);
+    const allMembers = report.members ?? [];
 
     body.innerHTML = "";
 
-    const fragment = document.createDocumentFragment();
-    members.forEach(member => fragment.appendChild(buildRow(member, events)));
-    body.appendChild(fragment);
+    if (filteredMembers.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.className = "matrix__empty-row";
+        cell.colSpan = events.length + 5;
+        cell.textContent = "Nenhum cooperado corresponde aos filtros.";
+        row.appendChild(cell);
+        body.appendChild(row);
+    } else {
+        const fragment = document.createDocumentFragment();
+        filteredMembers.forEach(member => fragment.appendChild(buildRow(member, events)));
+        body.appendChild(fragment);
+    }
+
+    document.querySelector("[data-table-count]").textContent = filtering
+        ? `${filteredMembers.length} de ${allMembers.length} cooperados`
+        : (allMembers.length === 1 ? "1 cooperado ativo" : `${allMembers.length} cooperados ativos`);
+}
+
+function renderMatrix(report) {
+    const events = report.events ?? [];
+
+    renderHead(events);
 
     document.querySelector("[data-matrix-caption]").textContent =
         `Percentual sobre os ${report.maxPossiblePoints} pontos possíveis em ${report.year}.`;
@@ -226,9 +356,8 @@ function renderMatrix(report) {
     // cursos sozinha. Sem o aviso, pareceria defeito.
     document.querySelector("[data-no-events-note]").hidden = events.length > 0;
 
-    document.querySelector("[data-table-count]").textContent = members.length === 1
-        ? "1 cooperado ativo"
-        : `${members.length} cooperados ativos`;
+    populateEventFilter(events);
+    applyFilters();
 }
 
 /* =========================================================================
@@ -248,6 +377,7 @@ async function loadReport() {
         }
 
         const report = result.body;
+        currentReport = report;
 
         fillYearFilter(report.availableYears);
 
@@ -262,10 +392,12 @@ async function loadReport() {
 
         updateSummary(report);
         renderBandLegend(report);
+        populateBandFilter(report.bands);
         renderMatrix(report);
     } catch (error) {
         // Falha de rede não é "nenhum cooperado cadastrado": os dois blocos
         // continuam ocultos para a tela não mentir sobre o estado do cadastro.
+        currentReport = null;
         emptyState.hidden = true;
         reportBlock.hidden = true;
 
@@ -288,8 +420,27 @@ function initYearFilter() {
     });
 }
 
+function initFilters() {
+    const filters = document.querySelector("[data-table-filters]");
+    if (!filters) return;
+
+    // Um ouvinte na barra inteira cobre os quatro campos: "input" pega a busca
+    // por nome a cada tecla, "change" pega os três selects.
+    filters.addEventListener("input", applyFilters);
+    filters.addEventListener("change", applyFilters);
+
+    document.querySelector("[data-filter-clear]").addEventListener("click", () => {
+        Object.values(filterElements()).forEach(element => {
+            element.value = "";
+        });
+
+        applyFilters();
+    });
+}
+
 function init() {
     initYearFilter();
+    initFilters();
     loadReport();
 }
 

@@ -76,6 +76,60 @@
 .band--5, .band-legend__item--5 { background-color: var(--color-band-5-bg); color: var(--color-band-5-text); }
 
 /* --------------------------------------------------------------------------
+   Barra de filtros
+
+   Grade de 12 como a de occurrences.css: nome, faixa e evento pesam mais
+   que participação, que só faz sentido com um evento escolhido. Os quatro
+   campos somam a linha inteira e o botão de limpar cai para a de baixo.
+
+   O .toolbar de components.css cuida do padding e da borda; esta regra só
+   troca o flex pelo grid.
+   -------------------------------------------------------------------------- */
+
+.bonus-points-filters {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-16);
+  align-items: end;
+}
+
+.bonus-points-filters__field--name {
+  grid-column: span 4;
+  min-width: 0;
+}
+
+.bonus-points-filters__field--band,
+.bonus-points-filters__field--event,
+.bonus-points-filters__field--participation {
+  grid-column: span 3;
+  min-width: 0;
+}
+
+.bonus-points-filters__actions {
+  grid-column: span 12;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+  .bonus-points-filters__field--name,
+  .bonus-points-filters__field--band,
+  .bonus-points-filters__field--event,
+  .bonus-points-filters__field--participation {
+    grid-column: span 12;
+  }
+}
+
+/* Linha de aviso dentro do corpo da matriz, quando o filtro não encontra
+   nenhum cooperado. Reaproveita o padding e o tom do .matrix__cell, sem
+   herdar o centro: a frase precisa da largura toda para não quebrar cedo. */
+.matrix__empty-row {
+  padding: var(--space-24) var(--space-16);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
    Matriz
 
    Duas âncoras que não podem se perder na rolagem: a coluna do nome (senão não
