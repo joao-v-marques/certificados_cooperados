@@ -5,6 +5,7 @@ public record CooperativeMemberYearSummaryResponse(
         String name,
         String email,
         int totalCourses,
+        int totalMinutes,
         int totalPoints,
         boolean goalReached,
         boolean trainedInCooperativism

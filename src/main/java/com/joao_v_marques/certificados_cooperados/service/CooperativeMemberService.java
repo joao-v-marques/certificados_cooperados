@@ -97,6 +97,7 @@ public class CooperativeMemberService {
                     member.getName(),
                     member.getEmail(),
                     totals.courses,
+                    totals.minutes,
                     totals.points,
                     goalReached,
                     totals.hasCooperativism
@@ -174,13 +175,19 @@ public class CooperativeMemberService {
         );
     }
 
-    // Acumulador do agrupamento em memória: cursos, pontos e cooperativismo de um cooperado no ano.
+    // Acumulador do agrupamento em memória: cursos, carga horária, pontos e cooperativismo de um cooperado no ano.
     private static final class YearTotals {
 
         // Compartilhado por todos cooperado sem lançamento no ano; nunca recebe add.
         private static final YearTotals EMPTY = new YearTotals();
 
         private int courses;
+
+        // Soma dos minutos, e não dos pontos: a pontuação é por faixa de
+        // duração (ver CoursePointsPolicy), então ela não permite voltar à
+        // carga horária real de quem quiser saber quantas horas foram feitas.
+        private int minutes;
+
         private int points;
 
         // Verdadeiro a partir do primeiro curso de cooperativismo; não volta.
@@ -188,6 +195,7 @@ public class CooperativeMemberService {
 
         private void add(int totalMinutes, boolean cooperativism) {
             courses++;
+            minutes += totalMinutes;
             points += CoursePointsPolicy.pointsOf(totalMinutes);
             hasCooperativism |= cooperativism;
         }
