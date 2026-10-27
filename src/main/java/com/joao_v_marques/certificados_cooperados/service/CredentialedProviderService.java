@@ -98,6 +98,18 @@ public class CredentialedProviderService {
         return toResponse(credentialed);
     }
 
+    // PATCH para reativar um credenciado
+    @Transactional
+    public CredentialedProviderResponse reactivate(Integer id) {
+
+        CredentialedProvider credentialed = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("O credenciado com esse ID não existe."));
+
+        credentialed.setActive(true);
+
+        return toResponse(credentialed);
+    }
+
     private CredentialedProviderResponse toResponse(CredentialedProvider credentialed) {
         return new CredentialedProviderResponse(
                 credentialed.getId(),

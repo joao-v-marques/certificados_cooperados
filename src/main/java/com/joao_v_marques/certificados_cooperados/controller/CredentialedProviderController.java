@@ -51,4 +51,12 @@ public class CredentialedProviderController {
 
         return ResponseEntity.ok().body(deactivated);
     }
+
+    // PATCH para reativar um credenciado
+    @PatchMapping("/{id}/reactivate")
+    public ResponseEntity<CredentialedProviderResponse> reactivate(@PathVariable Integer id) {
+        CredentialedProviderResponse reactivated = service.reactivate(id);
+
+        return ResponseEntity.ok().body(reactivated);
+    }
 }
