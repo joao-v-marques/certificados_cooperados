@@ -43,4 +43,12 @@ public class CredentialedProviderController {
 
         return ResponseEntity.ok().body(updated);
     }
+
+    // PATCH para desativar um credenciado, a própria rota define a ação e não precisa de body
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<CredentialedProviderResponse> deactivate(@PathVariable Integer id) {
+        CredentialedProviderResponse deactivated = service.deactivate(id);
+
+        return ResponseEntity.ok().body(deactivated);
+    }
 }

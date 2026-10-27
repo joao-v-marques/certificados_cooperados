@@ -86,6 +86,18 @@ public class CredentialedProviderService {
         return toResponse(credentialed);
     }
 
+    // PATCH para desativar um credenciado (soft delete)
+    @Transactional
+    public CredentialedProviderResponse deactivate(Integer id) {
+
+        CredentialedProvider credentialed = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("O credenciado com esse ID não existe."));
+
+        credentialed.setActive(false);
+
+        return toResponse(credentialed);
+    }
+
     private CredentialedProviderResponse toResponse(CredentialedProvider credentialed) {
         return new CredentialedProviderResponse(
                 credentialed.getId(),
