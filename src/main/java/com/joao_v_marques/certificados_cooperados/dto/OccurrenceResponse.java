@@ -11,5 +11,8 @@ public record OccurrenceResponse(
         String occurrenceTypeName,
         Integer cooperativeMemberId,
         String cooperativeMemberName,
+        // Só um dos pares cooperado/credenciado vem preenchido; o outro sai null
+        Integer credentialedProviderId,
+        String credentialedProviderName,
         String insertedByName
 ) {}

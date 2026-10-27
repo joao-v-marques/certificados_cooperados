@@ -13,8 +13,10 @@ public record OccurrenceRequest(
         @NotNull(message = "Informe o tipo da ocorrência.")
         Integer occurrenceTypeId,
 
-        @NotNull(message = "Informe o cooperado que solicitou a ocorrência.")
+        // Cooperado OU credenciado: a regra de "exatamente um" fica no service
         Integer cooperativeMemberId,
+
+        Integer credentialedProviderId,
 
         @NotNull(message = "Informe a data da ocorrência.")
         @PastOrPresent(message = "A data da ocorrência não pode ser futura.")

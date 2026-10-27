@@ -30,8 +30,12 @@ public class Occurrence {
     private OccurrenceType occurrenceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cooperative_member_id", nullable = false)
+    @JoinColumn(name = "cooperative_member_id")
     private CooperativeMember cooperativeMember;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "credentialed_provider_id")
+    private CredentialedProvider credentialedProvider;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inserted_by", nullable = false)

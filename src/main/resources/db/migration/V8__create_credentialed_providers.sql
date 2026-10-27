@@ -27,3 +27,15 @@ CREATE TABLE credentialed_providers (
 
     CONSTRAINT fk_credentialed_provider_type FOREIGN KEY (type_id) REFERENCES credentialed_provider_types(id)
 );
+
+ALTER TABLE occurrences
+    ALTER COLUMN cooperative_member_id DROP NOT NULL,
+    ADD COLUMN credentialed_provider_id INT, -- FK credentialed_providers
+
+    ADD CONSTRAINT fk_occurrence_credentialed_provider FOREIGN KEY (credentialed_provider_id) REFERENCES credentialed_providers(id),
+
+    ADD CONSTRAINT ck_occurrence_single_requester CHECK (num_nonnulls(cooperative_member_id, credentialed_provider_id) = 1);
+
+-- O Postgres não cria índice em FK sozinho; ajuda na listagem por cooperado/credenciado
+CREATE INDEX ix_occurrence_cooperative_member ON occurrences (cooperative_member_id);
+CREATE INDEX ix_occurrence_credentialed_provider ON occurrences (credentialed_provider_id);

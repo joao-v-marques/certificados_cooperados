@@ -25,6 +25,10 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Integer>
 
         String getCooperativeMemberName();
 
+        Integer getCredentialedProviderId();
+
+        String getCredentialedProviderName();
+
         String getInsertedByName();
 
         String getInsertedByUsername();
@@ -39,11 +43,14 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Integer>
                    t.name as typeName,
                    m.id as cooperativeMemberId,
                    m.name as cooperativeMemberName,
+                   p.id as credentialedProviderId,
+                   p.name as credentialedProviderName,
                    u.name as insertedByName,
                    u.username as insertedByUsername
             from Occurrence o
             join o.occurrenceType t
-            join o.cooperativeMember m
+            left join o.cooperativeMember m
+            left join o.credentialedProvider p
             join o.insertedBy u
             order by o.occurrenceDate desc, o.id desc
             """)
