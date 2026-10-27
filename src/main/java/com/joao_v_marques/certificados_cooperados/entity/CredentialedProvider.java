@@ -1,0 +1,36 @@
+package com.joao_v_marques.certificados_cooperados.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.OffsetDateTime;
+
+@Entity
+@Table(name = "credentialed_providers")
+@Getter
+@Setter
+@NoArgsConstructor
+public class CredentialedProvider {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "email")
+    private String email;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "type_id", nullable = false)
+    private CredentialedProviderType credentialedProviderType;
+
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt = OffsetDateTime.now();
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+}
