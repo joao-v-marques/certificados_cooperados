@@ -35,4 +35,12 @@ public class CredentialedProviderController {
 
         return ResponseEntity.created(location).body(created);
     }
+
+    // PUT de um credenciado
+    @PutMapping("/{id}")
+    public ResponseEntity<CredentialedProviderResponse> update(@PathVariable Integer id, @Valid @RequestBody CredentialedProviderRequest request) {
+        CredentialedProviderResponse updated = service.update(id, request);
+
+        return ResponseEntity.ok().body(updated);
+    }
 }

@@ -59,6 +59,33 @@ public class CredentialedProviderService {
         return toResponse(saved);
     }
 
+    // PUT de um credenciado já existente
+    @Transactional
+    public CredentialedProviderResponse update(Integer id, CredentialedProviderRequest request) {
+
+        // Validar se o credenciado editado realmente existe
+        CredentialedProvider credentialed = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("O credenciado que tentou editar não existe."));
+
+        String email = StringUtils.hasText(request.email()) ? request.email().trim() : null;
+
+        // Já valida se a FK passada existe, caso não exista já retorna erro
+        CredentialedProviderType type = typeRepository.findById(request.typeId())
+                .orElseThrow(() -> new IllegalArgumentException("Tipo de credenciado não encontrado."));
+
+        // Validações e regras que a DTO não está cobrindo
+        if (!type.isActive()) {
+            throw new IllegalArgumentException("O tipo de credenciado selecionado não está ativo.");
+        }
+
+        // Atualizando entidade já existente
+        credentialed.setName(request.name().trim());
+        credentialed.setEmail(email);
+        credentialed.setCredentialedProviderType(type);
+
+        return toResponse(credentialed);
+    }
+
     private CredentialedProviderResponse toResponse(CredentialedProvider credentialed) {
         return new CredentialedProviderResponse(
                 credentialed.getId(),
