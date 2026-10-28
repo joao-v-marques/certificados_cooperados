@@ -2,9 +2,18 @@
  * Listagem de ocorrências: preenche a tabela, filtra, abre o detalhe de cada
  * uma e cuida da edição e da exclusão.
  *
+ * O solicitante é um cooperado (Rel. Cooperado) ou um credenciado da rede
+ * (Rel. Rede): o response traz um dos pares cooperativeMember* ou
+ * credentialedProvider* preenchido e o outro null. Toda leitura do solicitante
+ * passa por requesterOf(), para nenhuma parte da tela esquecer o lado da rede.
+ *
  * Contrato com o HTML (data-*):
+ *   [data-relation-card="<lado>"]   card de relacionamento, também atalho do filtro
+ *   [data-relation-share="<lado>"]  percentual do total, embaixo do número do card
+ *   [data-relation-bar]             barra dividida do card de total
+ *   [data-relation-legend]          legenda da barra
  *   [data-filters]            barra de filtros; qualquer mudança refiltra
- *   [data-clear-filters]      zera os cinco campos de uma vez
+ *   [data-clear-filters]      zera os seis campos de uma vez
  *   [data-empty-state]        bloco de vazio, com [data-empty-title] e [data-empty-text]
  *   [data-table-count]        rodapé com a contagem de linhas mostradas
  *   [data-view-occurrence]    gatilho do detalhe; o valor é o id da ocorrência
@@ -13,11 +22,13 @@
  *   [data-modal-close]        fecha o modal em que está, nos três
  *
  * Modal de detalhe, dentro de [data-occurrence-modal]:
- *   [data-detail-member] / -type / -date / -inserted-by / -created-at
+ *   [data-detail-member] / -relation / -type / -date / -inserted-by / -created-at
  *   [data-detail-observations]
  *
  * Modal de edição, dentro de [data-occurrence-edit-modal]:
  *   [data-occurrence-edit-form]  formulário, submit interceptado (PUT)
+ *   [data-requester-switch]      radios name="requesterKind" (cooperado | rede)
+ *   [data-requester-field="<lado>"]  campo de cada lado, alternado pelo switch
  *   [data-edit-inserted-by] / [data-edit-created-at]  só leitura, no subtítulo
  *
  * Modal de exclusão, dentro de [data-occurrence-delete-modal]:
@@ -25,10 +36,11 @@
  *   [data-delete-excerpt]     trecho das observações, para reconhecer qual é
  *   [data-delete-confirm]     dispara o DELETE
  *
- * Por id: tbodyOccurrences, cardOccurrencesQtd, filtro-cooperado, filtro-tipo,
- * filtro-lancado-por, filtro-data-de, filtro-data-ate e os campos da edição
- * (edicao-cooperado, edicao-tipo, edicao-data, edicao-observacoes, com os
- * erro-edicao-* correspondentes).
+ * Por id: tbodyOccurrences, cardOccurrencesQtd, cardMemberOccurrencesQtd,
+ * cardNetworkOccurrencesQtd, filtro-relacionamento, filtro-solicitante,
+ * filtro-tipo, filtro-lancado-por, filtro-data-de, filtro-data-ate e os campos
+ * da edição (edicao-cooperado, edicao-credenciado, edicao-tipo, edicao-data,
+ * edicao-observacoes, com os erro-edicao-* correspondentes).
  *
  * Filtro e detalhe acontecem sobre a lista que GET /api/v1/occurrences já
  * trouxe. O endpoint não recebe parâmetro de busca, e enquanto o volume for
@@ -48,6 +60,9 @@ const OCCURRENCES_URL = "/certificados-cooperados/api/v1/occurrences";
 const OCCURRENCE_TYPES_URL = "/certificados-cooperados/api/v1/occurrence-types";
 const ACTIVE_MEMBERS_URL = "/certificados-cooperados/api/v1/cooperative-members?active=true";
 
+// Traz ativos e inativos; a edição filtra os ativos aqui.
+const PROVIDERS_URL = "/certificados-cooperados/api/v1/credentialed-providers";
+
 /** Quantos caracteres da observação vão para a célula. O corte visual é do CSS
  *  (-webkit-line-clamp); este aqui evita despejar 2000 caracteres por linha no
  *  DOM só para escondê-los em seguida. */
@@ -65,7 +80,7 @@ let editingId = null;
 let deletingId = null;
 
 /**
- * Cooperados ativos e tipos ativos, buscados uma vez só e reaproveitados por
+ * Cooperados, credenciados e tipos ativos, buscados uma vez só e reaproveitados por
  * todas as edições da sessão. É promessa, e não array, para dois cliques
  * seguidos no lápis não dispararem duas vezes as mesmas requisições.
  */
@@ -75,6 +90,7 @@ let editOptionsPromise = null;
  *  edição. Mesmo arranjo do lançamento (js/pages/new_occurrence.js). */
 const EDIT_FIELDS = {
     cooperativeMemberId: {inputId: "edicao-cooperado", errorId: "erro-edicao-cooperado"},
+    credentialedProviderId: {inputId: "edicao-credenciado", errorId: "erro-edicao-credenciado"},
     occurrenceTypeId: {inputId: "edicao-tipo", errorId: "erro-edicao-tipo"},
     occurrenceDate: {inputId: "edicao-data", errorId: "erro-edicao-data"},
     observations: {inputId: "edicao-observacoes", errorId: "erro-edicao-observacoes"},
@@ -120,6 +136,55 @@ function formatDateTime(value) {
     return date.toLocaleString("pt-BR", {dateStyle: "short", timeStyle: "short"});
 }
 
+/* =========================================================================
+   Solicitante (cooperado ou rede)
+   ========================================================================= */
+
+const RELATION_LABELS = {cooperado: "Cooperado", rede: "Rede"};
+
+/**
+ * Lê o solicitante de uma ocorrência, seja qual for o lado.
+ *
+ * `key` junta o lado e o id (m:12, p:12) porque cooperado e credenciado vêm de
+ * tabelas diferentes e podem ter o mesmo id — é o valor do filtro de
+ * solicitante.
+ */
+function requesterOf(occurrence) {
+    if (occurrence.credentialedProviderId !== null && occurrence.credentialedProviderId !== undefined) {
+        return {
+            kind: "rede",
+            id: occurrence.credentialedProviderId,
+            name: occurrence.credentialedProviderName ?? "",
+            key: `p:${occurrence.credentialedProviderId}`,
+        };
+    }
+
+    return {
+        kind: "cooperado",
+        id: occurrence.cooperativeMemberId,
+        name: occurrence.cooperativeMemberName ?? "",
+        key: `m:${occurrence.cooperativeMemberId}`,
+    };
+}
+
+// Pílula com ícone e a cor do lado; vai na tabela e no detalhe.
+function relationPill(kind) {
+    const icon = kind === "rede"
+        ? `<rect x="2" y="3.5" width="12" height="9" rx="1.25" stroke="currentColor" stroke-width="1.4"/>
+           <path d="M9.5 7h2.5M9.5 9.5h2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+           <circle cx="5.75" cy="7.25" r="1.25" stroke="currentColor" stroke-width="1.2"/>`
+        : `<circle cx="8" cy="5.5" r="2.25" stroke="currentColor" stroke-width="1.4"/>
+           <path d="M3.5 13.5a4.5 4.5 0 0 1 9 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>`;
+
+    const modifier = kind === "rede" ? "relation-pill--network" : "relation-pill--member";
+
+    return `
+        <span class="relation-pill ${modifier}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">${icon}</svg>
+            ${RELATION_LABELS[kind]}
+        </span>`;
+}
+
 function buildExcerpt(observations) {
     const text = String(observations ?? "").trim();
 
@@ -133,7 +198,8 @@ function buildExcerpt(observations) {
    ========================================================================= */
 
 const filterElements = () => ({
-    member: document.getElementById("filtro-cooperado"),
+    relation: document.getElementById("filtro-relacionamento"),
+    requester: document.getElementById("filtro-solicitante"),
     type: document.getElementById("filtro-tipo"),
     insertedBy: document.getElementById("filtro-lancado-por"),
     from: document.getElementById("filtro-data-de"),
@@ -144,7 +210,8 @@ function readFilters() {
     const elements = filterElements();
 
     return {
-        member: elements.member.value,
+        relation: elements.relation.value,
+        requester: elements.requester.value,
         type: elements.type.value,
         insertedBy: elements.insertedBy.value,
         from: elements.from.value,
@@ -206,11 +273,52 @@ function distinctPairs(occurrences, valueOf, labelOf) {
     return [...pairs.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
 }
 
+/**
+ * Select de solicitante com um <optgroup> por lado. Com um relacionamento
+ * escolhido no filtro, só o grupo dele aparece: oferecer um credenciado com o
+ * filtro em "Rel. Cooperado" levaria a tabela a zero sem motivo aparente.
+ */
+function fillRequesterSelect(occurrences, relation) {
+    const select = filterElements().requester;
+    const placeholder = select.querySelector("option");
+    const previous = select.value;
+
+    const groups = [
+        {kind: "cooperado", label: "Cooperados"},
+        {kind: "rede", label: "Rede"},
+    ].filter(group => !relation || group.kind === relation);
+
+    select.innerHTML = "";
+    select.appendChild(placeholder);
+
+    groups.forEach(({kind, label}) => {
+        const pairs = distinctPairs(
+            occurrences.filter(occurrence => requesterOf(occurrence).kind === kind),
+            o => requesterOf(o).key,
+            o => requesterOf(o).name,
+        );
+        if (!pairs.length) return;
+
+        const group = document.createElement("optgroup");
+        group.label = label;
+
+        pairs.forEach(([value, text]) => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = text;
+            group.appendChild(option);
+        });
+
+        select.appendChild(group);
+    });
+
+    select.value = [...select.options].some(option => option.value === previous) ? previous : "";
+}
+
 function populateFilterOptions(occurrences) {
     const elements = filterElements();
 
-    fillSelect(elements.member,
-        distinctPairs(occurrences, o => o.cooperativeMemberId, o => o.cooperativeMemberName));
+    fillRequesterSelect(occurrences, elements.relation.value);
 
     // O tipo é filtrado pelo nome porque o response não traz o id — e a coluna
     // name é UNIQUE no banco, então o nome identifica o tipo sem ambiguidade.
@@ -222,7 +330,7 @@ function populateFilterOptions(occurrences) {
 }
 
 /**
- * Aplica os cinco filtros. Campo vazio não filtra nada.
+ * Aplica os seis filtros. Campo vazio não filtra nada.
  *
  * As datas são comparadas como texto ISO (yyyy-MM-dd), em que a ordem
  * alfabética é a ordem cronológica. Evita converter para Date só para comparar
@@ -230,7 +338,9 @@ function populateFilterOptions(occurrences) {
  */
 function filterOccurrences(filters) {
     return allOccurrences.filter(occurrence => {
-        if (filters.member && String(occurrence.cooperativeMemberId) !== filters.member) return false;
+        const requester = requesterOf(occurrence);
+        if (filters.relation && requester.kind !== filters.relation) return false;
+        if (filters.requester && requester.key !== filters.requester) return false;
         if (filters.type && occurrence.occurrenceTypeName !== filters.type) return false;
         if (filters.insertedBy && occurrence.insertedByName !== filters.insertedBy) return false;
 
@@ -270,11 +380,19 @@ function buildRow(occurrence) {
         ? `<span class="occurrences-table__more" aria-hidden="true">Ver detalhe</span>`
         : "";
 
+    const requester = requesterOf(occurrence);
+    const name = escapeHtml(requester.name);
+
     const row = document.createElement("tr");
 
+    // A marca lateral na cor do lado é o que deixa ler o relacionamento de
+    // relance numa lista longa; a pílula diz em palavras o que a cor indica.
+    row.className = requester.kind === "rede" ? "occurrences-row--network" : "occurrences-row--member";
+
     row.innerHTML = `
-        <td data-label="Cooperado">
-            <span class="table__primary">${escapeHtml(occurrence.cooperativeMemberName)}</span>
+        <td data-label="Solicitante">
+            <span class="table__primary occurrences-table__requester">${name}</span>
+            ${relationPill(requester.kind)}
         </td>
         <td data-label="Tipo">
             <span class="badge badge--neutral">${escapeHtml(occurrence.occurrenceTypeName)}</span>
@@ -293,7 +411,7 @@ function buildRow(occurrence) {
                     <path d="M9.5 3 13 6.5 5.5 14H2v-3.5L9.5 3Z" stroke="currentColor"
                           stroke-width="1.4" stroke-linejoin="round"/>
                 </svg>
-                <span class="visually-hidden">Editar a ocorrência de ${escapeHtml(occurrence.cooperativeMemberName)}</span>
+                <span class="visually-hidden">Editar a ocorrência de ${name}</span>
             </button>
             <button type="button" class="btn-icon occurrences-table__action occurrences-table__action--danger"
                     data-delete-occurrence="${occurrence.id}" title="Excluir ocorrência">
@@ -301,7 +419,7 @@ function buildRow(occurrence) {
                     <path d="M2.5 4.5h11M6.5 4.5V3h3v1.5M4.5 4.5 5 13.5h6l.5-9" stroke="currentColor"
                           stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span class="visually-hidden">Excluir a ocorrência de ${escapeHtml(occurrence.cooperativeMemberName)}</span>
+                <span class="visually-hidden">Excluir a ocorrência de ${name}</span>
             </button>
         </td>
     `;
@@ -348,18 +466,84 @@ function renderOccurrences(occurrences, filters) {
         emptyText.textContent = "Ajuste ou limpe os filtros para ver os demais registros.";
     } else {
         emptyTitle.textContent = "Nenhuma ocorrência lançada ainda";
-        emptyText.textContent = "Assim que a secretaria executiva registrar a primeira solicitação de um cooperado, ela aparece aqui.";
+        emptyText.textContent = "Assim que a secretaria executiva registrar a primeira solicitação de um cooperado ou da rede, ela aparece aqui.";
     }
 }
 
 function applyFilters() {
+    // O relacionamento escolhido recorta as opções de solicitante; refeito
+    // antes da leitura para um solicitante do outro lado não continuar valendo.
+    fillRequesterSelect(allOccurrences, filterElements().relation.value);
+
     const filters = readFilters();
 
     syncDateBounds();
+    syncRelationCards(filters.relation);
 
     document.querySelector("[data-clear-filters]").disabled = !hasActiveFilters(filters);
 
     renderOccurrences(filterOccurrences(filters), filters);
+}
+
+/* =========================================================================
+   Indicadores
+   ========================================================================= */
+
+// Percentual inteiro; sem ocorrência nenhuma não há proporção a mostrar.
+function shareOf(part, total) {
+    return total ? Math.round((part / total) * 100) : 0;
+}
+
+/**
+ * Os cards contam o total lançado, e não o que sobrou do filtro: são o número
+ * do sistema, não da consulta em curso. O recorte fica no rodapé da tabela.
+ */
+function updateSummary() {
+    const total = allOccurrences.length;
+    const network = allOccurrences.filter(occurrence => requesterOf(occurrence).kind === "rede").length;
+    const member = total - network;
+
+    document.getElementById("cardOccurrencesQtd").textContent = total;
+    document.getElementById("cardMemberOccurrencesQtd").textContent = member;
+    document.getElementById("cardNetworkOccurrencesQtd").textContent = network;
+
+    const memberShare = shareOf(member, total);
+    const networkShare = total ? 100 - memberShare : 0;
+
+    document.querySelector('[data-relation-share="cooperado"]').textContent =
+        total ? `${memberShare}% das ocorrências` : "Nenhuma ocorrência ainda";
+    document.querySelector('[data-relation-share="rede"]').textContent =
+        total ? `${networkShare}% das ocorrências` : "Nenhuma ocorrência ainda";
+
+    // A barra usa a conta exata, e não o percentual arredondado, para as duas
+    // partes somarem a largura inteira.
+    const bar = document.querySelector("[data-relation-bar]");
+    bar.style.setProperty("--share-member", total ? `${(member / total) * 100}%` : "0%");
+    bar.style.setProperty("--share-network", total ? `${(network / total) * 100}%` : "0%");
+    bar.classList.toggle("is-empty", total === 0);
+
+    document.querySelector("[data-relation-legend]").textContent = total
+        ? `${member} de cooperado, ${network} da rede`
+        : "Nenhuma ocorrência ainda";
+}
+
+// O card do lado filtrado fica pressionado; o outro, solto.
+function syncRelationCards(relation) {
+    document.querySelectorAll("[data-relation-card]").forEach(card => {
+        card.setAttribute("aria-pressed", String(card.dataset.relationCard === relation));
+    });
+}
+
+function initRelationCards() {
+    document.querySelectorAll("[data-relation-card]").forEach(card => {
+        card.addEventListener("click", () => {
+            const select = filterElements().relation;
+
+            // Clicar no card já filtrado desfaz o filtro.
+            select.value = select.value === card.dataset.relationCard ? "" : card.dataset.relationCard;
+            applyFilters();
+        });
+    });
 }
 
 /**
@@ -373,9 +557,7 @@ function refreshOccurrences() {
     occurrencesById.clear();
     allOccurrences.forEach(occurrence => occurrencesById.set(String(occurrence.id), occurrence));
 
-    // O card conta o total lançado, e não o que sobrou do filtro: é o número
-    // do sistema, não da consulta em curso. O recorte fica no rodapé.
-    document.getElementById("cardOccurrencesQtd").textContent = allOccurrences.length;
+    updateSummary();
 
     populateFilterOptions(allOccurrences);
     applyFilters();
@@ -410,6 +592,8 @@ async function loadOccurrences() {
         document.querySelector("[data-empty-state]").hidden = true;
         document.querySelector("[data-table-count]").textContent = "";
         card.textContent = "-";
+        document.getElementById("cardMemberOccurrencesQtd").textContent = "-";
+        document.getElementById("cardNetworkOccurrencesQtd").textContent = "-";
 
         notifyError("Não foi possível carregar as ocorrências. Atualize a página.");
         console.error(error);
@@ -428,7 +612,11 @@ function openOccurrenceModal(occurrenceId) {
 
     // textContent em tudo: o conteúdo vem do cadastro e das observações
     // digitadas, e não pode ser interpretado como marcação.
-    modal.querySelector("[data-detail-member]").textContent = occurrence.cooperativeMemberName;
+    const requester = requesterOf(occurrence);
+
+    modal.querySelector("[data-detail-member]").textContent = requester.name;
+    // A pílula é marcação fixa nossa, sem nada do banco: pode ir por innerHTML.
+    modal.querySelector("[data-detail-relation]").innerHTML = relationPill(requester.kind);
     modal.querySelector("[data-detail-type]").textContent = occurrence.occurrenceTypeName;
     modal.querySelector("[data-detail-date]").textContent = formatDate(occurrence.occurrenceDate);
     modal.querySelector("[data-detail-inserted-by]").textContent = occurrence.insertedByName;
@@ -535,6 +723,12 @@ function loadEditOptions() {
         editOptionsPromise = Promise.all([
             fetchJson(ACTIVE_MEMBERS_URL),
             fetchJson(OCCURRENCE_TYPES_URL),
+            // Mesma regra e mesmo rótulo do lançamento: só ativos, com o tipo do
+            // credenciado no nome para diferenciar homônimos.
+            fetchJson(PROVIDERS_URL).then(providers => providers
+                .filter(provider => provider.isActive)
+                .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+                .map(provider => ({id: provider.id, name: `${provider.name} (${provider.typeName})`}))),
         ]).catch(error => {
             editOptionsPromise = null;
             throw error;
@@ -552,7 +746,7 @@ function loadEditOptions() {
  * mostrando o que a ocorrência tem hoje, mas salvar exige escolher um
  * substituto, que é exatamente a regra que o OccurrenceService aplica.
  */
-function fillEditSelect(select, items, currentValue, currentLabel, inactiveSuffix) {
+function fillEditSelect(select, items, currentValue, currentLabel, inactiveSuffix, placeholder = "Selecione") {
     select.innerHTML = "";
 
     const fragment = document.createDocumentFragment();
@@ -576,7 +770,9 @@ function fillEditSelect(select, items, currentValue, currentLabel, inactiveSuffi
         // listagem devolve só pelo nome. Aí o envio cai no @NotNull do backend,
         // que é a mensagem certa: falta escolher um tipo válido.
         option.value = value;
-        option.textContent = `${currentLabel} ${inactiveSuffix}`;
+        // Sem rótulo é o select do lado que a ocorrência não usa: no lugar de
+        // um registro inativo, entra o convite à escolha.
+        option.textContent = currentLabel ? `${currentLabel} ${inactiveSuffix}` : placeholder;
         option.disabled = true;
         select.insertBefore(option, select.firstChild);
     }
@@ -590,13 +786,14 @@ async function openEditModal(occurrenceId) {
 
     let members;
     let types;
+    let providers;
 
     // As listas vêm antes de abrir: um modal que aparece com as selects vazias
     // e se preenche depois convida a salvar no meio do carregamento.
     try {
-        [members, types] = await loadEditOptions();
+        [members, types, providers] = await loadEditOptions();
     } catch (error) {
-        notifyError("Não foi possível carregar cooperados e tipos. Tente de novo.");
+        notifyError("Não foi possível carregar cooperados, credenciados e tipos. Tente de novo.");
         console.error(error);
         return;
     }
@@ -609,13 +806,33 @@ async function openEditModal(occurrenceId) {
     modal.querySelector("[data-edit-inserted-by]").textContent = occurrence.insertedByName;
     modal.querySelector("[data-edit-created-at]").textContent = formatDateTime(occurrence.createdAt);
 
+    const requester = requesterOf(occurrence);
+
+    // Os dois selects são preenchidos: o usuário pode trocar de lado na
+    // edição, e o backend zera o outro solicitante quando isso acontece. Só o
+    // lado da ocorrência leva o valor atual.
+    const isMember = requester.kind === "cooperado";
+
     fillEditSelect(
         document.getElementById("edicao-cooperado"),
         members,
-        occurrence.cooperativeMemberId,
-        occurrence.cooperativeMemberName,
+        isMember ? requester.id : null,
+        isMember ? requester.name : null,
         "(inativo)",
+        "Selecione o cooperado",
     );
+
+    fillEditSelect(
+        document.getElementById("edicao-credenciado"),
+        providers,
+        isMember ? null : requester.id,
+        isMember ? null : requester.name,
+        "(inativo)",
+        "Selecione o credenciado",
+    );
+
+    modal.querySelector(`[data-requester-switch] input[value="${requester.kind}"]`).checked = true;
+    syncEditRequesterFields();
 
     // O response traz o tipo só pelo nome, sem id. Casar por nome é seguro:
     // occurrence_types.name é UNIQUE no banco.
@@ -651,10 +868,34 @@ function readEditId(elementId) {
     return value ? Number(value) : null;
 }
 
+/* Relacionamento -------------------------------------------------------- */
+
+function currentEditRequesterKind() {
+    return document.querySelector("[data-occurrence-edit-modal] [data-requester-switch] input:checked")?.value
+        ?? "cooperado";
+}
+
+// Mostra o campo do lado escolhido e esconde o outro, que também fica disabled
+// para ninguém achar que o valor dele ainda vale.
+function syncEditRequesterFields() {
+    const modal = document.querySelector("[data-occurrence-edit-modal]");
+    const kind = currentEditRequesterKind();
+
+    modal.querySelectorAll("[data-requester-field]").forEach(field => {
+        const active = field.dataset.requesterField === kind;
+        field.hidden = !active;
+        field.querySelector("select").disabled = !active;
+    });
+}
+
 function readEditForm() {
+    const kind = currentEditRequesterKind();
+
     return {
         occurrenceTypeId: readEditId("edicao-tipo"),
-        cooperativeMemberId: readEditId("edicao-cooperado"),
+        // Só o lado escolhido vai preenchido: o backend recusa os dois juntos.
+        cooperativeMemberId: kind === "cooperado" ? readEditId("edicao-cooperado") : null,
+        credentialedProviderId: kind === "rede" ? readEditId("edicao-credenciado") : null,
         occurrenceDate: document.getElementById("edicao-data").value || null,
         observations: document.getElementById("edicao-observacoes").value.trim(),
     };
@@ -726,7 +967,8 @@ async function handleEditSubmit(event) {
 
         replaceOccurrence(body);
         modal.close();
-        notifySuccess(`Ocorrência de ${body?.cooperativeMemberName ?? "o cooperado"} atualizada.`);
+        // O Notyf grava a mensagem com innerHTML, e o nome vem do cadastro.
+        notifySuccess(`Ocorrência de ${escapeHtml(requesterOf(body).name || "o solicitante")} atualizada.`);
     } catch (error) {
         const message = "Não foi possível conectar ao servidor. Tente de novo.";
 
@@ -744,6 +986,12 @@ function initEditModal() {
     if (!modal) return;
 
     modal.querySelector("[data-occurrence-edit-form]").addEventListener("submit", handleEditSubmit);
+
+    modal.querySelector("[data-requester-switch]").addEventListener("change", () => {
+        // O erro do lado que saiu de vista não deve reaparecer quando ele voltar.
+        clearEditFieldErrors();
+        syncEditRequesterFields();
+    });
 
     // Só os botões fecham. Ao contrário do detalhe, aqui há texto digitado em
     // jogo: clique no fundo é fácil de dar sem querer e apagaria a edição em
@@ -771,7 +1019,7 @@ function openDeleteModal(occurrenceId) {
     // textContent: cooperado, tipo e observações vêm do banco e não podem ser
     // interpretados como marcação.
     modal.querySelector("[data-delete-question]").textContent =
-        `Tem certeza que deseja excluir a ocorrência de ${occurrence.cooperativeMemberName}, `
+        `Tem certeza que deseja excluir a ocorrência de ${requesterOf(occurrence).name}, `
         + `do tipo ${occurrence.occurrenceTypeName}, do dia ${formatDate(occurrence.occurrenceDate)}?`;
 
     modal.querySelector("[data-delete-excerpt]").textContent = buildExcerpt(occurrence.observations).text;
@@ -831,7 +1079,7 @@ async function handleDeleteConfirm(event) {
 
         removeOccurrence(occurrence.id);
         modal.close();
-        notifySuccess(`Ocorrência de ${occurrence.cooperativeMemberName} excluída.`);
+        notifySuccess(`Ocorrência de ${escapeHtml(requesterOf(occurrence).name)} excluída.`);
     } catch (error) {
         const message = "Não foi possível conectar ao servidor. Tente de novo.";
 
@@ -916,6 +1164,7 @@ function initFilters() {
 
 function init() {
     initFilters();
+    initRelationCards();
     initTableActions();
     initOccurrenceModal();
     initEditModal();

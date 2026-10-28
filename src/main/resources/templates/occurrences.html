@@ -329,17 +329,66 @@
                 </header>
 
                 <!-- ==============================================================
-                     1. Indicador
+                     1. Indicadores
+
+                     O total conta o sistema inteiro, e a barra embaixo dele mostra
+                     como ele se divide entre cooperado e rede. Os dois cards de
+                     relacionamento também são atalho de filtro: clicar mostra só
+                     aquele lado na tabela, clicar de novo tira. Todos os números
+                     ficam em "-" até a listagem chegar.
                      ============================================================== -->
                 <section aria-labelledby="titulo-indicador">
                     <h2 class="visually-hidden" id="titulo-indicador">Resumo das ocorrências</h2>
 
-                    <div class="occurrences-summary">
-                        <article class="stat">
-                            <p class="stat__label">Ocorrências lançadas</p>
-                            <p class="stat__value tabular" id="cardOccurrencesQtd">-</p>
+                    <div class="occ-summary">
+                        <article class="occ-stat occ-stat--total">
+                            <p class="occ-stat__label">Ocorrências lançadas</p>
+                            <p class="occ-stat__value tabular" id="cardOccurrencesQtd">-</p>
+
+                            <!-- Barra dividida na proporção real; as larguras são
+                                 gravadas pelo JS em --share-member e --share-network. -->
+                            <div class="occ-split" data-relation-bar aria-hidden="true">
+                                <span class="occ-split__part occ-split__part--member"></span>
+                                <span class="occ-split__part occ-split__part--network"></span>
+                            </div>
+                            <p class="occ-stat__meta tabular" data-relation-legend>&nbsp;</p>
                         </article>
+
+                        <button type="button" class="occ-stat occ-stat--member" data-relation-card="cooperado"
+                                aria-pressed="false" aria-describedby="dica-cards-relacionamento">
+                            <span class="occ-stat__head">
+                                <span class="occ-stat__icon" aria-hidden="true">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                        <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M4.5 16a5.5 5.5 0 0 1 11 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                </span>
+                                <span class="occ-stat__label">Ocorrências Rel. Cooperado</span>
+                            </span>
+                            <span class="occ-stat__value tabular" id="cardMemberOccurrencesQtd">-</span>
+                            <span class="occ-stat__meta tabular" data-relation-share="cooperado">&nbsp;</span>
+                        </button>
+
+                        <button type="button" class="occ-stat occ-stat--network" data-relation-card="rede"
+                                aria-pressed="false" aria-describedby="dica-cards-relacionamento">
+                            <span class="occ-stat__head">
+                                <span class="occ-stat__icon" aria-hidden="true">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                        <rect x="3" y="4.5" width="14" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                                        <circle cx="7.5" cy="9" r="1.75" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M5 13c.4-1.2 1.4-1.9 2.5-1.9s2.1.7 2.5 1.9M12 8.5h2.5M12 11.5h2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                </span>
+                                <span class="occ-stat__label">Ocorrências Rel. Rede</span>
+                            </span>
+                            <span class="occ-stat__value tabular" id="cardNetworkOccurrencesQtd">-</span>
+                            <span class="occ-stat__meta tabular" data-relation-share="rede">&nbsp;</span>
+                        </button>
                     </div>
+
+                    <p class="visually-hidden" id="dica-cards-relacionamento">
+                        Mostra na tabela só as ocorrências deste relacionamento.
+                    </p>
                 </section>
 
                 <!-- ==============================================================
@@ -359,9 +408,21 @@
                     <div class="toolbar occurrences-filters" data-filters>
 
                         <div class="toolbar__filter occurrences-filters__field--wide">
-                            <label class="field__label" for="filtro-cooperado">Cooperado</label>
-                            <select class="select" id="filtro-cooperado" name="cooperativeMemberId">
-                                <option value="">Todos os cooperados</option>
+                            <label class="field__label" for="filtro-relacionamento">Relacionamento</label>
+                            <select class="select" id="filtro-relacionamento" name="relation">
+                                <option value="">Todos</option>
+                                <option value="cooperado">Rel. Cooperado</option>
+                                <option value="rede">Rel. Rede</option>
+                            </select>
+                        </div>
+
+                        <!-- Cooperados e credenciados no mesmo select, separados em
+                             grupos. O valor leva o lado na frente (m:<id> ou p:<id>)
+                             porque os ids das duas tabelas podem coincidir. -->
+                        <div class="toolbar__filter occurrences-filters__field--wide">
+                            <label class="field__label" for="filtro-solicitante">Solicitante</label>
+                            <select class="select" id="filtro-solicitante" name="requester">
+                                <option value="">Todos os solicitantes</option>
                             </select>
                         </div>
 
@@ -404,13 +465,14 @@
                     <div class="table-wrap">
                         <table class="table table--cards occurrences-table">
                             <caption class="visually-hidden">
-                                Ocorrências lançadas no sistema, com o cooperado que solicitou, o
+                                Ocorrências lançadas no sistema, com o solicitante (cooperado ou
+                                credenciado da rede), o
                                 tipo, a data, um trecho das observações e quem realizou o
                                 lançamento.
                             </caption>
                             <thead>
                                 <tr>
-                                    <th scope="col">Cooperado</th>
+                                    <th scope="col">Solicitante</th>
                                     <th scope="col">Tipo</th>
                                     <th scope="col">Data</th>
                                     <th scope="col">Observações</th>
@@ -439,7 +501,7 @@
                         <p class="empty__title" data-empty-title>Nenhuma ocorrência lançada ainda</p>
                         <p class="empty__text" data-empty-text>
                             Assim que a secretaria executiva registrar a primeira solicitação de
-                            um cooperado, ela aparece aqui.
+                            um cooperado ou da rede, ela aparece aqui.
                         </p>
                     </div>
 
@@ -468,7 +530,11 @@
     <header class="modal__head">
         <div>
             <h2 class="modal__title" id="modal-ocorrencia-cooperado" data-detail-member>Ocorrência</h2>
-            <p class="modal__subtitle" data-detail-type></p>
+            <!-- Pílula do relacionamento ao lado do tipo; quem escreve as duas é o JS. -->
+            <p class="modal__subtitle occurrence-detail__meta">
+                <span data-detail-relation></span>
+                <span data-detail-type></span>
+            </p>
         </div>
 
         <button type="button" class="btn-icon modal__close" data-modal-close>
@@ -547,7 +613,22 @@
         <div class="modal__body">
             <div class="form-grid">
 
-                <div class="field form-grid__full">
+                <!-- Mesmo seletor do lançamento: o JS marca o lado da ocorrência
+                     na abertura, mostra o campo dele e desabilita o outro. -->
+                <fieldset class="requester-switch form-grid__full" data-requester-switch>
+                    <legend class="visually-hidden">Relacionamento da ocorrência</legend>
+
+                    <label class="requester-switch__option">
+                        <input type="radio" name="requesterKind" value="cooperado" checked>
+                        <span>Relac. Cooperado</span>
+                    </label>
+                    <label class="requester-switch__option">
+                        <input type="radio" name="requesterKind" value="rede">
+                        <span>Relac. Rede</span>
+                    </label>
+                </fieldset>
+
+                <div class="field form-grid__full" data-requester-field="cooperado">
                     <label class="field__label" for="edicao-cooperado">Cooperado</label>
                     <!-- As opções são carregadas pelo JS (só cooperados ativos). -->
                     <select class="select" id="edicao-cooperado" name="cooperativeMemberId"
@@ -555,9 +636,22 @@
                         <option value="" disabled selected>Selecione o cooperado</option>
                     </select>
                     <p class="field__hint" id="dica-edicao-cooperado">
-                        Trocar o cooperado move a ocorrência para o histórico de outra pessoa.
+                        Trocar o solicitante move a ocorrência para o histórico de outro.
                     </p>
                     <p class="field__error is-hidden" id="erro-edicao-cooperado"></p>
+                </div>
+
+                <div class="field form-grid__full" data-requester-field="rede" hidden>
+                    <label class="field__label" for="edicao-credenciado">Credenciado</label>
+                    <!-- As opções são carregadas pelo JS (só credenciados ativos). -->
+                    <select class="select" id="edicao-credenciado" name="credentialedProviderId"
+                            disabled aria-describedby="dica-edicao-credenciado">
+                        <option value="" disabled selected>Selecione o credenciado</option>
+                    </select>
+                    <p class="field__hint" id="dica-edicao-credenciado">
+                        Trocar o solicitante move a ocorrência para o histórico de outro.
+                    </p>
+                    <p class="field__error is-hidden" id="erro-edicao-credenciado"></p>
                 </div>
 
                 <div class="field form-grid__half">
@@ -638,7 +732,7 @@
         <p class="occurrence-delete__excerpt" data-delete-excerpt></p>
 
         <p class="modal__text text-muted">
-            A exclusão é definitiva: a ocorrência sai do histórico do cooperado e
+            A exclusão é definitiva: a ocorrência sai do histórico do solicitante e
             não há como recuperá-la.
         </p>
     </div>

@@ -141,6 +141,17 @@
   --color-danger-bg:       var(--palette-pink-200);
   --color-danger-text:     var(--palette-red-800);
 
+  /* Relacionamento da ocorrência — quem solicitou: um cooperado ou um
+     credenciado da rede. Verde para o cooperado, que é a casa; petróleo para a
+     rede, que é a parceria. Semânticos para as telas não amarrarem o
+     significado à cor da marca nem a um estado de feedback. */
+  --color-relation-member:       var(--palette-green-500);
+  --color-relation-member-bg:    var(--palette-green-200);
+  --color-relation-member-text:  var(--palette-green-800);
+  --color-relation-network:      var(--palette-teal-800);
+  --color-relation-network-bg:   var(--palette-blue-200);
+  --color-relation-network-text: var(--palette-teal-800);
+
   /* Faixas da pontuação premiada — cinco degraus do menor para o maior percentual
      do total possível do ano, na escala da planilha da secretaria: preto, lilás,
      vermelho, amarelo e verde.
