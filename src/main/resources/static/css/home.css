@@ -252,7 +252,7 @@
   height: 40px;
   border-radius: var(--radius-control);
   background-color: var(--color-surface-secondary);
-  color: var(--color-brand-deep);
+  color: var(--color-brand-text);
 }
 
 .shortcut__title {

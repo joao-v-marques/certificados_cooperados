@@ -69,7 +69,7 @@
   white-space: nowrap;
 }
 
-.band--1, .band-legend__item--1 { background-color: var(--color-band-1-bg); color: var(--color-band-1-text); }
+.band--1, .band-legend__item--1 { background-color: var(--color-band-1-bg); color: var(--color-band-1-text); box-shadow: inset 0 0 0 1px var(--color-band-1-ring); }
 .band--2, .band-legend__item--2 { background-color: var(--color-band-2-bg); color: var(--color-band-2-text); }
 .band--3, .band-legend__item--3 { background-color: var(--color-band-3-bg); color: var(--color-band-3-text); }
 .band--4, .band-legend__item--4 { background-color: var(--color-band-4-bg); color: var(--color-band-4-text); }

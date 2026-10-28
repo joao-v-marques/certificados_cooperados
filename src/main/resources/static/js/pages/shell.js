@@ -7,6 +7,7 @@
 
 import { initLogout } from '../auth/logout.js';
 import { roleLabel } from '../utils/roles.js';
+import { initThemeToggle } from '../utils/theme.js';
 
 /** Espelha o breakpoint do CSS: abaixo disso a sidebar vira overlay. */
 const BREAKPOINT_OVERLAY = 1024;
@@ -313,6 +314,7 @@ initNavGroups();
 
 initCurrentUser();
 initLogout();
+initThemeToggle();
 
 // Esc fecha a camada mais alta: o dropdown antes da sidebar, para que fechar
 // o menu da conta não feche junto a navegação em overlay.

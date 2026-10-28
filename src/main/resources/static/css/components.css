@@ -57,12 +57,12 @@
 }
 
 .btn--primary:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
+  background-color: var(--color-primary-surface-hover);
   color: var(--color-text-on-brand);
 }
 
 .btn--primary:active:not(:disabled) {
-  background-color: var(--color-primary-active);
+  background-color: var(--color-primary-surface-active);
   box-shadow: none;
 }
 
@@ -175,8 +175,11 @@
 .btn-link:hover { color: var(--color-primary-hover); }
 .btn-link:active { color: var(--color-primary-active); }
 
-.btn-link--danger { color: var(--color-danger); }
-.btn-link--danger:hover { color: var(--color-danger-hover); }
+/* Texto usa --color-danger-text, e não --color-danger: o segundo é fundo de
+   botão, e no escuro um vermelho que aguenta branco por cima fica escuro
+   demais para ser lido como texto sobre o card. */
+.btn-link--danger { color: var(--color-danger-text); }
+.btn-link--danger:hover { color: var(--color-danger-text); text-decoration-thickness: 2px; }
 
 /* Ação de linha em andamento — o download desabilita o próprio botão enquanto
    o arquivo não chega, para o duplo clique não pedir duas vezes. */
@@ -1012,10 +1015,62 @@ button.input-wrap__affix[aria-pressed="true"] {
 }
 
 .dropdown__item--danger {
-  color: var(--color-danger);
+  color: var(--color-danger-text);
 }
 
 .dropdown__item--danger svg { color: currentColor; }
+
+/* Interruptor de tema -------------------------------------------------------
+   Um item do menu com cara de ajuste: rótulo fixo ("Modo escuro") e o
+   interruptor à direita dizendo se está ligado. Lua e sol trocam conforme o
+   tema, e o estado vem de aria-checked, gravado por utils/theme.js. */
+
+.theme-toggle__icon--sun { display: none; }
+
+.theme-toggle[aria-checked="true"] .theme-toggle__icon--moon { display: none; }
+.theme-toggle[aria-checked="true"] .theme-toggle__icon--sun  { display: inline-block; }
+
+.theme-toggle__label {
+  flex: 1 1 auto;
+}
+
+.theme-toggle__track {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-border-strong);
+  transition: background-color var(--duration-fast) var(--ease);
+}
+
+.theme-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-raised);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--duration-fast) var(--ease);
+}
+
+.theme-toggle[aria-checked="true"] .theme-toggle__track {
+  background-color: var(--color-primary-surface);
+}
+
+.theme-toggle[aria-checked="true"] .theme-toggle__thumb {
+  transform: translateX(14px);
+  background-color: var(--color-text-on-brand);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle__track,
+  .theme-toggle__thumb {
+    transition: none;
+  }
+}
 
 .dropdown__separator {
   height: 1px;
@@ -1377,9 +1432,9 @@ button.input-wrap__affix[aria-pressed="true"] {
 }
 
 .pagination__page[aria-current="page"] {
-  background-color: var(--color-brand-deep);
-  border-color: var(--color-brand-deep);
-  color: var(--color-text-on-brand);
+  background-color: var(--color-current-bg);
+  border-color: var(--color-current-bg);
+  color: var(--color-current-text);
 }
 
 .pagination__ellipsis {
@@ -1725,11 +1780,11 @@ button.input-wrap__affix[aria-pressed="true"] {
   gap: var(--space-8);
   padding: var(--space-4) var(--space-8);
   border-radius: var(--radius-control);
-  color: var(--color-brand-deep);
+  color: var(--color-brand-text);
   text-decoration: none;
 }
 
-.brand:hover { color: var(--color-brand-deep-hover); }
+.brand:hover { color: var(--color-brand-text-hover); }
 
 .brand__mark { display: inline-flex; }
 

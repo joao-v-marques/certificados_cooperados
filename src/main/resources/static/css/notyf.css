@@ -186,7 +186,7 @@
 .notyf__toast--info {
   --toast-bg: var(--color-info-bg);
   --toast-fg: var(--color-info-text);
-  --toast-accent: var(--color-brand-deep);
+  --toast-accent: var(--color-brand-text);
 }
 
 /* --------------------------------------------------------------------------

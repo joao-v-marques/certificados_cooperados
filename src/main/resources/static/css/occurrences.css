@@ -59,7 +59,7 @@
 }
 
 .occ-stat--total {
-  --occ-tone: var(--color-brand-deep);
+  --occ-tone: var(--color-brand-text);
 }
 
 .occ-stat--member {
