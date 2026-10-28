@@ -1,13 +1,21 @@
 /**
- * Lançamento de ocorrência: preenche as selects de cooperado e de tipo e envia
- * o formulário.
+ * Lançamento de ocorrência: preenche as selects de solicitante e de tipo e
+ * envia o formulário.
+ *
+ * O solicitante é um cooperado (Relac. Cooperado) ou um credenciado da rede
+ * (Relac. Rede) — nunca os dois, regra que o backend também cobra. Só o campo
+ * do lado escolhido fica visível e habilitado, e só ele vai no corpo; o outro
+ * id segue como null.
  *
  * Contrato com o HTML (data-*):
- *   [data-occurrence-form]        formulário, submit interceptado
- *   [data-responsibility-modal]   aviso de responsabilidade, aberto na carga
- *   [data-responsibility-accept]  botão "Eu concordo", única saída do aviso
+ *   [data-occurrence-form]                formulário, submit interceptado
+ *   [data-requester-switch]               radios name="requesterKind" (cooperado | rede)
+ *   [data-requester-field="<lado>"]       campo de cada lado, alternado pelo switch
+ *   [data-responsibility-modal]           aviso de responsabilidade, aberto na carga
+ *   [data-responsibility-accept]          botão "Eu concordo", única saída do aviso
  *
- * Por id: ocorrencia-cooperado/erro-cooperado, ocorrencia-tipo/erro-tipo,
+ * Por id: ocorrencia-cooperado/erro-cooperado,
+ * ocorrencia-credenciado/erro-credenciado, ocorrencia-tipo/erro-tipo,
  * ocorrencia-data/erro-data e ocorrencia-observacoes/erro-observacoes.
  *
  * O envio é JSON, e não multipart como no lançamento de curso: ocorrência não
@@ -23,13 +31,28 @@ const OCCURRENCES_URL = "/certificados-cooperados/api/v1/occurrences";
 const OCCURRENCE_TYPES_URL = "/certificados-cooperados/api/v1/occurrence-types";
 const ACTIVE_MEMBERS_URL = "/certificados-cooperados/api/v1/cooperative-members?active=true";
 
+// Esta lista traz ativos e inativos; o filtro dos ativos é feito aqui.
+const PROVIDERS_URL = "/certificados-cooperados/api/v1/credentialed-providers";
+
 // Liga o campo que o backend devolve em `fields` aos elementos da tela.
 const FIELDS = {
     cooperativeMemberId: {inputId: "ocorrencia-cooperado", errorId: "erro-cooperado"},
+    credentialedProviderId: {inputId: "ocorrencia-credenciado", errorId: "erro-credenciado"},
     occurrenceTypeId: {inputId: "ocorrencia-tipo", errorId: "erro-tipo"},
     occurrenceDate: {inputId: "ocorrencia-data", errorId: "erro-data"},
     observations: {inputId: "ocorrencia-observacoes", errorId: "erro-observacoes"},
 };
+
+/* =========================================================================
+   Texto vindo do banco
+   ========================================================================= */
+
+// O nome do solicitante volta da API e vai para o toast, que o Notyf grava
+// com innerHTML; não pode ser interpolado cru.
+function escapeHtml(value) {
+    const characters = {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"};
+    return String(value ?? "").replace(/[&<>"']/g, character => characters[character]);
+}
 
 /* =========================================================================
    Erros de campo
@@ -75,7 +98,10 @@ function showFieldErrors(fields) {
    deixa o usuário sem saber se falta cadastro ou se a tela quebrou.
    ========================================================================= */
 
-async function populateSelect({selectId, url, emptyLabel, emptyToast, errorLabel, errorToast}) {
+// `prepare` recebe a lista da API e devolve só o que vira opção, já no formato
+// {id, label} — é por ele que os credenciados são filtrados e ganham o tipo
+// no rótulo. Sem ele, cada item vira {id, name}.
+async function populateSelect({selectId, url, prepare, emptyLabel, emptyToast, errorLabel, errorToast}) {
     const select = document.getElementById(selectId);
 
     try {
@@ -91,7 +117,8 @@ async function populateSelect({selectId, url, emptyLabel, emptyToast, errorLabel
         }
 
         const responseJSON = await response.json();
-        const items = Array.isArray(responseJSON) ? responseJSON : [];
+        const list = Array.isArray(responseJSON) ? responseJSON : [];
+        const items = prepare ? prepare(list) : list.map(item => ({id: item.id, label: item.name}));
 
         if (!items.length) {
             select.querySelector("option").textContent = emptyLabel;
@@ -105,7 +132,7 @@ async function populateSelect({selectId, url, emptyLabel, emptyToast, errorLabel
             const option = document.createElement("option");
             option.value = item.id;
             // textContent, e não innerHTML: o nome vem do banco.
-            option.textContent = item.name;
+            option.textContent = item.label;
             fragment.appendChild(option);
         });
 
@@ -127,6 +154,21 @@ const populateMembersSelect = () => populateSelect({
     errorToast: "Não foi possível carregar a lista de cooperados. Atualize a página.",
 });
 
+// O tipo entra no rótulo para diferenciar homônimos e ajudar a achar o
+// credenciado certo numa lista longa.
+const populateProvidersSelect = () => populateSelect({
+    selectId: "ocorrencia-credenciado",
+    url: PROVIDERS_URL,
+    prepare: list => list
+        .filter(provider => provider.isActive)
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+        .map(provider => ({id: provider.id, label: `${provider.name} (${provider.typeName})`})),
+    emptyLabel: "Nenhum credenciado ativo cadastrado",
+    emptyToast: "Cadastre um credenciado antes de lançar uma ocorrência da rede.",
+    errorLabel: "Não foi possível carregar os credenciados",
+    errorToast: "Não foi possível carregar a lista de credenciados. Atualize a página.",
+});
+
 const populateTypesSelect = () => populateSelect({
     selectId: "ocorrencia-tipo",
     url: OCCURRENCE_TYPES_URL,
@@ -135,6 +177,52 @@ const populateTypesSelect = () => populateSelect({
     errorLabel: "Não foi possível carregar os tipos",
     errorToast: "Não foi possível carregar os tipos de ocorrência. Atualize a página.",
 });
+
+/* =========================================================================
+   Relacionamento (solicitante)
+   ========================================================================= */
+
+function currentRequesterKind() {
+    return document.querySelector('[data-requester-switch] input:checked')?.value ?? "cooperado";
+}
+
+// A lista de credenciados só é buscada na primeira vez que "Relac. Rede" é
+// escolhido: quem lança só ocorrência de cooperado não precisa da chamada, nem
+// de um toast de "nenhum credenciado" que não é problema dele.
+let providersRequested = false;
+
+/**
+ * Mostra o campo do lado escolhido e esconde o outro. O escondido também fica
+ * disabled: assim o `required` dele não barra o envio e o valor não vaza para
+ * o formulário.
+ */
+function syncRequesterFields() {
+    const kind = currentRequesterKind();
+
+    document.querySelectorAll("[data-requester-field]").forEach(field => {
+        const active = field.dataset.requesterField === kind;
+        field.hidden = !active;
+        field.querySelector("select").disabled = !active;
+    });
+
+    if (kind === "rede" && !providersRequested) {
+        providersRequested = true;
+        populateProvidersSelect();
+    }
+}
+
+function initRequesterSwitch() {
+    const requesterSwitch = document.querySelector("[data-requester-switch]");
+    if (!requesterSwitch) return;
+
+    requesterSwitch.addEventListener("change", () => {
+        // O erro do lado que saiu de vista não deve reaparecer quando ele voltar.
+        clearFieldErrors();
+        syncRequesterFields();
+    });
+
+    syncRequesterFields();
+}
 
 /* =========================================================================
    Envio (POST em JSON)
@@ -149,9 +237,13 @@ function readId(elementId) {
 }
 
 function readForm() {
+    const kind = currentRequesterKind();
+
     return {
         occurrenceTypeId: readId("ocorrencia-tipo"),
-        cooperativeMemberId: readId("ocorrencia-cooperado"),
+        // Só o lado escolhido vai preenchido: o backend recusa os dois juntos.
+        cooperativeMemberId: kind === "cooperado" ? readId("ocorrencia-cooperado") : null,
+        credentialedProviderId: kind === "rede" ? readId("ocorrencia-credenciado") : null,
         occurrenceDate: document.getElementById("ocorrencia-data").value || null,
         observations: document.getElementById("ocorrencia-observacoes").value.trim(),
     };
@@ -211,8 +303,16 @@ async function handleSubmit(event) {
 
         // Limpar antes de avisar: reset() dispara o evento de reset, que derruba
         // os toasts — na ordem inversa o sucesso apareceria e sumiria na hora.
+        //
+        // O relacionamento escolhido sobrevive ao reset: quem está lançando
+        // ocorrências da rede costuma lançar várias seguidas.
+        const kind = currentRequesterKind();
         form.reset();
-        notifySuccess(`Ocorrência lançada para ${body?.cooperativeMemberName ?? "o cooperado"}.`);
+        form.querySelector(`[data-requester-switch] input[value="${kind}"]`).checked = true;
+        syncRequesterFields();
+
+        const requesterName = body?.cooperativeMemberName ?? body?.credentialedProviderName ?? "o solicitante";
+        notifySuccess(`Ocorrência lançada para ${escapeHtml(requesterName)}.`);
     } catch (error) {
         notifyError("Não foi possível conectar ao servidor. Tente de novo.");
         console.error(error);
@@ -261,6 +361,10 @@ function initOccurrenceForm() {
     form.addEventListener("reset", () => {
         dismissNotifications();
         clearFieldErrors();
+
+        // O evento sai antes de os valores voltarem ao padrão; o radio só está
+        // de volta em "Relac. Cooperado" na próxima volta do laço de eventos.
+        setTimeout(syncRequesterFields);
     });
 
     // Data futura é recusada pelo backend (@PastOrPresent); bloquear no seletor
@@ -271,6 +375,7 @@ function initOccurrenceForm() {
 function init() {
     initResponsibilityNotice();
     initOccurrenceForm();
+    initRequesterSwitch();
     populateMembersSelect();
     populateTypesSelect();
 }

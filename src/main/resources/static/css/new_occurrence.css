@@ -12,3 +12,93 @@
 .textarea#ocorrencia-observacoes {
   min-height: 160px;
 }
+
+/* --------------------------------------------------------------------------
+   Relacionamento (Relac. Cooperado / Relac. Rede)
+
+   Dois radios com cara de abas, no mesmo desenho das abas da tela de
+   credenciados: trilho afundado e a opção escolhida na superfície inversa da
+   sidebar. O radio continua no DOM (só some da vista) para teclado e leitor
+   de tela funcionarem como num grupo de radios comum: setas trocam a opção.
+   -------------------------------------------------------------------------- */
+
+.requester-switch {
+  display: inline-flex;
+  justify-self: start;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius-control) + var(--space-4));
+  background-color: var(--color-surface-sunken);
+}
+
+.requester-switch__option {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.requester-switch__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.requester-switch__option span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-muted);
+  transition:
+    background-color var(--duration-base) var(--ease),
+    color var(--duration-base) var(--ease);
+}
+
+.requester-switch__option:hover input:not(:checked) + span {
+  color: var(--color-text-strong);
+}
+
+.requester-switch__option input:checked + span {
+  background-color: var(--color-surface-inverse);
+  color: var(--color-text-on-inverse-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+/* O foco é do radio escondido, então o anel vai para o rótulo visível. */
+.requester-switch__option input:focus-visible + span {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* .field define display e venceria o atributo hidden do campo do lado que não
+   está em uso. */
+[data-requester-field][hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .requester-switch__option span { transition: none; }
+}
+
+@media (max-width: 599px) {
+  .requester-switch {
+    display: flex;
+    width: 100%;
+  }
+
+  .requester-switch__option {
+    flex: 1 1 0;
+  }
+
+  .requester-switch__option span {
+    width: 100%;
+  }
+}

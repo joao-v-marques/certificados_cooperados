@@ -326,8 +326,8 @@
                         </nav>
                         <h1 class="page-head__title">Lançar ocorrência</h1>
                         <p class="page-head__subtitle">
-                            Registre uma ocorrência solicitada por um cooperado. Todos os campos
-                            são obrigatórios.
+                            Registre uma ocorrência solicitada por um cooperado ou por um
+                            credenciado da rede. Todos os campos são obrigatórios.
                         </p>
                     </div>
                 </header>
@@ -353,7 +353,25 @@
 
                         <div class="card__body form-grid">
 
-                            <div class="field form-grid__full">
+                            <!-- Relacionamento: decide quem é o solicitante. São radios, e
+                                 não abas de verdade, porque a escolha faz parte do que é
+                                 enviado; o visual de abas vem de new_occurrence.css. O JS
+                                 mostra o campo do lado escolhido e desabilita o outro, o que
+                                 também tira o `required` dele da validação do navegador. -->
+                            <fieldset class="requester-switch form-grid__full" data-requester-switch>
+                                <legend class="visually-hidden">Relacionamento da ocorrência</legend>
+
+                                <label class="requester-switch__option">
+                                    <input type="radio" name="requesterKind" value="cooperado" checked>
+                                    <span>Relac. Cooperado</span>
+                                </label>
+                                <label class="requester-switch__option">
+                                    <input type="radio" name="requesterKind" value="rede">
+                                    <span>Relac. Rede</span>
+                                </label>
+                            </fieldset>
+
+                            <div class="field form-grid__full" data-requester-field="cooperado">
                                 <label class="field__label" for="ocorrencia-cooperado">Cooperado</label>
                                 <!-- As opções são carregadas pelo JS (só cooperados ativos). -->
                                 <select class="select" id="ocorrencia-cooperado" name="cooperativeMemberId"
@@ -365,6 +383,22 @@
                                     faltar alguém, cadastre em Cooperados.
                                 </p>
                                 <p class="field__error is-hidden" id="erro-cooperado"></p>
+                            </div>
+
+                            <!-- Nasce oculto e desabilitado: só entra em jogo em "Relac. Rede". -->
+                            <div class="field form-grid__full" data-requester-field="rede" hidden>
+                                <label class="field__label" for="ocorrencia-credenciado">Credenciado</label>
+                                <!-- As opções são carregadas pelo JS na primeira vez que a
+                                     aba é escolhida (só credenciados ativos). -->
+                                <select class="select" id="ocorrencia-credenciado" name="credentialedProviderId"
+                                        required disabled aria-describedby="dica-credenciado">
+                                    <option value="" disabled selected>Selecione o credenciado</option>
+                                </select>
+                                <p class="field__hint" id="dica-credenciado">
+                                    Quem da rede solicitou a ocorrência. Só aparecem credenciados
+                                    ativos; se faltar alguém, cadastre em Credenciados.
+                                </p>
+                                <p class="field__error is-hidden" id="erro-credenciado"></p>
                             </div>
 
                             <div class="field form-grid__half">
@@ -387,7 +421,7 @@
                                 <input class="input tabular" type="date" id="ocorrencia-data"
                                        name="occurrenceDate" required aria-describedby="dica-data">
                                 <p class="field__hint" id="dica-data">
-                                    Quando o cooperado solicitou. Não pode ser futura.
+                                    Quando a solicitação foi feita. Não pode ser futura.
                                 </p>
                                 <p class="field__error is-hidden" id="erro-data"></p>
                             </div>
@@ -397,7 +431,7 @@
                                 <textarea class="textarea" id="ocorrencia-observacoes" name="observations"
                                           maxlength="2000" rows="6" required
                                           aria-describedby="dica-observacoes"
-                                          placeholder="Descreva a solicitação do cooperado e o que foi tratado."></textarea>
+                                          placeholder="Descreva a solicitação e o que foi tratado."></textarea>
                                 <p class="field__hint" id="dica-observacoes">
                                     É o conteúdo do registro, e não um complemento: descreva o caso
                                     com detalhe suficiente para quem consultar depois entender sem
@@ -430,7 +464,7 @@
                                         <p class="guide__term">O registro não pode ser editado</p>
                                         <p class="guide__text">
                                             A ocorrência fica gravada como foi salva. Confira o
-                                            cooperado e o texto antes de enviar.
+                                            solicitante e o texto antes de enviar.
                                         </p>
                                     </div>
                                 </li>
@@ -439,7 +473,7 @@
                                     <div>
                                         <p class="guide__term">A data é a da solicitação</p>
                                         <p class="guide__text">
-                                            Informe quando o cooperado pediu, não quando você está
+                                            Informe quando o pedido foi feito, não quando você está
                                             lançando — as duas datas ficam guardadas separadas.
                                         </p>
                                     </div>
