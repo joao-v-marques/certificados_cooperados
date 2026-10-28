@@ -1,50 +1,278 @@
 /* ==========================================================================
    occurrences_dashboard.css — estilos exclusivos do dashboard de ocorrências.
 
-   Cabeçalho de página, cards, indicadores (.stat-grid), tabela, filtro de
-   período e estado vazio vêm de components.css. Aqui fica o que só existe
-   nesta tela: a moldura dos gráficos e as barras dos dois rankings.
+   Cards, tabela, filtro de período e estado vazio vêm de components.css.
+   Aqui fica o que só existe nesta tela: a largura total da área de conteúdo,
+   o filtro de relacionamento, a faixa de indicadores, o gráfico de colunas
+   empilhadas, o painel cooperado × rede e as barras dos rankings.
 
-   Nenhum hexadecimal: as marcas de dado leem --color-primary e a grade
-   --color-border, os dois de tokens.css. Uma paleta categórica não entra
-   porque não há série concorrente — cada gráfico mostra uma medida só, e
-   colorir cada barra de um jeito gastaria o canal da identidade para repetir
-   o que o comprimento da barra já diz.
+   Nenhum hexadecimal. São duas séries — cooperado e rede — e cada uma tem um
+   token próprio (--color-relation-*), o mesmo da listagem de ocorrências: o
+   verde e o azul querem dizer a mesma coisa nas duas telas. O par foi
+   conferido para daltonismo; mesmo assim a cor nunca anda sozinha — há
+   legenda, rótulo escrito e a visão em tabela.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Grade da página
+   Largura
+
+   O painel ocupa a área de conteúdo inteira, sem o limite de largura das
+   telas de formulário. Fica só o respiro mínimo nas bordas, para card não
+   encostar na sidebar nem na beira da janela.
    -------------------------------------------------------------------------- */
 
-/* Os dois recortes de baixo dividem a linha no desktop e empilham quando não
-   sobra largura para os rótulos longos dos tipos. */
-.dashboard-split {
+.container--fluid {
+  max-width: none;
+  padding-inline: var(--space-24);
+}
+
+@media (max-width: 767px) {
+  .container--fluid {
+    padding-inline: var(--page-padding-sm);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Cabeçalho e filtros
+   -------------------------------------------------------------------------- */
+
+.dash-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-16) var(--space-24);
+  flex-wrap: wrap;
+}
+
+.dash-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+}
+
+/* Amostra de cor ao lado do texto: é ela, e não o texto, que leva a cor da
+   série. */
+.dash-swatch {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background-color: var(--color-text-muted);
+}
+
+.dash-swatch--member  { background-color: var(--color-relation-member); }
+.dash-swatch--network { background-color: var(--color-relation-network); }
+
+/* Filtro de relacionamento: radios com cara de segmentado, no mesmo desenho
+   do seletor do lançamento. Escolha de verdade, por isso radio, e o teclado
+   anda entre as opções pelas setas. */
+.dash-relation {
+  display: inline-flex;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius-control) + var(--space-4));
+  background-color: var(--color-surface-sunken);
+}
+
+.dash-relation__option {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.dash-relation__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dash-relation__option span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  min-height: calc(var(--control-height) - var(--space-8));
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.dash-relation__option:hover input:not(:checked) + span {
+  color: var(--color-text-strong);
+}
+
+.dash-relation__option input:checked + span {
+  background-color: var(--color-surface);
+  color: var(--color-text-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.dash-relation__option input:focus-visible + span {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Faixa de indicadores
+
+   Um painel só, com quatro células separadas por régua — quatro leituras do
+   mesmo recorte, e não quatro assuntos. O número vem em Fraunces, grande, e
+   é a única coisa alta da faixa.
+   -------------------------------------------------------------------------- */
+
+.kpis {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-24);
+}
+
+.kpi + .kpi {
+  border-left: 1px solid var(--color-border);
+}
+
+.kpi__label {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+}
+
+.kpi__value {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  line-height: var(--leading-3xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi__note {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.kpi__note:empty { display: none; }
+
+@media (max-width: 1199px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .kpi + .kpi { border-left: 0; }
+  .kpi:nth-child(even) { border-left: 1px solid var(--color-border); }
+  .kpi:nth-child(n + 3) { border-top: 1px solid var(--color-border); }
+}
+
+@media (max-width: 599px) {
+  .kpis { grid-template-columns: minmax(0, 1fr); }
+
+  .kpi:nth-child(even) { border-left: 0; }
+  .kpi + .kpi { border-top: 1px solid var(--color-border); }
+
+  .kpi { padding: var(--space-16); }
+  .kpi__value {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-2xl);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Grade dos cards
+   -------------------------------------------------------------------------- */
+
+.dash-row {
+  display: grid;
   gap: var(--gutter);
 }
 
-.dashboard-split > .card {
-  grid-column: span 6;
+/* Gráfico largo à esquerda, divisão cooperado × rede estreita à direita. */
+.dash-row--main {
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+}
+
+/* Até três rankings; quando o filtro tira um de cena, os outros dividem a
+   linha sem deixar buraco. */
+.dash-row--ranks {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.dash-card {
   min-width: 0;
 }
 
+.dash-card[hidden] { display: none; }
+
 @media (max-width: 1023px) {
-  .dashboard-split > .card { grid-column: span 12; }
+  .dash-row--main { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Cabeçalho de card com ação à direita (o botão da visão em tabela). */
+@media (max-width: 599px) {
+  .dash-row { gap: var(--space-16); }
+  .dash-row--ranks { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Cabeçalho de card com legenda e ação à direita. */
 .chart-head {
   align-items: flex-start;
   justify-content: space-between;
 }
 
-/* --------------------------------------------------------------------------
-   Gráfico de colunas
+.chart-head__aside {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+}
 
-   O SVG é desenhado em pixels reais pelo JS — o que está aqui é só a moldura
-   e a cor das marcas. A altura sai do desenho e já inclui a faixa dos rótulos
-   do eixo x, para o card não ganhar um scroll interno só por causa deles.
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+}
+
+.legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.legend__item[hidden] { display: none; }
+
+/* --------------------------------------------------------------------------
+   Gráfico de colunas empilhadas
+
+   O SVG é desenhado em pixels reais pelo JS — aqui ficam só a moldura e as
+   cores. Cooperado embaixo, rede em cima, separados por 2px de superfície.
    -------------------------------------------------------------------------- */
 
 .chart {
@@ -58,9 +286,7 @@
 
 .chart[hidden] { display: none; }
 
-/* Grade e eixo: linha cheia de 1px, um passo fora da superfície. Tracejado se
-   lê como projeção ou limite — aqui é só régua, e precisa desaparecer atrás
-   do dado. */
+/* Grade e eixo: linha cheia de 1px, um passo fora da superfície. */
 .chart__grid {
   stroke: var(--color-border);
   stroke-width: 1;
@@ -72,8 +298,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* O rótulo de valor usa cor de texto, nunca a cor da marca: verde sobre branco
-   em corpo pequeno é ilegível, e a identidade já vem da barra ao lado. */
+/* O total vai no topo da coluna, em cor de texto: a identidade já vem da barra. */
 .chart__value {
   fill: var(--color-text-strong);
   font-size: var(--text-xs);
@@ -82,29 +307,26 @@
 }
 
 .chart__bar {
-  fill: var(--color-primary);
-  transition: fill var(--duration-fast) var(--ease);
+  transition: opacity var(--duration-fast) var(--ease);
 }
 
-/* Mês em curso: mesma cor, mais clara. É o único jeito honesto de mostrar um
-   mês que ainda não acabou — cheio, ele pareceria queda. O tom claro custa
-   contraste, e quem repõe a leitura é o número escrito em cima da coluna —
-   ou, na largura em que os rótulos não cabem, a tabela do botão "Ver dados". */
+.chart__bar--member  { fill: var(--color-relation-member); }
+.chart__bar--network { fill: var(--color-relation-network); }
+
+/* Mês em curso: mesmas cores, mais claras. Cheio, ele pareceria queda. Quem
+   repõe a leitura é o total escrito em cima, ou a tabela de "Ver dados". */
 .chart__bar--partial {
-  fill: var(--color-primary);
   opacity: 0.45;
 }
 
-/* O alvo do ponteiro é a faixa inteira do mês, não a barra. Fica transparente
-   e por cima; o realce que responde ao hover é o escurecimento da barra. */
+/* Ao passar por um mês, os outros recuam: o foco é do mês, sem trocar cor. */
 .chart__hit {
   fill: transparent;
 }
 
-.chart__band:hover .chart__bar,
-.chart__band:focus-within .chart__bar {
-  fill: var(--color-primary-hover);
-  opacity: 1;
+.chart svg:has(.chart__band:hover) .chart__band:not(:hover) .chart__bar,
+.chart svg:has(.chart__band:focus-within) .chart__band:not(:focus-within) .chart__bar {
+  opacity: 0.35;
 }
 
 .chart__hit:focus-visible {
@@ -121,12 +343,11 @@
 
 /* Tooltip ----------------------------------------------------------------- */
 
-/* Some junto com o gráfico quando não há dado, e nunca captura o ponteiro:
-   quem responde ao mouse é a faixa embaixo dele. */
 .chart__tooltip {
   position: absolute;
   z-index: 1;
   transform: translateX(-50%);
+  min-width: 152px;
   padding: var(--space-8) var(--space-16);
   border-radius: var(--radius-control);
   background-color: var(--color-surface-inverse);
@@ -137,8 +358,7 @@
 
 .chart__tooltip[hidden] { display: none; }
 
-/* O valor lidera e o rótulo segue: quem já está com o ponteiro no mês quer o
-   número, não o nome do mês de novo. */
+/* O total lidera; o mês e as duas partes vêm embaixo. */
 .chart__tooltip-value {
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
@@ -150,15 +370,166 @@
 .chart__tooltip-label {
   font-size: var(--text-xs);
   line-height: var(--leading-xs);
+  color: var(--color-text-on-inverse-muted);
+}
+
+.chart__tooltip-parts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-border-inverse);
+}
+
+.chart__tooltip-parts:empty { display: none; }
+
+.chart__tooltip-part {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
   color: var(--color-text-on-inverse);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__tooltip-part strong {
+  margin-left: auto;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-on-inverse-strong);
+}
+
+/* Na superfície escura a amostra ganha um anel claro para não sumir no fundo. */
+.chart__tooltip-part .dash-swatch {
+  box-shadow: 0 0 0 1px var(--color-text-on-inverse-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Cooperado e rede
+
+   O painel que mais diz da tela: dois percentuais grandes lado a lado, em
+   cima de uma barra grossa na proporção real. O lado escolhido no filtro de
+   relacionamento fica aceso; o outro recua.
+   -------------------------------------------------------------------------- */
+
+.relation__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.relation__bar {
+  display: flex;
+  gap: 2px;
+  height: 16px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-sunken);
+  overflow: hidden;
+}
+
+.relation__bar.is-empty { gap: 0; }
+
+.relation__part {
+  height: 100%;
+  transition:
+    width var(--duration-base) var(--ease),
+    opacity var(--duration-fast) var(--ease);
+}
+
+.relation__part--member {
+  width: var(--share-member, 0%);
+  background-color: var(--color-relation-member);
+}
+
+.relation__part--network {
+  width: var(--share-network, 0%);
+  background-color: var(--color-relation-network);
+}
+
+.relation__sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-24);
+}
+
+.relation__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  transition: opacity var(--duration-fast) var(--ease);
+}
+
+.relation__side--network {
+  padding-left: var(--space-24);
+  border-left: 1px solid var(--color-border);
+}
+
+.relation__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.relation__share {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  line-height: var(--leading-4xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-heading);
+}
+
+.relation__count {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text);
+}
+
+.relation__reach {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
+
+/* Com um lado filtrado, o outro recua na barra e no texto. */
+.relation[data-focus="cooperado"] .relation__part--network,
+.relation[data-focus="cooperado"] .relation__side--network,
+.relation[data-focus="rede"] .relation__part--member,
+.relation[data-focus="rede"] .relation__side--member {
+  opacity: 0.35;
+}
+
+@media (max-width: 1023px) and (min-width: 600px) {
+  /* Embaixo do gráfico o painel ganha a largura toda; os números cabem
+     maiores e o vão entre os lados aumenta. */
+  .relation__sides { gap: var(--space-48); }
+  .relation__side--network { padding-left: var(--space-48); }
+}
+
+@media (max-width: 399px) {
+  .relation__share {
+    font-size: var(--text-3xl);
+    line-height: var(--leading-3xl);
+  }
+
+  .relation__side--network { padding-left: var(--space-16); }
+  .relation__sides { gap: var(--space-16); }
 }
 
 /* --------------------------------------------------------------------------
    Rankings
 
-   Rótulo em cima, barra embaixo. Os nomes de tipo passam de 40 caracteres
-   ("SOLICITAÇÃO DE CREDENCIAMENTO NOVO EXAME/PROCEDIME") e, numa coluna ao
-   lado da barra, sobraria largura para nenhum dos dois.
+   Rótulo em cima, barra embaixo: os nomes de tipo passam de 40 caracteres e,
+   numa coluna ao lado da barra, sobraria largura para nenhum dos dois.
+
+   No ranking de tipos a barra é dividida entre cooperado e rede; nos de
+   cooperados e de credenciados ela tem uma cor só, a do lado.
    -------------------------------------------------------------------------- */
 
 .rank {
@@ -170,7 +541,7 @@
 .rank__row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-4) var(--space-16);
+  gap: var(--space-8) var(--space-16);
   align-items: baseline;
 }
 
@@ -178,14 +549,12 @@
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
   color: var(--color-text);
-  /* O nome inteiro, quebrando em duas linhas se precisar: cortar com
-     reticências esconde justamente o fim, que é onde esses rótulos se
-     diferenciam ("...DE CONGRESSO" e "...DE COMPROVANTES"). */
+  /* O nome inteiro, quebrando se precisar: cortar com reticências esconde
+     justamente o fim, que é onde esses rótulos se diferenciam. */
   overflow-wrap: anywhere;
 }
 
-/* "Outros" não é uma categoria do cadastro, é a soma do que não coube. O tom
-   apagado é do texto, não da barra — a marca continua sendo a mesma medida. */
+/* "Outros" não é uma categoria do cadastro, é a soma do que não coube. */
 .rank__row--tail .rank__label {
   color: var(--color-text-muted);
 }
@@ -199,25 +568,39 @@
 
 .rank__track {
   grid-column: 1 / -1;
+  display: flex;
   height: 8px;
   border-radius: var(--radius-pill);
   background-color: var(--color-surface-sunken);
+  overflow: hidden;
 }
 
-/* Nasce reta na linha de base e termina arredondada, que é a ponta do dado. */
+/* A barra preenchida é um grupo com as partes dentro, e é ele que tem a
+   largura relativa ao maior do ranking. */
 .rank__fill {
+  display: flex;
+  gap: 2px;
   height: 100%;
   min-width: 2px;
   border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
-  background-color: var(--color-primary);
+  overflow: hidden;
 }
 
-/* --------------------------------------------------------------------------
-   Vazio de um recorte
+.rank__part {
+  height: 100%;
+}
 
-   Diferente do vazio da base (esse é o bloco .empty do topo da página): aqui é
-   "o período escolhido não tem manifestação", um aviso curto dentro do card.
+.rank__part--member  { background-color: var(--color-relation-member); }
+.rank__part--network { background-color: var(--color-relation-network); }
+
+/* --------------------------------------------------------------------------
+   Visão em tabela e vazios
    -------------------------------------------------------------------------- */
+
+/* Quatro colunas curtas: a largura mínima de .table pediria scroll à toa. */
+.dash-table {
+  min-width: 480px;
+}
 
 .chart-empty {
   font-size: var(--text-sm);
@@ -227,6 +610,45 @@
 
 .chart-empty[hidden] { display: none; }
 
+/* --------------------------------------------------------------------------
+   Responsivo do cabeçalho
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .dash-filters {
+    width: 100%;
+  }
+
+  .dash-relation {
+    display: flex;
+    width: 100%;
+  }
+
+  .dash-relation__option {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .dash-relation__option span {
+    width: 100%;
+    padding: 0 var(--space-8);
+  }
+
+  .year-filter {
+    flex: 1 1 100%;
+  }
+
+  .year-filter__select {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .chart__bar { transition: none; }
+  .chart__bar,
+  .relation__part,
+  .relation__side,
+  .dash-relation__option span {
+    transition: none;
+  }
 }

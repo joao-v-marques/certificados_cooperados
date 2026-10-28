@@ -313,21 +313,42 @@
              CONTEÚDO
              ================================================================== -->
         <main class="app__main" id="conteudo">
-            <div class="container stack-32">
+            <!-- container--fluid: o painel usa a largura inteira da área de
+                 conteúdo, sem o limite de largura das outras telas — são gráficos
+                 lado a lado, e a sobra lateral virava espaço morto em monitor largo. -->
+            <div class="container container--fluid stack-24 dash">
 
-                <header class="page-head">
-                    <div class="page-head__text">
+                <header class="dash-head">
+                    <div class="dash-head__text">
                         <h1 class="page-head__title">Dashboard ocorrências</h1>
                         <p class="page-head__subtitle">
-                            Volume, assunto e origem das manifestações registradas pela
-                            secretaria executiva.
+                            Volume, assunto e origem das manifestações de cooperados e da rede
+                            credenciada.
                         </p>
                     </div>
 
-                    <div class="page-head__actions">
-                        <!-- Recorte de toda a tela. As opções são os anos que têm
-                             manifestação registrada, preenchidos pelo JS — por isso só a
-                             primeira vem escrita aqui. -->
+                    <!-- Os dois recortes valem para a tela inteira: quem solicitou e
+                         quando. Ficam juntos, numa linha só, acima de tudo. -->
+                    <div class="dash-filters">
+                        <fieldset class="dash-relation" data-relation-filter>
+                            <legend class="visually-hidden">Relacionamento</legend>
+
+                            <label class="dash-relation__option">
+                                <input type="radio" name="relation" value="" checked>
+                                <span>Todos</span>
+                            </label>
+                            <label class="dash-relation__option dash-relation__option--member">
+                                <input type="radio" name="relation" value="cooperado">
+                                <span><i class="dash-swatch dash-swatch--member" aria-hidden="true"></i>Rel. Cooperado</span>
+                            </label>
+                            <label class="dash-relation__option dash-relation__option--network">
+                                <input type="radio" name="relation" value="rede">
+                                <span><i class="dash-swatch dash-swatch--network" aria-hidden="true"></i>Rel. Rede</span>
+                            </label>
+                        </fieldset>
+
+                        <!-- As opções são os anos que têm manifestação registrada,
+                             preenchidos pelo JS. -->
                         <div class="year-filter">
                             <label class="year-filter__label" for="filtro-periodo">Período</label>
                             <select class="select year-filter__select" id="filtro-periodo" name="periodo"
@@ -352,129 +373,184 @@
                         <p class="empty__title" id="titulo-sem-dados">Nenhuma manifestação registrada ainda</p>
                         <p class="empty__text">
                             Assim que a secretaria executiva registrar a primeira solicitação de
-                            um cooperado, os indicadores deste painel aparecem aqui.
+                            um cooperado ou da rede, os indicadores deste painel aparecem aqui.
                         </p>
                     </div>
                 </section>
 
                 <!-- O painel inteiro. Oculto até a carga terminar, para os indicadores
                      nunca aparecerem zerados antes de haver resposta. -->
-                <div class="stack-32" data-dashboard hidden>
+                <div class="stack-24" data-dashboard hidden>
 
                     <!-- ==============================================================
                          1. Indicadores
+
+                         Uma faixa só, dividida por réguas, e não quatro cards soltos:
+                         são quatro leituras do mesmo recorte, e a faixa diz isso.
                          ============================================================== -->
-                    <section aria-labelledby="titulo-indicadores">
-                        <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do período</h2>
+                    <section class="kpis" aria-labelledby="titulo-indicadores">
+                        <h2 class="visually-hidden" id="titulo-indicadores">Indicadores do recorte</h2>
 
-                        <div class="stat-grid">
+                        <article class="kpi">
+                            <p class="kpi__label">Manifestações registradas</p>
+                            <p class="kpi__value tabular" data-kpi-total>-</p>
+                            <p class="kpi__note" data-kpi-total-note></p>
+                        </article>
 
-                            <!-- O indicador que a diretoria pede: quantas manifestações
-                                 existem no período escolhido. A linha de apoio diz de que
-                                 período o número fala, para ele nunca circular sozinho. -->
-                            <article class="stat">
-                                <p class="stat__label">Manifestações registradas</p>
-                                <p class="stat__value tabular" data-kpi-total>-</p>
-                                <p class="stat__delta" data-kpi-total-note></p>
-                            </article>
+                        <article class="kpi">
+                            <p class="kpi__label">Solicitantes atendidos</p>
+                            <p class="kpi__value tabular" data-kpi-requesters>-</p>
+                            <p class="kpi__note" data-kpi-requesters-note></p>
+                        </article>
 
-                            <article class="stat stat--info">
-                                <p class="stat__label">Cooperados atendidos</p>
-                                <p class="stat__value tabular" data-kpi-members>-</p>
-                                <p class="stat__delta" data-kpi-members-note></p>
-                            </article>
+                        <article class="kpi">
+                            <p class="kpi__label">Média por mês</p>
+                            <p class="kpi__value tabular" data-kpi-average>-</p>
+                            <p class="kpi__note" data-kpi-average-note></p>
+                        </article>
 
-                            <article class="stat stat--accent">
-                                <p class="stat__label">Média por mês</p>
-                                <p class="stat__value tabular" data-kpi-average>-</p>
-                                <p class="stat__delta" data-kpi-average-note></p>
-                            </article>
-
-                            <!-- Percentual, e não contagem: o que interessa aqui é se a
-                                 demanda se concentra em um assunto só. O nome do tipo vai
-                                 na linha de apoio, porque não cabe no tamanho do valor. -->
-                            <article class="stat stat--warning">
-                                <p class="stat__label">Concentração no tipo mais frequente</p>
-                                <p class="stat__value tabular" data-kpi-top-type>-</p>
-                                <p class="stat__delta" data-kpi-top-type-note></p>
-                            </article>
-                        </div>
+                        <!-- Percentual, e não contagem: o que interessa aqui é se a
+                             demanda se concentra em um assunto só. O nome do tipo vai
+                             na nota, porque não cabe no tamanho do valor. -->
+                        <article class="kpi">
+                            <p class="kpi__label">Concentração no tipo mais frequente</p>
+                            <p class="kpi__value tabular" data-kpi-top-type>-</p>
+                            <p class="kpi__note" data-kpi-top-type-note></p>
+                        </article>
                     </section>
 
                     <!-- ==============================================================
-                         2. Volume por mês
+                         2. Volume por mês + divisão cooperado × rede
                          ============================================================== -->
-                    <section class="card" aria-labelledby="titulo-mensal">
-                        <div class="card__header chart-head">
-                            <div>
-                                <h2 class="card__title" id="titulo-mensal">Volume por mês</h2>
-                                <p class="card__subtitle" data-monthly-caption></p>
-                            </div>
+                    <div class="dash-row dash-row--main">
 
-                            <!-- O par acessível do gráfico: os mesmos números em tabela,
-                                 sem depender de cor nem de ponteiro. -->
-                            <button type="button" class="btn btn--secondary" data-table-toggle
-                                    aria-expanded="false" aria-controls="tabela-mensal">
-                                Ver dados
-                            </button>
-                        </div>
+                        <section class="card dash-card" aria-labelledby="titulo-mensal">
+                            <div class="card__header chart-head">
+                                <div>
+                                    <h2 class="card__title" id="titulo-mensal">Volume por mês</h2>
+                                    <p class="card__subtitle" data-monthly-caption></p>
+                                </div>
 
-                        <div class="card__body">
-                            <!-- O desenho é feito em pixels reais pelo JS e refeito quando o
-                                 card muda de largura. -->
-                            <div class="chart" data-chart-monthly>
-                                <div class="chart__tooltip" data-tooltip hidden>
-                                    <p class="chart__tooltip-value" data-tooltip-value></p>
-                                    <p class="chart__tooltip-label" data-tooltip-label></p>
+                                <div class="chart-head__aside">
+                                    <!-- Legenda: com as duas séries no gráfico, a cor
+                                         nunca é o único jeito de saber qual é qual. O JS
+                                         esconde o lado que o filtro tirou de cena. -->
+                                    <ul class="legend" data-chart-legend>
+                                        <li class="legend__item" data-legend="cooperado">
+                                            <i class="dash-swatch dash-swatch--member" aria-hidden="true"></i>Cooperado
+                                        </li>
+                                        <li class="legend__item" data-legend="rede">
+                                            <i class="dash-swatch dash-swatch--network" aria-hidden="true"></i>Rede
+                                        </li>
+                                    </ul>
+
+                                    <!-- O par acessível do gráfico: os mesmos números em
+                                         tabela, sem depender de cor nem de ponteiro. -->
+                                    <button type="button" class="btn btn--secondary" data-table-toggle
+                                            aria-expanded="false" aria-controls="tabela-mensal">
+                                        Ver dados
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Só faz sentido quando o gráfico realmente tem uma coluna
-                                 parcial: em um ano já fechado, não há mês em curso a
-                                 explicar. Quem mostra e esconde é o JS. -->
-                            <p class="chart__note" data-partial-note hidden>
-                                O mês em curso aparece em tom mais claro: ele ainda não terminou,
-                                e cheio pareceria queda.
-                            </p>
+                            <div class="card__body">
+                                <!-- Desenhado em pixels reais pelo JS e refeito quando o
+                                     card muda de largura. -->
+                                <div class="chart" data-chart-monthly>
+                                    <div class="chart__tooltip" data-tooltip hidden>
+                                        <p class="chart__tooltip-value" data-tooltip-value></p>
+                                        <p class="chart__tooltip-label" data-tooltip-label></p>
+                                        <ul class="chart__tooltip-parts" data-tooltip-parts></ul>
+                                    </div>
+                                </div>
 
-                            <p class="chart-empty" data-empty-monthly hidden>
-                                Nenhuma manifestação registrada neste período.
-                            </p>
-                        </div>
+                                <p class="chart__note" data-partial-note hidden>
+                                    O mês em curso aparece em tom mais claro: ele ainda não terminou,
+                                    e cheio pareceria queda.
+                                </p>
 
-                        <div class="table-wrap" id="tabela-mensal" data-monthly-table-wrap hidden>
-                            <table class="table">
-                                <caption class="visually-hidden">
-                                    Manifestações registradas por mês no período selecionado.
-                                </caption>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Mês</th>
-                                        <th scope="col" class="table__num">Manifestações</th>
-                                    </tr>
-                                </thead>
-                                <tbody data-monthly-table>
-                                    <!-- PREENCHIDO VIA JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
+                                <p class="chart-empty" data-empty-monthly hidden>
+                                    Nenhuma manifestação registrada neste período.
+                                </p>
+                            </div>
+
+                            <div class="table-wrap" id="tabela-mensal" data-monthly-table-wrap hidden>
+                                <table class="table dash-table">
+                                    <caption class="visually-hidden">
+                                        Manifestações registradas por mês no recorte, separadas entre
+                                        cooperado e rede.
+                                    </caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Mês</th>
+                                            <th scope="col" class="table__num">Cooperado</th>
+                                            <th scope="col" class="table__num">Rede</th>
+                                            <th scope="col" class="table__num">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-monthly-table>
+                                        <!-- PREENCHIDO VIA JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <!-- Divisão entre os dois lados no período. Ignora o filtro de
+                             relacionamento de propósito: é a comparação que o filtro
+                             esconderia. O lado filtrado fica destacado. -->
+                        <section class="card dash-card relation" aria-labelledby="titulo-relacionamento">
+                            <div class="card__header">
+                                <div>
+                                    <h2 class="card__title" id="titulo-relacionamento">Cooperado e rede</h2>
+                                    <p class="card__subtitle" data-relation-caption></p>
+                                </div>
+                            </div>
+
+                            <div class="card__body relation__body">
+                                <div class="relation__bar" data-relation-bar aria-hidden="true">
+                                    <span class="relation__part relation__part--member"></span>
+                                    <span class="relation__part relation__part--network"></span>
+                                </div>
+
+                                <div class="relation__sides">
+                                    <div class="relation__side relation__side--member" data-relation-side="cooperado">
+                                        <p class="relation__name">
+                                            <i class="dash-swatch dash-swatch--member" aria-hidden="true"></i>Rel. Cooperado
+                                        </p>
+                                        <p class="relation__share tabular" data-relation-share="cooperado">-</p>
+                                        <p class="relation__count tabular" data-relation-count="cooperado"></p>
+                                        <p class="relation__reach tabular" data-relation-reach="cooperado"></p>
+                                    </div>
+
+                                    <div class="relation__side relation__side--network" data-relation-side="rede">
+                                        <p class="relation__name">
+                                            <i class="dash-swatch dash-swatch--network" aria-hidden="true"></i>Rel. Rede
+                                        </p>
+                                        <p class="relation__share tabular" data-relation-share="rede">-</p>
+                                        <p class="relation__count tabular" data-relation-count="rede"></p>
+                                        <p class="relation__reach tabular" data-relation-reach="rede"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
 
                     <!-- ==============================================================
-                         3. Dois recortes lado a lado
+                         3. Rankings
 
                          Barra em HTML, e não gráfico: os rótulos são longos e cada linha
-                         já traz rótulo e valor como texto, então a lista se lê inteira
-                         sem hover e sem uma tabela à parte.
+                         já traz rótulo e valor como texto. O ranking do lado que o
+                         filtro de relacionamento tirou de cena some, e a grade se
+                         reacomoda.
                          ============================================================== -->
-                    <div class="dashboard-split">
+                    <div class="dash-row dash-row--ranks">
 
-                        <section class="card" aria-labelledby="titulo-tipos">
+                        <section class="card dash-card" aria-labelledby="titulo-tipos">
                             <div class="card__header">
                                 <div>
                                     <h2 class="card__title" id="titulo-tipos">Por tipo de manifestação</h2>
                                     <p class="card__subtitle">
-                                        Os sete assuntos mais frequentes; o restante entra em "Outros".
+                                        Os sete mais frequentes, com a parte de cada lado na barra.
                                     </p>
                                 </div>
                             </div>
@@ -485,28 +561,45 @@
                                 </ul>
 
                                 <p class="chart-empty" data-empty-types hidden>
-                                    Nenhuma manifestação registrada neste período.
+                                    Nenhuma manifestação registrada neste recorte.
                                 </p>
                             </div>
                         </section>
 
-                        <section class="card" aria-labelledby="titulo-cooperados">
+                        <section class="card dash-card" aria-labelledby="titulo-cooperados" data-rank-card="cooperado">
                             <div class="card__header">
                                 <div>
                                     <h2 class="card__title" id="titulo-cooperados">Cooperados que mais solicitaram</h2>
-                                    <p class="card__subtitle">
-                                        Os sete com mais manifestações no período.
-                                    </p>
+                                    <p class="card__subtitle">Os sete com mais manifestações no período.</p>
                                 </div>
                             </div>
 
                             <div class="card__body">
-                                <ul class="rank" data-rank-members>
+                                <ul class="rank rank--member" data-rank-members>
                                     <!-- PREENCHIDO VIA JS -->
                                 </ul>
 
                                 <p class="chart-empty" data-empty-members hidden>
-                                    Nenhuma manifestação registrada neste período.
+                                    Nenhuma manifestação de cooperado neste período.
+                                </p>
+                            </div>
+                        </section>
+
+                        <section class="card dash-card" aria-labelledby="titulo-credenciados" data-rank-card="rede">
+                            <div class="card__header">
+                                <div>
+                                    <h2 class="card__title" id="titulo-credenciados">Credenciados que mais solicitaram</h2>
+                                    <p class="card__subtitle">Os sete com mais manifestações no período.</p>
+                                </div>
+                            </div>
+
+                            <div class="card__body">
+                                <ul class="rank rank--network" data-rank-providers>
+                                    <!-- PREENCHIDO VIA JS -->
+                                </ul>
+
+                                <p class="chart-empty" data-empty-providers hidden>
+                                    Nenhuma manifestação da rede neste período.
                                 </p>
                             </div>
                         </section>

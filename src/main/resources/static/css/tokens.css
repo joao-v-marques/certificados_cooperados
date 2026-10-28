@@ -46,6 +46,10 @@
   --palette-yellow-800:#7a4a00;  /* derivada — texto sobre pastel amarelo */
   --palette-green-200: #cde3bb;  /* verde claro oficial */
   --palette-blue-200:  #a4d8de;  /* azul claro oficial */
+  /* derivada — marca de dado da rede nos gráficos. O petróleo oficial é escuro
+     e acinzentado demais para barra ao lado do verde; este azul passa nas
+     checagens de faixa de luminância, croma e daltonismo contra o green-500. */
+  --palette-blue-600:  #1f6fae;
 
   /* Cores das faixas de pontuação premiada. Não são da identidade da empresa:
      vêm da planilha que a secretaria já usava, e o objetivo é a matriz na tela
@@ -142,13 +146,13 @@
   --color-danger-text:     var(--palette-red-800);
 
   /* Relacionamento da ocorrência — quem solicitou: um cooperado ou um
-     credenciado da rede. Verde para o cooperado, que é a casa; petróleo para a
+     credenciado da rede. Verde para o cooperado, que é a casa; azul para a
      rede, que é a parceria. Semânticos para as telas não amarrarem o
      significado à cor da marca nem a um estado de feedback. */
   --color-relation-member:       var(--palette-green-500);
   --color-relation-member-bg:    var(--palette-green-200);
   --color-relation-member-text:  var(--palette-green-800);
-  --color-relation-network:      var(--palette-teal-800);
+  --color-relation-network:      var(--palette-blue-600);
   --color-relation-network-bg:   var(--palette-blue-200);
   --color-relation-network-text: var(--palette-teal-800);
 
